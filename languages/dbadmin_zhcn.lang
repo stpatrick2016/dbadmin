@@ -1,0 +1,295 @@
+
+#Header of language file
+#@language=Simplified Chinese
+#@short=zhcn
+#@product=Stp Database Administrator
+#@created=2008-7-21
+#@modified=2008-7-21
+#@author=George J. Sun
+#@email=kidsshk3@gmail.com
+#@web=http://www.kspoint.cn
+#@comment=A translation for Chinese.
+
+#browse.asp
+OldBrowser=您的浏览器不支持此方法，请您手动复制数据库地址
+Browse=浏览数据库
+OnlyMDB=这里将只显示扩展名为 .MDB 的文件
+DriveSelector=选择硬盘
+CannotAccessFolder=无法访问此目录，您可能没有权限。 错误: 
+CurrentPath=当前路径:
+Removable=可移动磁盘
+Fixed=固定磁盘
+Network=网络
+Unknown=未知
+
+#common
+Prev=上一个
+Next=下一个
+SortAscending=升序排序
+SortDescending=降序排序
+Submit=提交
+Reset=复位
+No=否
+Yes=是
+CopyToClipboard=复制到剪贴板
+Cancel=取消
+TablesList=数据表
+Back=后退
+Top = 顶部
+Show = 显示
+Hide = 隐藏
+Close = 关闭
+
+#data.asp
+DataForTable=&nbsp;:&nbsp;数据
+AddRecord=添加新纪录
+RefreshTable=刷新数据表
+XMLExport=XML 导出
+XMLExportAlt=导出数据表内容为XML文件
+ExcelExport=Excel 导出
+ExcelExportAlt=导出数据表内容为Excel文件
+NoPrimaryKey=您不能添加/更新这个数据表中的数据。请先设置主键
+EditRecord=编辑这条纪录
+DeleteRecord=删除这条记录
+BinaryData=二进制数据
+SureToDeleteRecord=您确定要依照主键删除纪录
+PageSize=页大小:
+Filter=过滤器:
+CaptionData = 表数据
+
+#database.asp
+DatabaseSelection=选择数据库
+DatabaseSelectionAlt=请选择要操作的数据库
+EnterPath=请使用浏览按钮或从下面的列表中选择一个数据库开始工作. 您也可以通过选择"创建空白数据库"复选框并输入一个不存在的文件名建立一个空白数据库
+CurrentDatabase=当前数据库:
+CreateNew=创建空白数据库
+CreateNewAlt=(如果您要创建空白数据库请检查所制定的路径)
+DatabaseCompacted=数据库压缩/修复成功
+BackupCreated=备份文件创建成功
+BackupRestored=数据库被备份文件还原
+DatabaseOptions=数据库选项
+AffectCurrent=这些操作将影响当前数据库
+CompactRepair=压缩/修复数据库
+CompactRepairAlt=压缩/修复(如果需要)一个 MS Access 数据库.
+Convert2000=转换到 Access 2000
+Convert2000Alt=将 Access 97 数据库转换到 Access 2000 并压缩/修复.
+MakeBackup=建立一个数据库备份
+MakeBackupAlt=创建与数据库相同的扩展名为".bak"备份文件. 任何以前的备份将被覆盖
+RestoreBackup=通过备份还原数据库
+RestoreBackupAlt=如果备份文件之前被创建, 进行这个操作将通过备份还原你的数据库, 数据库将被覆盖!
+DatabasePassword=数据库密码:
+DatabasePath=路径:
+NewDatabasePassword=设置数据库密码
+NewDatabasePasswordAlt=设置一个新密码或者通过留空删除当前密码
+NewPasswordSet=数据库密码创建成功
+RemoveDBPathAlt=从列表中删除数据库的路径
+Actions=操作
+Properties=属性
+FileSize=文件大小:
+SizeAfterCompact=压缩后大小:
+NewPassword=新密码
+RetypeNewPassword=重新输入密码
+ChangePassword=修改密码
+PasswordsMismatch=密码错误
+LocaleIdentifier=地区标识:	
+DatabaseType=数据库类型:
+ImportDatabase = 从数据库导入
+ImportDatabaseAlt = 从其它的 Access 数据库中导入表、视图和存储过程
+OpenDatabase = 打开数据库
+SelectExistingDatabase = 选择已存在的数据库
+ChangeLocaleID = 更改地区
+ChangeLocaleIDAlt = 更改数据库的语言
+NewLocaleID = 新地区(语言):
+BrowseButton = 浏览
+CaptionDatabase = 数据库
+
+#default.asp
+Welcome=欢迎
+WelcomeHeader=欢迎使用 Stp Database Administrator
+WelcomeNote=Stp Database Administrator 能够通过 Web 管理你的 MS Access 数据库，只使用你的浏览器，从任何地方，在任何时间。
+WelcomeNote2=开始用你的数据库工作前，请在下列文本框中输入你的管理员密码并单击提交按钮。
+EnterPassword=密码:
+Version=版本
+SubmitBug=提交一个Bug
+CaptionHome = 首页
+LogOff = 退出
+
+#export_db.asp
+DatabaseExport=数据库导出
+DatabaseExportAlt=生成已选择的表，视图和/或存储过程的 SQL 脚本
+DatabaseExportNote=使用 Shift 和 Ctrl 键选择多个表，视图和/或存储过程
+Options=选项
+IncludeRelations=包含关系
+GenerateSQLScript=生成 SQL 脚本
+SQLScriptNote=生成数据库中已选对象的 SQL 脚本
+Procedures=存储过程
+Views=视图
+
+#export_csv.asp
+PleaseDefineExp=请定义行列分隔符或使用默认值,然后单击"导出"
+Tab=制表符
+Space=空格
+Other=其他
+ColumnDelimiter=列分隔符
+TextQualifier=文本修饰符
+NoFieldNames=没有字段名
+CaptionExportCSV = Excel 导出
+
+#ftquery.asp
+FreeTypeQuery=自定义查询 : 脚本
+FreeTypeQueryAlt=自定义查询能够编写你自己的 SQL 语句,并且得到它的结果(如果有结果返回的话)
+TotalRecords=返回的记录总数:
+RunIt=执行
+TypeSQL=在下面的编辑框中输入你的 SQL 语句.你可以一次运行若干查询,用分号(;)分隔每个项目	
+UseTransaction=运行在一个事务中
+IgnoreErrors=忽略错误
+FTQResults=自定义查询 : 结果
+RecordsAffected=受影响的记录数:
+CaptionFreeTypeQuery = 自定义查询
+
+#import_db.asp, new in version 2.1
+ImportDatabaseWelcome=欢迎使用数据库导入向导!这个向导将允许你从其它的 Access 数据库中导入表,视图和存储过程.开始前请指定你想导入的外部数据库的位置
+ImportDatabaseNote=选择外部数据库
+SelectExternalTables=现在你有一个选项来选择你想导入进数据库中的表,视图和/或存储过程.如果你也想导入数据,请确认在一次之内没有用许多数据导入到许多表中
+Import=导入
+ImportSuccess=所有已选的表,视图和存储过程已经导入成功!
+IncludeData=包含数据
+PathToExternalDatabase = 外部数据库路径
+ExternalDBPassword = 外部数据库密码
+CaptionImportDB = 数据库导入
+	
+#linked.asp, new in version 2.3
+CaptionLinkedTable = 链接表向导
+LinkedDatabaseSelect = 请指定你想链接的表的数据库
+TableToLink = 要链接的表
+AliasName = 链接为(相同名称请留空)
+	
+#lookup.asp, new in version 2.3
+Lookup = 查询
+LookupAlt = 选择一个想要插入的数据
+NoLookupValues = 没有相关数据可用
+
+#qlist.asp
+EnterQParams=请输入过程的参数(以逗号分隔).记得文本参数要用单引号扩起来
+StoredProceduresList=存储过程
+SPName=名称
+SPCode=代码
+SPActions=操作
+CreateProcedure=创建一个新的存储过程
+UpdateProcedure=更新存储过程
+CreateProcedureNote=注意,如果你没有在 SQL 语句中添加任何参数,则将改为创建一个新的视图
+ProcedureName=过程名称:
+SQLStatement=SQL 语句
+Params1stWay=参数可以用两种方式来定义.第一种,在你的 SQL 语句中添加 PARAMETERS 从句,PARAMETERS 从句中写明参数和类型.例如:
+Params2ndWay=第二种,参数是零星定义的.如果你要定义一个参数(不能是字段名或 SQL 的保留字),那就直接定义
+DeleteProcedurePrompt=你确定你想删除这个存储过程
+SPExecute=执行存储过程
+SPEdit=编辑存储过程
+SPDelete=删除存储过程
+
+#recedit.asp
+Record=记录
+AutoNumberNote=注意,你无法编辑自动编号类型的字段,因为他们是自动更新的.二进制类型的字段也无法显示
+RecEditNote=你可以使用 更新+下一个/更新+上一个 和 添加+下一个 按钮来循环记录.要添加/更新记录并返回表,请单击添加/更新按钮
+Update=更新
+Add=添加
+RecordUpdated=记录添加/更新成功
+First=第一个
+Last=最后一个
+CaptionRecEdit = 编辑记录
+Edit = 编辑
+
+#relations.asp
+RelationsNote=每一个关系也在比较易读的形式中描述
+PrimaryIndex=主索引
+PrimaryTable=主表
+PrimaryColumn=主列
+ForeignIndex=外部索引
+ForeignTable=外部表
+ForeignColumn=外部列
+DeleteRelationship=删除这个关系
+IfFieldChanged=如果 <b><i>$PK_COLUMN_NAME</i></b> 字段在 <b><i>$PK_TABLE_NAME</i></b> 中被更改,则 <b><i>$FK_COLUMN_NAME</i></b> 字段在 <b><i>$FK_TABLE_NAME</i></b> 中
+IfFieldDeleted=如果有 <b><i>$PK_COLUMN_NAME</i></b> 的记录已从 <b><i>$PK_TABLE_NAME</i></b> 中删除,则所有在 <b><i>$FK_TABLE_NAME</i></b> 中 <b><i>$FK_COLUMN_NAME</i></b> 相同的记录
+ChangedAlso=也将被更改
+SetToNull=设置为空
+SetToDefault=设置为默认值
+WillBeDeleted=将被删除
+CreateRelationship=创建新关系
+ForeignIndexName=外部索引名
+OnUpdate=更新时:&nbsp;
+NoAction=无操作
+OnDelete=删除时:&nbsp;
+Delete=删除
+Relations=关系
+
+#settings.asp
+Settings=设置
+SettingsNotAvailable=对不起,设置页不可用,因为你没有指定一个 XML 文件的路径.如果你现在想设置它,请在任意的文本编辑器中打开 <font color="green">scripts/inc_config.asp</font> 文件,例如记事本,并且更改 <font color="green">DBA_cfgProfilePath</font> 的值
+SessionVariables=Session 变量
+Username=用户名
+UserPassword=用户密码
+DBPath=数据库路径
+DBPassword=数据库密码
+SaveDBPaths=保存数据库路径吗?
+OtherSettings=其它设置
+SaveSuccess=设置保存成功
+RecordsPerPage=每页记录数
+Language = 语言
+ShowSysTables = 显示系统表吗?
+
+#structure.asp
+TableIndexes=&nbsp;:&nbsp;索引
+IndexName=索引名
+Column=字段名
+Unique=唯一索引
+IndexedUnique=是，无重复
+IndxedDuplicates=是，有重复
+PrimaryColumnAlt=主键字段名
+UniqueIndexAlt=索引是无重复的
+DeleteIndexAlt=删除索引
+CreateIndex=创建索引
+TableStructure=&nbsp:&nbsp;表结构
+Ordinal=序数
+Name=名称
+DataType=数据类型
+Nullable=可空
+MaxLength=最大长度
+DefaultValue2=默认值
+Description=描述
+EditField=编辑字段
+RemovePK=删除主键
+SetAsPK=设为主键
+DeleteField=删除字段
+AddNewColumn=添加新字段
+CreateTableQuery=&nbsp;:&nbsp;SQL
+CreateTableQueryAlt=CREATE TABLE SQL 脚本可以被用来重新创建这个表
+AreYouSureToDelete=你确定你想删除 $name 字段和它的所有索引吗?
+AllowZeroLength=允许空字符串
+UnicodeCompress=Unicode 压缩
+Indexed=索引
+CaptionTableStructure = 表结构
+
+#tablelist.asp
+TableName=表名
+Created=创建日期
+Modified=修改日期
+ViewTableStructureAlt=查看表结构
+ViewTableDataAlt=查看表数据
+DeleteTableAlt=删除表
+SureToDeleteTable=你确定你想删除 $table_name 表吗
+CreateNewTable=创建新表
+NewTableName=新表名称:&nbsp;
+TableNavigateAlt=循环表中的记录
+CaptionTablesList = 表列表
+RenameTableAlt = 重命名表
+AddLinkedTable = 添加链接表
+
+#vlist.asp
+RunViewAlt=运行视图
+DeleteViewAlt=删除视图
+CreateNewView=创建一个新视图
+ViewName=视图名称:
+SureToDeleteView=你确定你想删除 $name 视图吗?
+UpdateView=更新视图
+EditView=编辑视图
+CaptionViews = 视图

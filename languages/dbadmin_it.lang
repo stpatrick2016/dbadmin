@@ -1,0 +1,294 @@
+#Header of language file
+#@language=Italiano
+#@short=it
+#@product=Stp Database Administrator
+#@created=2003-00-00
+#@modified=2003-00-00
+#@author=Davide Vogliotti
+#@email=davide@spacefarm.net
+#@web=http://www.spacefarm.net
+#@comment=Traduzione Italiana Release 2
+
+#browse.asp
+OldBrowser=Il tuo browser non supporta questa operazione.Copia il percorso del database a mano
+Browse=Cerca il database
+OnlyMDB=Verranno visualizzati solo i file con estensione .mdb
+DriveSelector=Seleziona il Drive
+CannotAccessFolder=Accesso negato alla cartella.Mancano i permessi per effettuare questa operazione. Errore:
+CurrentPath=Percorso corrente:
+Removable=Rimovibile
+Fixed=Fisso
+Network=Network
+Unknown=Sconosciuto
+
+#common
+Prev=Precedente
+Next=Successivo
+SortAscending=Ordinamendo crescente
+SortDescending=Ordinamento Decrescente
+Submit=Invia
+Reset=Reimposta
+No=No
+Yes=Si
+CopyToClipboard=Copia negli appunti
+Cancel=Cancella
+TablesList=Tabelle
+Back=Indietro
+Top = Top
+Show = Visualizza
+Hide = Nascondi
+Close = Chiudi
+
+#data.asp
+DataForTable=&nbsp;:&nbsp;Data
+AddRecord=Aggiungi un nuovo record
+RefreshTable=Refresh tablabelle
+XMLExport=Esporta XML
+XMLExportAlt=Esporta il contenut della tabella in un file XML
+ExcelExport=Esporta Excel
+ExcelExportAlt=Esporta il contenuto della tabella in un file di testo delimitato
+NoPrimaryKey=Impossibile aggiungere/aggiornare i dati di questa tabela. Imposta la chiave primaria
+EditRecord=Edita il record
+DeleteRecord=Cancella il record
+BinaryData=Dati Binari
+SureToDeleteRecord=sei sicuro di voler cancellare il record con la chiave primaria ?
+PageSize=Dimensione pagina:
+Filter=Filtro:
+CaptionData = Dati Tabella
+
+#database.asp
+DatabaseSelection=Selezione Database
+DatabaseSelectionAlt=Seleziona il Database
+EnterPath=Per iniziare a lavorare, selezionare il database utilizzando il tasto Sfoglia o selezionarne uno dalla lista qui sotto. E' anche possibile creare un nuovo database inserendo un nome non esistente e selezionando il campo "Crea Nuovo Database".
+CurrentDatabase=Database:
+CreateNew=Crea un nuovo Database
+CreateNewAlt=(selezionare se si vuole creare un database vuoto nel percroso specificato)
+DatabaseCompacted=Database compattato e riparato correttamente
+BackupCreated=Il file di Backup è stato correttamente creato
+BackupRestored=Il Database è stato recuperato dalla copia di bvackup
+DatabaseOptions=Opzioni Database
+AffectCurrent=Questa operazione interessa il database corrente
+CompactRepair=Compatta e ripara il Database
+CompactRepairAlt=Compatta e ripara (se necessario) un Database Access
+Convert2000=Converi in Access 2000
+Convert2000Alt=Converte un Datanase Acess 97 in un Database Acess 2000,eseguendo una compattazione e correzione dello stesso.
+MakeBackup=Crea una copia di backup del Database
+MakeBackupAlt=Crea una copia del Database con lo stesso nome ma estensione '.bak'. Tutti i backup precedenti verranno sovrascritti
+RestoreBackup=Ripristina Database da Backup
+RestoreBackupAlt=Se precedentemente è stato creato un backup del database. utilizzando questa funzione verrà ripristinato il vostro database dalla copia di backup. Il database corrente verrà sovrascritto !
+DatabasePassword=Password del Database:
+DatabasePath=Percorso:
+NewDatabasePassword=Imposta la password per il database
+NewDatabasePasswordAlt=Imposta una nuova password per il database o lasciare bianco per rimuovere quella quella corrente
+NewPasswordSet=La password per il database è stata creata correttamente
+RemoveDBPathAlt=Elimina il percorso del database dalla lista
+Actions=Azione
+Properties=Proprietà
+FileSize=Dimensione del file:
+SizeAfterCompact=Dimensione dopo la compattazione:
+NewPassword=Nuova password
+RetypeNewPassword=Re-inserisci la password
+ChangePassword=Cambia la password
+PasswordsMismatch=La password non coincide
+LocaleIdentifier=Identificatore Locale:
+DatabaseType=Tipo di Database:
+ImportDatabase = Importa dal database
+ImportDatabaseAlt = Permette di importare tabelle,visualizzazioni e procedure integrate da un altro database Access
+OpenDatabase = Apri il Database
+SelectExistingDatabase = Seleziona un database esistente
+ChangeLocaleID = Cambia lingua
+ChangeLocaleIDAlt = Permette di cambiare la lingua predefinita del database
+NewLocaleID = Nuova Lingua (locale):
+BrowseButton = Sfoglia
+CaptionDatabase = Database
+
+#default.asp
+Welcome=Benvenuto
+WelcomeHeader=Benvenuto in Stp Database Administrator
+WelcomeNote=Stp Database Administrator permette di amministrare i database Acess tramite il web, utilizzando unicamente il browser, da qualsiasi posto e a qualsiasi momento.
+WelcomeNote2=Per iniziare a lavorare con i database,inserisci la password di amministratore nella text box qui sotto e cliccare Enter.
+EnterPassword=Password:
+Version=Versione
+SubmitBug=Segnala un errore
+CaptionHome = Home
+LogOff = Disconnessione
+
+#export_db.asp
+DatabaseExport=Esportazione Database
+DatabaseExportAlt=Genera uno script SQL per le tabelle selezionate, visualizzazioni e/o procedure integrate
+DatabaseExportNote=Utilizzare shift e control per selezionare piu tabelle, visualizzazioni e/o procedure integrate
+Options=Opzioni
+IncludeRelations=Includi relazioni
+GenerateSQLScript=Genera lo script SQL
+SQLScriptNote=Genera lo script SQL dagli oggetti del database che sono stati selezionati
+Procedures=Procedure
+Views=Visualizzaizoni
+
+#export_csv.asp
+PleaseDefineExp=Definire la colonna e la riga di delimitazione,oppure utilizzare le opzioni predefinite ed effettuare l'esportazione
+Tab=Tab
+Space=Spazio
+Other=Altri
+ColumnDelimiter=delimitatore di colonna
+TextQualifier=Identificatore di testo
+NoFieldNames=Nessun nome per il campo
+CaptionExportCSV = Esposrtazione Excel
+
+#ftquery.asp
+FreeTypeQuery=Query a selezione libera : Script
+FreeTypeQueryAlt=La query a selezione libera permette di testare il la vostra interrogazione ed visualizzare il risultato
+TotalRecords=Totale record restituiti:
+RunIt=Esegui
+TypeSQL=Inserire la query nella casella di testo sottostante. E' possibile inserire piu query separandole tramite ;
+UseTransaction=Esegui in una transazione
+IgnoreErrors=Ignora errori
+FTQResults=Query a selezione libera : Risultato
+RecordsAffected=Record interessati:
+CaptionFreeTypeQuery =Query a selezione libera
+
+#import_db.asp, new in version 2.1
+ImportDatabaseWelcome=Importazione guidata database! La procedura permette di importare tabelle , report e procedure integrate da un altro database Access. Per iniziare la procedura specificare il database che si desidera importare
+ImportDatabaseNote=Seleziona un database esterno
+SelectExternalTables=Ora è possibile selezionare le tabelle , report e procedure integrate che si desidera importare. Se desiderate importare anche i dati , assicurarsi di non importare piu tabelle contenenti molti dati per volta.
+Import=Importa
+ImportSuccess=Tutte le tabelle , report e procedure integrate sono state correttamente importate.
+IncludeData=Including data
+PathToExternalDatabase = Path to external database
+ExternalDBPassword = External database password
+CaptionImportDB = Database Import
+	
+#linked.asp, new in version 2.3
+CaptionLinkedTable = Creazione guidata collegamento tabella
+LinkedDatabaseSelect = Specificare il database contentente la tabella da collegare
+TableToLink = Tabella da collegare
+AliasName = Collega come (lasciare bianco per mantenere lo stesso nome)
+	
+#lookup.asp, new in version 2.3
+Lookup = Cerca
+LookupAlt = Selezionare un valore da inserire
+NoLookupValues = Nessun valore collegato disponibile
+
+#qlist.asp
+EnterQParams=Inserire o parametri della procedura divisi da virgola. Ricordarsi di racchiudere il testo tra apici.
+StoredProceduresList=Procedure integrate
+SPName=Nome
+SPCode=Codice
+SPActions=Azione
+CreateProcedure=Crea una nuova procedura
+UpdateProcedure=Aggiorna una procedura
+CreateProcedureNote=Se non aggiungerete alcun parametro nella vostra stringa SQL, allora verrà generato un nuovo Report
+ProcedureName=Nome procedura:
+SQLStatement=Stringa SQL
+Params1stWay=I parametri possono essere definiti in 2 sistemi. Primo, aggiungendo la clausola PARAMETRI nella vostra stringa SQL con tutti i parametri e tipi elencati. Per esempio:
+Params2ndWay=Secondo, quando i parametri sono determinati al volo. Se aggiungerete un parametro che non è riconosciuto come un nome della colonna o parola riservata SQL, sarà considerato come parametro.
+DeleteProcedurePrompt=Procedere con l'eliminazione della procedura integrata?
+SPExecute=Esegui la procedura integrata
+SPEdit=Modifica la procedura integrata
+SPDelete=Elimina la procedura integrata
+
+#recedit.asp
+Record=Record
+AutoNumberNote=Attenzione un campo Contatore non puo essere editato ma viene aggiornato automaticamente. Inoltre anche le colonne di tipo binario non verranno visualizzate.
+RecEditNote=Potete scorrere i record utilizzando i bottoni Aggiorna+Successivo/Aggiorna+Precedente e Aggiungi+Successivo. Per Aggiungere/Aggiornare un record e ritornare alla tabella utilizzate il bottone Aggiungi/Aggiorna
+Update=Aggiorna
+Add=Aggiungi
+RecordUpdated=Record aggiunto/aggiornato correttamente
+First=Primo
+Last=Ultimo
+CaptionRecEdit = Edita record
+Edit = Edita
+
+#relations.asp
+RelationsNote=Ciascuno dei rapporti descritti nella forma più leggibile.
+PrimaryIndex=Indice primario
+PrimaryTable=Tabella primaria
+PrimaryColumn=Colonna primaria
+ForeignIndex=Foreign Index
+ForeignTable=Foreign Table
+ForeignColumn=Foreign Column
+DeleteRelationship=Elimina questa relazione
+IfFieldChanged=Se la colonna <b><i>$PK_COLUMN_NAME</i></b> è stata modificata nella tabella <b><i>$PK_TABLE_NAME</i></b>, allora la colonna <b><i>$FK_COLUMN_NAME</i></b> della tabella <b><i>$FK_TABLE_NAME</i></b> diventerà 
+IfFieldDeleted=Se il record della colonna <b><i>$PK_COLUMN_NAME</i></b> è stato modificato nella tabella <b><i>$PK_TABLE_NAME</i></b>, allora tutti i record della stessa colonna <b><i>$FK_COLUMN_NAME</i></b> nella tabella <b><i>$FK_TABLE_NAME</i></b> 
+ChangedAlso=verranno modificati.
+SetToNull=verranno impostati come nulli.
+SetToDefault=Imposta come valore di default.
+WillBeDeleted=verranno eliminati.
+CreateRelationship=Crea una nuova relazione
+ForeignIndexName=Nome indice sconosciuto
+OnUpdate=All'aggiornamento:&nbsp;
+NoAction=Nessuna operazione
+OnDelete=On delete:&nbsp;
+Delete=Elimina
+Relations=Relazioni
+
+#settings.asp
+Settings=Impostazioni
+SettingsNotAvailable=spiacente, le impostazioni della pagina non saranno disponbili fino a quando non verrà specificato un percorso per il file XML. E' possibile specificare il percorso ora editando il file <font color="green">scripts/inc_config.asp</font> con un qualsiasi editor di testo, e cabiare il valore della variabile <font color="green">DBA_cfgProfilePath</font>
+SessionVariables=Variabile di sessione
+Username=Nome Utente
+UserPassword=Passwor dell'utente
+DBPath=Percorso del database
+DBPassword=Password del database
+SaveDBPaths=Eseguire salvataggio del percorso del database?
+OtherSettings=Altre impostazioni
+SaveSuccess=Le impostazioni sono state salvate correttamente
+RecordsPerPage=Record per pagina
+Language = Lingua
+ShowSysTables = Visualizza le tabelle di sistema
+
+#structure.asp
+TableIndexes=&nbsp;:&nbsp;Indice
+IndexName=Nome indice
+Column=Colonna
+Unique=Unico
+IndexedUnique=Si, indice unico
+IndxedDuplicates=Si, permetti duplicati
+PrimaryColumnAlt=Colonna con chiave primaria
+UniqueIndexAlt=L'indice è unico
+DeleteIndexAlt=Eliminazione indice
+CreateIndex=Creazione indice
+TableStructure=&nbsp:&nbsp;Struttura
+Ordinal=Ordinale
+Name=Nome
+DataType=Tipo di dati
+Nullable=Annullabile
+MaxLength=Dimensione massima
+DefaultValue2=Valore di default
+Description=Descrizione
+EditField=Modifia colonna
+RemovePK=Eliminazione chiave primaria
+SetAsPK=Impostare come chiave primaria
+DeleteField=Elimina colonna
+AddNewColumn=Aggiungi nuova colonna
+CreateTableQuery=&nbsp;:&nbsp;SQL
+CreateTableQueryAlt=CREATE TABLE SQL script da utilizzare per ri-creare questa tabella
+AreYouSureToDelete=Confema eliminazione della colonna $name e di tutti gli indici contenuti?
+AllowZeroLength=Permetti lunghezza zero
+UnicodeCompress=Compressione Unicode
+Indexed=Indicizzato
+CaptionTableStructure = Struttura tabella
+
+#tablelist.asp
+TableName=Nome Tabella
+Created=Data creazione
+Modified=Data ultima modifica
+ViewTableStructureAlt=Visualizza la struttura della tabella
+ViewTableDataAlt=Visualizza il contenuto della tabella
+DeleteTableAlt=Elimina la tabella
+SureToDeleteTable=Sei sicuro di voler eliminalre la tabella $table_name?
+CreateNewTable=Crea una nuova tabella
+NewTableName=Nome nuova tabella:&nbsp;
+TableNavigateAlt=Sfoglia il contenuto della tabella
+CaptionTablesList = Elenco tabelle
+RenameTableAlt = Rinomina tabella
+AddLinkedTable = Aggiungi un collegamento ad una tabella
+
+#vlist.asp
+RunViewAlt=Visualizza report
+DeleteViewAlt=Cancella report
+CreateNewView=Creazione nuovo report
+ViewName=Nome report:
+SureToDeleteView=Confermi eliminazione del report $name?
+UpdateView=Aggiorna report
+EditView=Modifica report
+CaptionViews = Report

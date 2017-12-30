@@ -1,0 +1,263 @@
+
+#Header of language file
+#@language=Èesky (Czech)
+#@short=cz
+#@product=Stp Database Administrator
+#@created=2003-17-2
+#@modified=2003-17-2
+#@author=Josef Pozdnik
+#@email=j.pozdnik@worldonline.cz
+
+#browse.asp
+OldBrowser=Váš prohlíeè nepodporuje tuto metodu. Zkopírujte cestu k databázy manuálnì
+Browse=Prozkoumat
+OnlyMDB=Zobrazují se jen soubory s pøíponou .MDB
+DriveSelector=Vyber disk
+CannotAccessFolder=Pøístup k adresáøi odepøen. Pravdìpodobnì nemáte patøièná práva k prohlíení této sloky. Chyba: 
+CurrentPath=Aktuální cesta:
+Removable=Vyjímatelnı
+Fixed=Pevnı
+Network=Síovı
+Unknown=Neznámı
+
+#common
+Prev=Pøedchozí
+Next=Další
+SortAscending=Seøadit vzestupnì
+SortDescending=Seøadit sestupnì
+Submit=Odeslat
+Reset=Obnovit
+No=Ne
+Yes=Ano
+CopyToClipboard=Kopírovat do schránky
+Cancel=Storno
+TablesList=Tabulky
+Back=Zpìt
+Top = Nahoru
+
+#data.asp
+DataForTable=&nbsp;:&nbsp;Data
+AddRecord=Pøidat novı záznam
+RefreshTable=Obnovit tabulku
+XMLExport=XML Export
+XMLExportAlt=Exportovat obsah tabulky jako XML soubor
+ExcelExport=Excel Export
+ExcelExportAlt=Exportovat jako textovı soubor s oddìlovaèi
+NoPrimaryKey=V této tabulce nelze pøidávat/aktualizovat data. Nejdøíve nastavte primární klíè, prosím
+EditRecord=Editovat záznam
+DeleteRecord=Smazat záznam
+BinaryData=Binární data
+SureToDeleteRecord=Opravdu chcete smazat záznam s primárním klíèem
+PageSize=Velikost stránky:
+Filter=Filtr:
+
+#database.asp
+DatabaseSelection=Vıbìr databáze
+DatabaseSelectionAlt=Vyberte databázi, se kterou chcete pracovat, prosím
+EnterPath=Pro zaèátek vyberte databázi kliknutím na tlaèítko Procházet, nebo ze seznamu dole. Mùete také vytvoøit novou prázdnou databázi, pokud napíšete jméno neexistujícího souboru a zaškrtnete checkbox "Vytvoøit prázdnou"
+CurrentDatabase=Databáze:
+CreateNew=Vytvoøit prázdnou databázi
+CreateNewAlt=(zkontrolujte, zda chcete vytvoøit prázdnou databázi se specifikovanou cestou)
+DatabaseCompacted=Databáze byla úspìšnì zkomprimována a opravena
+BackupCreated=Záloní soubor byl úspìšnì vytvoøen
+BackupRestored=Databáze byla obnovena ze záloní kopie
+DatabaseOptions=Monosti databáze
+AffectCurrent=Tyto akce ovlivní aktuální databázi
+CompactRepair=Zkomprimovat a opravit databázi
+CompactRepairAlt=Zkomprimuje a opraví (je-li tøeba) MS Access databázi.
+Convert2000=Konvertovat na Access 2000
+Convert2000Alt=Pøevede databázi Access 97 na Access 2000, potom ji zkomprimuje a opraví.
+MakeBackup=Vytvoøit zálohu databáze
+MakeBackupAlt=Vytvoøí záloní kopii vaší databáze se stejnım jménem a pøíponou '.bak'. Všechny pøedchozí zálohy budou pøepsány
+RestoreBackup=Obnovit ze zálohy
+RestoreBackupAlt=Pokud byla záloha ji vytvoøena, provedením této akce obnovníte vaši databázi ze záloní kopie. Databáze bude pøepsána!
+DatabasePassword=Heslo k databázi:
+DatabasePath=Cesta:
+NewDatabasePassword=Nastavit heslo k databázi
+NewDatabasePasswordAlt=Nastaví nového heslo k databázi. Ponecháním prázdného pole odstraníte heslo aktuální
+NewPasswordSet=Heslo k databázi bylo právì úspìšnì zmìnìno
+RemoveDBPathAlt=Odstranit cestu k databázi ze seznamu
+Actions=Akce
+Properties=Monosti
+FileSize=Velikost souboru:
+SizeAfterCompact=Velikost po komprimaci:
+NewPassword=Nové heslo
+RetypeNewPassword=Heslo znovu
+ChangePassword=Zmìnit heslo
+PasswordsMismatch=Hesla se neshodují
+LocaleIdentifier=Lokalizace:
+DatabaseType=Typ databáze:
+ImportDatabase = Importovat z databáze
+ImportDatabaseAlt = Umoòuje importovat tabulky, pohledy a uloené procedury z jiné Access databáze
+OpenDatabase = Otevøít databázi
+SelectExistingDatabase = Vybrat existující databázi
+ChangeLocaleID = Zmìnit Lokalizaci
+ChangeLocaleIDAlt = Umoòuje zmìnit jazyk databáze
+NewLocaleID = Nová lokalizace (jazyk):
+
+#default.asp
+Welcome=Vítejte
+WelcomeHeader=Vítá Vás Stp Database Administrator
+WelcomeNote=Stp Database Administrator Vám umoòuje spravovat vaše MSAccess databáze pøes Web internetovım prohlíeèem, odkudkoli, kdykoli.
+WelcomeNote2=Abyste mohli pracovat s Vašimi databázemi, zadejte administrátorské heslo do pole níe a kliknìte na Enter.
+EnterPassword=Heslo:
+Version=Verze
+SubmitBug=Odeslat chybu (bug)
+
+#export_db.asp
+DatabaseExport=Export databáze
+DatabaseExportAlt=Vygeneruje SQL skript pro vybrané tabulky, pohledy a/nebo uloené procedury
+DatabaseExportNote=Stisknutím Shift a Ctrl vyberete více tabulek, pohledù a/nebo uloenıch procedur najednou
+Options=Monosti
+IncludeRelations=Zahrnout relace
+GenerateSQLScript=Generuj SQL skript
+SQLScriptNote=Vygenerovanı SQL skript pro vybrané objekty v databázi
+Procedures=Procedury
+Views=Pohledy
+
+#export_csv.asp
+PleaseDefineExp=Prosím, definujte oddìlovaèe sloupcù a øádkù, nebo pouijte vıchozí a kliknìte na Export
+Tab=Tabulátor
+Space=Mezera
+Other=Jiné
+ColumnDelimiter=Oddìlovaè sloupce
+TextQualifier=Textovı kvalifikátor
+NoFieldNames=Bez názvù polí
+
+#ftquery.asp
+FreeTypeQuery=Free-Type Dotaz : Skript
+FreeTypeQueryAlt=Free-Type Dotaz vám umoòuje vytvoøit vlastní SQL pøíkaz a získat vısledky (pokud budou nìjaké vráceny)
+TotalRecords=Celkovı poèet vrácenıch záznamù:
+RunIt=Spustit
+TypeSQL=Zadejte váš SQL pøíkaz do pole níe. Mùete spustit nìkolik dotazù najednou, a to oddìlením kadého z nich støedníkem (;)
+UseTransaction=Spustit v jedné transakci
+IgnoreErrors=Ignorovat chyby
+FTQResults=Free-Type Dotaz : Vısledky
+RecordsAffected=Ovlivnìno záznamù:
+
+#import_db.asp, new in version 2.1
+ImportDatabaseWelcome=Vítá Vás prùvodce importem databáze! Tento prùvodce Vám umoní importovat tabulky, pohledy a uloené procedury z jiné databáze MSAccess. Pro zaèátek urèete externí databázi, ze které chcete importovat, prosím.
+ImportDatabaseNote=Vıbìr externí databáze
+SelectExternalTables=Nyní máte monost vybrat externí tabulky, pohledy a/nebo uloené procedury, které chcete importovat do vaší databáze. Chcete-li importovat také data, ujistìte se, e neimportujete mnoho tabulek s mnoha daty najednou.
+Import=Importuj
+ImportSuccess=Všechny vybrané tabulky, pohledy a uloené procedury byly úspìšnì naimportovány
+IncludeData=Vèetnì dat
+PathToExternalDatabase = Cesta k externí databázi
+ExternalDBPassword = Heslo k externí databázi
+
+#qlist.asp
+EnterQParams=Vlote, prosím, parametry procedury oddìlené èárkami. Nezapomeòte uzavøít textové parametry do apostrofù.
+StoredProceduresList=Uloené procedury
+SPName=Název
+SPCode=Kód
+SPActions=Akce
+CreateProcedure=Vytvoøit novou proceduru
+UpdateProcedure=Aktualizovat proceduru
+CreateProcedureNote=Poznámka: nepøidáte-li ádnı parametr do SQL pøíkazu, vytvoøí se místo procedury novı pohled
+ProcedureName=Název procedury:
+SQLStatement=SQL Pøíkaz
+Params1stWay=Parametry lze definovat 2 zpùsoby. Zaprvé, pøidáním fráze PARAMETERS do Vašeho SQL pøíkazu, vèetnì všech parametrù a jejich názvù. Napøíklad:
+Params2ndWay=Druhı zpùsob: Parametry se nastavují on-the-fly. Pøidáte-li parametr, kterı nebyl rozpoznán jako název sloupce nebo rezervované slovo SQL, bude tento parametr ohroen.
+DeleteProcedurePrompt=Opravdu chcete smazat uloenou proceduru
+SPExecute=Spustit Uloenou Proceduru
+SPEdit=Editovat Proceduru
+SPDelete=Smazat Uloenou Proceduru
+
+#recedit.asp
+Record=záznam
+AutoNumberNote=Upozoròuji, e pole typu AutoNumber nelze editovat, protoe se aktualizují automaticky. Také sloupce typu Binary se zde nezobrazí
+RecEditNote=Záznamy mùete procházet pouíváním tlaèítek Aktualizovat+Další/Aktualizovat+Pøedchozí a Pøidat+Další. Pro pøidání/aktualizování záznamu a vrácení se zpìt k tabulce kliknìte na tlaèítko Pøidat/Aktualizovat
+Update=Aktualizovat
+Add=Pøidat
+RecordUpdated=Záznam byl úspìšnì pøidán/zaktualizován
+First=První
+Last=Poslední
+
+#relations.asp
+RelationsNote=Kadá z relací je popsána v èitelnìjší formì.
+PrimaryIndex=Primární Index
+PrimaryTable=Primární Tabulka
+PrimaryColumn=Primární Sloupec
+ForeignIndex=Cizí Index
+ForeignTable=Cizí Tabulka
+ForeignColumn=Cizí Sloupec
+DeleteRelationship=Smazat tuto relaci
+IfFieldChanged=Pokud bylo pole <b><i>$PK_COLUMN_NAME</i></b> zmìnìno v <b><i>$PK_TABLE_NAME</i></b>, pak pole <b><i>$FK_COLUMN_NAME</i></b> v <b><i>$FK_TABLE_NAME</i></b> bude 
+IfFieldDeleted=Pokud byl záznam s <b><i>$PK_COLUMN_NAME</i></b> smazán z <b><i>$PK_TABLE_NAME</i></b>, pak všechny záznamy se stejnım <b><i>$FK_COLUMN_NAME</i></b> v <b><i>$FK_TABLE_NAME</i></b> 
+ChangedAlso=&nbsp;zmìnìno také.
+SetToNull=nastavit na null.
+SetToDefault=nastavit na vıchozí hodnotu.
+WillBeDeleted=&nbsp;budou smazány.
+CreateRelationship=Vytvoøit novou relaci
+ForeignIndexName=Název cizího indexu
+OnUpdate=Pøi aktualizaci:&nbsp;
+NoAction=ádná Akce
+OnDelete=Pøi mazání:&nbsp;
+Delete=Smazat
+Relations=Relace
+
+#settings.asp
+Settings=Nastavení
+SettingsNotAvailable=Sorry, stránka s nastavním není dostupná, a nebude dokud nespecifikujete cestu k souboru XML. Chcete-li to udìlat teï, otevøete prosím soubor <font color="green">scripts/inc_config.asp</font> v jakémkoliv textovém editoru jako je Notepad a zmìòte hodnotu <font color="green">DBA_cfgProfilePath</font>
+SessionVariables=Promìnné Session
+Username=Uivatelské jméno
+UserPassword=Uivatelské heslo
+DBPath=Cesta k databázi
+DBPassword=Heslo k databázi
+SaveDBPaths=Uloit cesty k databázi?
+OtherSettings=Další nastavení
+SaveSuccess=Nastavení bylo úspìšnì uloeno
+RecordsPerPage=Poèet záznamù na stránce	
+Language = Jazyk
+
+#structure.asp
+TableIndexes=&nbsp;:&nbsp;Indexy
+IndexName=Název Indexu
+Column=Sloupec
+Unique=Unikátní
+IndexedUnique=Ano, unikátní index
+IndxedDuplicates=Ano, duplicita povolena
+PrimaryColumnAlt=Sloupec s primárním klíèem
+UniqueIndexAlt=Index je unikátní
+DeleteIndexAlt=Smazat index
+CreateIndex=Vytvoøit index
+TableStructure=&nbsp:&nbsp;Struktura
+Ordinal=Poøadové èíslo
+Name=Název
+DataType=Typ dat
+Nullable=Není nutno zadat
+MaxLength=Max. velikost pole
+DefaultValue2=Vıchozí Hodnota
+Description=Popis
+EditField=Editovat sloupec
+RemovePK=Odstranit Primární Klíè
+SetAsPK=Nastavit jako Primární Klíè
+DeleteField=Smazat sloupec
+AddNewColumn=Pøidat novı sloupec
+CreateTableQuery=&nbsp;:&nbsp;SQL
+CreateTableQueryAlt=SQL skript CREATE TABLE, kterı mùe bıt pouit, pro znovu vytvoøení této tabulky
+AreYouSureToDelete=Opravdu chcete smazat sloupec $name a všechny jeho indexy?
+AllowZeroLength=Povolit nulovou délku
+UnicodeCompress=Komprese kódu Unicode
+Indexed=Indexováno
+
+#tablelist.asp
+TableName=Název tabulky
+Created=Vytvoøeno
+Modified=Modifikováno
+ViewTableStructureAlt=Zobrazit strukturu tabulky
+ViewTableDataAlt=Zobrazit data tabulky
+DeleteTableAlt=Smazat tabulku
+SureToDeleteTable=Opravdu chcete smazat tabulku $table_name?
+CreateNewTable=Vytvoøit novou tabulku
+NewTableName=Název nové tabulky:&nbsp;
+TableNavigateAlt=Procházet záznamy tabulky
+
+#vlist.asp
+RunViewAlt=Spustit pohled
+DeleteViewAlt=Smazat pohled
+CreateNewView=Vytvoøit novı pohled
+ViewName=Název pohledu:
+SureToDeleteView=Opravdu chcete smazat pohled $name?
+UpdateView=Aktualizovat pohled
+EditView=Editovat pohled
