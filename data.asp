@@ -1,37 +1,41 @@
 <%@ Language=VBScript %>
-<!--#include file=inc_config.asp -->
+<!--#include file=scripts\inc_common.asp -->
+<!doctype html public "-//w3c//dtd html 4.01 transitional//en">
 <html>
 <head>
-<meta name=vs_targetSchema content="http://schemas.microsoft.com/intellisense/ie5">
+<meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5">
 <meta NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
-<link href="default.css" rel="stylesheet">
-<title><%=langDatabaseAdministration%></title>
+<link href="default.css" rel="stylesheet" type="text/css">
+<title>DBA:Table Data</title>
+<script type="text/javascript" language="javascript" src="scripts/common.js" defer></script>
 </head>
 <body>
-<!--#include file=inc_protect.asp -->
-<!--#include file=inc_functions.asp -->
-<table WIDTH="100%" ALIGN="center">
-	<tr>
-		<td width="180px" valign="top"><!--#include file=inc_nav.asp --></td>
-		<td>
 		
 <%
 On Error Resume Next
-Dim Separator
-Separator = vbTab
-dim con, rec, sTableName, fld, abspage, i, script, pk, sSQL, oIndexes, key
-dim pagesize
+Dim Separator : Separator = vbTab
+dim rec, sTableName, fld, abspage, i, pk, sSQL, key, dba, item
+dim pagesize, action, page, PrimaryKeys, sClass
 pk = ""
-script = Request.ServerVariables("SCRIPT_NAME")
-sTableName = Request("table")
-pagesize = 10
-if Request("pagesize").Count > 0 and IsNumeric(Request("pagesize")) then pagesize = CInt(Request("pagesize"))
-if pagesize < 1 then pagesize = 10
+PrimaryKeys = ""
+sTableName = Request("table").Item
+action = CStr(Request("action").Item)
 
-OpenConnection con
-IsError
-set oIndexes = new TableIndexes
-oIndexes.OpenTable sTableName
+pagesize = 10
+page = 1
+if IsNumeric(Request("pagesize").Item) then pagesize = CInt(Request("pagesize").Item)
+if pagesize < 1 then pagesize = 10
+if IsNumeric(Request("page").Item) then page = CInt(Request("page").Item)
+if pagesize < 1 then pagesize = 10
+if page < 1 then page = 1
+
+call DBA_WriteNavigation
+
+set dba = new DBAdmin
+dba.Connect Session(DBA_cfgSessionDBPathName), Session(DBA_cfgSessionDBPassword)
+If not dba.IsOpen then Response.Redirect "database.asp"
+DBA_BeginNewTable sTableName & langDataForTable, "", "90%"
+if dba.HasError then DBA_WriteError dba.LastError
 
 'delete record
 if Request.QueryString("action") = "delete" then
@@ -39,55 +43,45 @@ if Request.QueryString("action") = "delete" then
 	fld = ""
 	pk = Split(Request.QueryString("pk"), Separator)
 	key = Split(Request.QueryString("key"), Separator)
-	for i=0 to UBound(pk)-1
+	for i=0 to UBound(pk)
 		if Len(pk(i)) > 0 and Len(key(i)) > 0 then
 			sSQL = sSQL & fld & " [" & pk(i) & "]=" & key(i)
 			fld = " AND"
 		end if
 	Next
-	con.Execute sSQL, adExecuteNoRecords
+	call dba.RunScript(sSQL, False, False, null)
+	if dba.HasError then DBA_WriteError dba.LastError
 end if
 
-set rec = Server.CreateObject("ADODB.Recordset")
-rec.CursorLocation = adUseClient
-rec.CacheSize = pagesize
-rec.PageSize = pagesize
 
 sSQL = "SELECT * FROM [" & sTableName & "]"
 if Len(Request.QueryString("order")) > 0 then sSQL = sSQL & " ORDER BY " & Request.QueryString("order")
-rec.Open sSQL, con, adOpenForwardOnly, adLockReadOnly
-if Err then
-	Response.Write "<P class=Error>Error opening table: " & Err.Description & "</P>"
-else
+set rec = dba.RunScript(sSQL, False, False, null)
+rec.CacheSize = pagesize
+rec.PageSize = pagesize
+if dba.HasError then DBA_WriteError dba.LastError
 
-	if rec.PageCount > 0 then
-		if Request("page").Count = 0 or not IsNumeric(Request("page")) then
-			rec.AbsolutePage = 1
-		else
-			if rec.PageCount < CInt(Request("page")) then
-				rec.AbsolutePage  = rec.PageCount 
-			else
-				rec.AbsolutePage = CInt(Request("page"))
-			end if
-		end if
-	end if
-	abspage = rec.AbsolutePage
+if rec.PageCount > 0 then rec.AbsolutePage = page
+abspage = rec.AbsolutePage
+
+'retrieve string with primary keys names
+for each item in dba.Tables.Item(sTableName).Indexes.Items
+	if item.IsPrimary then PrimaryKeys = PrimaryKeys & item.TargetField & Separator
+next
+if Right(PrimaryKeys, 1) = Separator then PrimaryKeys = Left(PrimaryKeys, Len(PrimaryKeys)-1)
 %>
-<h1><%=langDataForTable & "&nbsp;" & sTableName%></h1>
-<p align="center">
-<%if Len(oIndexes.GetPrimaryKeyName) > 0 then%>
-*&nbsp;<img src="images/add.gif" border="0" WIDTH="16" HEIGHT="16"><a href="recedit.asp?table=<%=Server.URLEncode(sTableName)%>&amp;pk=<%=Server.URLEncode(Join(oIndexes.GetPrimaryKeys,Separator))%>&amp;page=<%=Request("page")%>&amp;pagesize=<%=Request("pagesize")%>"><%=langAddRecord%></a>&nbsp;
+<div style="border: 1px #006699 solid; padding-left: 15px">
+<p align="left">
+<%if Len(PrimaryKeys) > 0 then%>
+*&nbsp;<img src="images/add.gif" border="0" WIDTH="16" HEIGHT="16"><a href="recedit.asp?table=<%=Server.URLEncode(sTableName)%>&amp;pk=<%=Server.URLEncode(PrimaryKeys)%>&amp;page=<%=page%>&amp;pagesize=<%=pagesize%>"><%=langAddRecord%></a>&nbsp;
 <%end if%>
-*&nbsp;<img src="images/refresh.gif" border="0" WIDTH="16" HEIGHT="16"><a href="<%=script%>?table=<%=Server.URLEncode(sTableName)%>"><%=langRefreshTable%></a>&nbsp;
+*&nbsp;<img src="images/refresh.gif" border="0" WIDTH="16" HEIGHT="16"><a href="data.asp?table=<%=Server.URLEncode(sTableName)%>"><%=langRefreshTable%></a>&nbsp;
 *&nbsp;<img src="images/xml.gif" border="0" WIDTH="16" HEIGHT="16"><a href="export_xml.asp?sql=<%=Server.URLEncode(sSQL)%>" alt="<%=langXMLExportAlt%>"><%=langXMLExport%></a>&nbsp;
 *&nbsp;<img src="images/excel.gif" border="0" WIDTH="16" HEIGHT="16"><a href="export_csv.asp?sql=<%=Server.URLEncode(sSQL)%>" alt="<%=langExcelExportAlt%>"><%=langExcelExport%></a>&nbsp;*
 </p>
-<%if Len(oIndexes.GetPrimaryKeyName) = 0 then%>
-<P align=center class=Error><%=langNoPrimaryKey%></A>
-<%end if%>
-	<table align=center>
-		<tr><td align=center>
-		<form action="data.asp" method=get>
+<%if Len(PrimaryKeys) = 0 then DBA_WriteError langNoPrimaryKey%>
+	<form action="data.asp" method="get">
+		<p align="left">
 			<%=langPageSize%>&nbsp;
 			<select name="pagesize">
 				<option value="5">5</option>
@@ -98,75 +92,76 @@ else
 			</select>
 			<input type=hidden name="table" value="<%=sTableName%>">
 			<input type=submit value="<%=langSubmit%>" class="button">
-		</form>
-		</td></tr>
-	</table>
+		</p>
+	</form>
+</div>
 	<p align="left">
 	<%if abspage > 1 then%>
-		<a href="<%=script%>?table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=(abspage - 1)%>&amp;pagesize=<%=Request("pagesize")%>&order=<%=Server.URLEncode(Request.QueryString("order"))%>"><font size="1">&laquo;&nbsp;<%=langPrev%></font></a>
+		<a href="data.asp?table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=(abspage - 1)%>&amp;pagesize=<%=pagesize%>&order=<%=Server.URLEncode(Request.QueryString("order"))%>"><font size="1">&laquo;&nbsp;<%=langPrev%></font></a>
 	<%end if%>
 	<%for i=1 to rec.PageCount
 		if i = abspage then%>
 			<font size="2">[<%=i%>]</font>&nbsp;
 	<%	else%>
-			<font size="1">&nbsp;[<a href="<%=script%>?table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=i%>&amp;pagesize=<%=Request("pagesize")%>&order=<%=Server.URLEncode(Request.QueryString("order"))%>"><%=i%></a>]&nbsp;</font>
+			<font size="1">&nbsp;[<a href="data.asp?table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=i%>&amp;pagesize=<%=pagesize%>&order=<%=Server.URLEncode(Request.QueryString("order"))%>"><%=i%></a>]&nbsp;</font>
 	<%	end if
 	Next
 	if abspage < rec.PageCount and abspage > 0 then%>
-		<a href="<%=script%>?table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=(abspage + 1)%>&amp;pagesize=<%=Request("pagesize")%>&order=<%=Server.URLEncode(Request.QueryString("order"))%>"><font size="1"><%=langNext%>&nbsp;&raquo;</font></a>
+		<a href="data.asp?table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=(abspage + 1)%>&amp;pagesize=<%=pagesize%>&order=<%=Server.URLEncode(Request.QueryString("order"))%>"><font size="1"><%=langNext%>&nbsp;&raquo;</font></a>
 	<%end if
 	i = 0
 	%>
 	</p>
-
-<table align="center" border="1" width="100%" class="DataTable">
+<table align="center" border="1" class="DataTable">
 <tr>
-	<th class="DataTH">*</th>
+	<th>*</th>
 <%for each fld in rec.Fields%>
-	<th class="DataTH">
-		<%if oIndexes.IsPrimaryKey(fld.Name) then%>
+	<th>
+		<%if dba.Tables.Item(sTableName).Fields.Item(fld.Name).IsPrimaryKey then%>
 			<img src="images/key.gif" border="0" WIDTH="16" HEIGHT="16">
 		<%end if%>
-		<A href="<%=script%>?table=<%=Server.URLEncode(sTableName)%>&order=<%=Server.URLEncode(fld.Name & " ASC")%>" title="<%=langSortAscending%>"><font color=white><%=fld.Name%></font></A>&nbsp;<A href="<%=script%>?table=<%=Server.URLEncode(sTableName)%>&order=<%=Server.URLEncode(fld.Name & " DESC")%>" title="<%=langSortDescending%>"><font color=white>&darr;</font></A>
+		<A href="data.asp?table=<%=Server.URLEncode(sTableName)%>&order=<%=Server.URLEncode(fld.Name & " ASC")%>" title="<%=langSortAscending%>"><font color=white><%=fld.Name%></font></A>&nbsp;<A href="data.asp?table=<%=Server.URLEncode(sTableName)%>&order=<%=Server.URLEncode(fld.Name & " DESC")%>" title="<%=langSortDescending%>"><font color=white>&darr;</font></A>
 	</th>
 <%next%>
 </tr>
 
-<%do while not rec.EOF and i < rec.PageSize and Err = 0%>
-<tr onmouseover="bgColor='#DDDDDD'" onmouseout="bgColor=''">
-	<td valign="top" class="DataTD">
-	<%if Len(oIndexes.GetPrimaryKeyName) > 0 then
+<%
+	do while not rec.EOF and i < rec.PageSize and Err = 0
+		if sClass = "oddrow" then sClass = "evenrow" else sClass = "oddrow"
+%>
+<tr class="<%=sClass%>" onmouseover="style.backgroundColor='#ffdfbf'" onmouseout="style.backgroundColor=''">
+	<td valign="top">
+	<%if Len(PrimaryKeys) > 0 then
 		sSQL = ""
-		fld = oIndexes.GetPrimaryKeys()
-		for each pk in fld
-			if Len(pk) > 0 then
-				Select Case rec(pk).Type 
+		for each fld in dba.Tables.Item(sTableName).Fields.Items
+			if fld.IsPrimaryKey then
+				Select Case fld.FieldType 
 					Case adBSTR,adChar,adLongVarChar,adLongVarWChar,adVarChar,adVarWChar,adWChar
-						sSQL = sSQL & "'" & Replace(rec(pk), "'", "''") & "'"
+						sSQL = sSQL & "'" & Replace(rec(fld.Name), "'", "''") & "'"
 					Case adDate,adDBDate, adDBTime, adDBTimeStamp,adFileTime
-						sSQL = sSQL & "CDate('" & FormatDateTime(rec(pk), vbLongDate) & " " & FormatDateTime(rec(pk), vbLongTime) & "')"
+						sSQL = sSQL & "CDate('" & DBA_FormatDateTime(rec(fld.Name).Value) & "')"
 					Case Else
-						sSQL = sSQL & rec(pk)
+						sSQL = sSQL & rec(fld.Name)
 				End Select
 				sSQL = sSQL & Separator
 			end if
 		Next
 	%>
-		<a href="recedit.asp?action=edit&amp;pk=<%=Server.URLEncode(Join(oIndexes.GetPrimaryKeys,Separator))%>&amp;key=<%=Server.URLEncode(sSQL)%>&amp;table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=Request("page")%>&amp;pagesize=<%=Request("pagesize")%>"><img src="images/edit.gif" alt="<%=langEditRecord%>" border="0" WIDTH="16" HEIGHT="16"></a>
-		<a href="javascript:deleteRecord('<%=Server.URLEncode(Replace(Join(oIndexes.GetPrimaryKeys,Separator), "'", "\'"))%>','<%=Server.URLEncode(Replace(sSQL, "'", "\'"))%>')"><img src="images/delete.gif" alt="<%=langDeleteRecord%>" border="0" WIDTH="16" HEIGHT="16"></a>
+		<a href="recedit.asp?action=edit&amp;pk=<%=Server.URLEncode(PrimaryKeys)%>&amp;key=<%=Server.URLEncode(sSQL)%>&amp;table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=page%>&amp;pagesize=<%=pagesize%>"><img src="images/edit.gif" alt="<%=langEditRecord%>" border="0" WIDTH="16" HEIGHT="16"></a>
+		<a href="javascript:deleteRecord('<%=Server.URLEncode(Replace(PrimaryKeys, "'", "\'"))%>','<%=Server.URLEncode(Replace(sSQL, "'", "\'"))%>')"><img src="images/delete.gif" alt="<%=langDeleteRecord%>" border="0" WIDTH="16" HEIGHT="16"></a>
 	<%end if%>
 	</td>
 	<%for each fld in rec.Fields%>
 		<td valign="top" align="center" class="DataTD">
 		<%if fld.Type <> adBinary then%>
-			<%if fld.Value <> "" then%>
-				<%=Replace(fld.Value, "<", "&lt;")%>
-			<%else%>
-				&nbsp;
-			<%end if%>
-		<%else%>
-			&lt;<%=langBinaryData%>&gt;
-		<%end if%>
+			<%if Len(fld.Value) > 0 then
+				Response.Write Server.HTMLEncode(fld.Value)
+			else
+				Response.Write "&nbsp;"
+			end if
+		else
+			Response.Write "&lt;" & langBinaryData & "&gt;"
+		end if%>
 		</td>
 	<%next%>
 </tr>
@@ -178,44 +173,34 @@ loop%>
 
 	<p align="left">
 	<%if abspage > 1 then%>
-		<a href="<%=script%>?table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=(abspage - 1)%>&amp;pagesize=<%=Request("pagesize")%>&order=<%=Server.URLEncode(Request.QueryString("order"))%>"><font size="1">&laquo;&nbsp;<%=langPrev%></font></a>
+		<a href="data.asp?table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=(abspage - 1)%>&amp;pagesize=<%=pagesize%>&order=<%=Server.URLEncode(Request.QueryString("order"))%>"><font size="1">&laquo;&nbsp;<%=langPrev%></font></a>
 	<%end if%>
 	<%for i=1 to rec.PageCount
 		if i = abspage then%>
 			<font size="2">[<%=i%>]</font>&nbsp;
 	<%	else%>
-			<font size="1">&nbsp;[<a href="<%=script%>?table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=i%>&amp;pagesize=<%=Request("pagesize")%>&order=<%=Server.URLEncode(Request.QueryString("order"))%>"><%=i%></a>]&nbsp;</font>
+			<font size="1">&nbsp;[<a href="data.asp?table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=i%>&amp;pagesize=<%=pagesize%>&order=<%=Server.URLEncode(Request.QueryString("order"))%>"><%=i%></a>]&nbsp;</font>
 	<%	end if
 	Next
 	if abspage < rec.PageCount and abspage > 0 then%>
-		<a href="<%=script%>?table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=(abspage + 1)%>&amp;pagesize=<%=Request("pagesize")%>&order=<%=Server.URLEncode(Request.QueryString("order"))%>"><font size="1"><%=langNext%>&nbsp;&raquo;</font></a>
+		<a href="data.asp?table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=(abspage + 1)%>&amp;pagesize=<%=pagesize%>&order=<%=Server.URLEncode(Request.QueryString("order"))%>"><font size="1"><%=langNext%>&nbsp;&raquo;</font></a>
 	<%end if%>
 	</p>
 
-		</td>
-	</tr>
-</table>
-
-<p>&nbsp;</p>
-
+<%
+rec.Close
+call DBA_EndNewTable
+set dba = Nothing
+%>
+<!--#include file=scripts\inc_footer.inc -->
 </body>
 <script LANGUAGE="javascript">
 <!--
 function deleteRecord(pk,key){
 	if(confirm("<%=langSureToDeleteRecord%> " + key + "?")){
-		document.location.replace("<%=script%>?action=delete&key=" + escape(key) + "&pk=" + escape(pk) + "&table=<%=sTableName%>&page=<%=Request("page")%>&pagesize=<%=Request("pagesize")%>");
+		document.location.replace("data.asp?action=delete&key=" + escape(key) + "&pk=" + escape(pk) + "&table=<%=sTableName%>&page=<%=page%>&pagesize=<%=pagesize%>");
 	}
 }
 //-->
 </script>
-
 </html>
-
-<%
-	rec.Close
-end if
-con.Close
-set rec = nothing
-set con = nothing
-set oIndexes = nothing
-%>

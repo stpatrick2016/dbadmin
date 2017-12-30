@@ -1,237 +1,188 @@
 <%@ Language=VBScript %>
-<!--#include file=inc_config.asp -->
+<!--#include file=scripts/inc_common.asp -->
 <html>
 <head>
-<meta name=vs_targetSchema content="http://schemas.microsoft.com/intellisense/ie5">
+<meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5">
 <meta NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
 <link href="default.css" rel="stylesheet" type="text/css">
-<title><%=langDatabaseAdministration%></title>
+<title>DBA:Database</title>
+<script type="text/javascript" language="javascript" src="scripts/common.js" defer></script>
 <script LANGUAGE="javascript" type="text/javascript">
 <!--
 var win;
 function browseDB(){
 	win = window.open("browse.asp", "browse", "innerHeight=400,height=400,innerWidth=300,width=300,status=no,resizable=no,menubar=no,toolbar=no,center=yes,scrollbars=yes", false);
 }
+function onDatabaseChange(dbpath){
+	var obj = document.getElementById('iPath');
+	if(obj){
+		obj.value = dbpath;
+	}
+	obj = document.getElementById('cbNew');
+	if(obj){
+		obj.checked = false;
+	}
+}
+function removeDBPath(){
+	var obj = document.getElementById("selDB");
+	if(obj){
+		window.location.href = "database.asp?action=remove_path&path=" + escape(obj.options[obj.selectedIndex].value);
+	}
+}
 //-->
 </script>
 </head>
 <body>
-<!--#include file=inc_protect.asp -->
-<!--#include file=inc_functions.asp -->
 <%
-	On Error Resume Next
-	dim script, s, arDatabase, jro, sSQL, fso, sFileName, catalog
-	arDatabase = Split(strDatabases, "|")
-	script = Request.ServerVariables("SCRIPT_NAME")
-	if Request.Form("submit").Count > 0 or Request.QueryString("action") = "delete" then
-		dim f, str, bFound
-		bFound = false
-		set fso = Server.CreateObject("Scripting.FileSystemObject")
-
-		'check if the database exists
-		if Request.Form("db") = "0" then 
-			sFileName = Request.Form("newdb")
-		else
-			sFileName = Request.Form("db")
-		end if
+	dim dba, action, arrDatabases, i, path, filesize
+	action = CStr(Request("action").Item)
+	set dba = new DBAdmin
+	if Request.Form("submit").Count > 0 then
+		if Request.Form("new") = "1" then dba.CreateDatabase Request.Form("path") else dba.Connect Request.Form("path"), Request.Form("password")
+		if not dba.HasError then 
+			Session(DBA_cfgSessionDBPathName) = CStr(Request.Form("path").Item)
+			Session(DBA_cfgSessionDBPassword) = CStr(Request.Form("password").Item)
 			
-		if not fso.FileExists(sFileName) and Request.QueryString("action") <> "delete" then
-			if Request.Form("create") = "1" then
-				set catalog = Server.CreateObject("ADOX.Catalog")
-				if Right(sFileName, 4) <> ".mdb" then sFileName = sFileName & ".mdb"
-				catalog.Create "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & sFileName
-				if Err then
-					Response.Write "<p align=center class=""Error"">" & Err.Description & "</p>"
-				else
-					Session("DBAdminDatabase") = sFileName
-					bFound = True
-				end if
-				set catalog = nothing
-			end if
-		else
-			bFound = true
-			if Request.QueryString("action") <> "delete" then
-				Session("DBAdminDatabase") = sFileName
-				if Len(Request.Form("username").Item) > 0 then
-					Session("DBAdminUserID") = CStr(Request.Form("username"))
-				else
-					Session("DBAdminUserID") = ""
-				end if
-				Session("DBAdminDBPassword") = CStr(Request.Form("password"))
-			end if
+			DBA_AppendDatabase CStr(Request.Form("path").Item)
 		end if
-
-		if bFound then
-			bFound = False
-				
-			'check if config file exists and remove read-only
-			if fso.FileExists(Server.MapPath("config.asp")) then
-				set f = fso.GetFile(Server.MapPath("config.asp"))
-				if f.Attributes and 1 then f.Attributes = f.Attributes - 1
-				set f = nothing
-			end if
-			
-			if Request.Form("db") = "0" or Request.QueryString("action") = "delete" then
-				set f = fso.CreateTextFile(Server.MapPath("config.asp"), true)
-				if Err then
-					Response.Write "<P class=Error align=center>" & langCouldnotSaveConfig & "&nbsp;" & Err.Description & "</P>"
-				else
-					if Request.QueryString("action") = "delete" then
-						str = Replace(strDatabases, Request.QueryString("path"), "")
-						str = Replace(str, "||", "|")
-						if InStrRev(str, "|") = Len(str) then str = Left(str, Len(str) - 1)
-						arDatabase = Split(str, "|")
-					else
-						for each s in arDatabase
-							if Len(s) > 0 then str = str & s & "|"
-							if StrComp(s, Request.Form("newdb"), 1) = 0 and Len(Request.Form("newdb")) > 0 then bFound = True
-						next
-						if not bFound then 
-							str = str & Request.Form("newdb")
-							Redim Preserve arDatabase(UBound(arDatabase) + 1)
-							arDatabase(UBound(arDatabase)) = Request.Form("newdb")
-						end if
-						if Len(str) > 0 and bFound then str = Left(str, Len(str) - 1)
-					end if
-					str =	"<" & "%" & vbCrLf &_
-							"Const strAdminPassword = """ & strAdminPassword & """" & vbCrLf &_
-							"Const strProvider = """ & strProvider & """" & vbCrLf &_
-							"Const strDatabases = """ & str & """" & vbCrLf &_
-							"%" & ">"
-					f.WriteLine(str)
-					f.close
-					set f = nothing
-				end if
-				set fso = nothing
-			end if
-		else
-			Response.Write "<p align=center class=""Error"">" & langDatabaseNotExists & "</p>"
-		end if
+	elseif Len(Session(DBA_cfgSessionDBPathName)) > 0 then
+		dba.Connect Session(DBA_cfgSessionDBPathName), Session(DBA_cfgSessionDBPassword)
 	end if
 %>
-<table WIDTH="100%" ALIGN="center">
-	<tr>
-		<td width="180" valign="top"><!--#include file=inc_nav.asp --></td>
-		<td>
-      <h1><%=langDatabaseSelection%></h1>
-      <p align="center"><%=langEnterPath%></p>
-      <p align="center"><%=langCurrentDatabase%> <b><%=Session("DBAdminDatabase")%></b></p>
-      <form id="FORM1" name="FORM1" action="<%=script%>" method="post">
-      <table align="center">
-        
-        <tr>
-          <td onmouseover="bgColor='#99CCCC'" onmouseout="bgColor=''" onclick="document.getElementById('db0').checked=true; return true" style="pointer:hand; cursor: hand">
-			<input type="radio" name="db" id=db0 value="0" checked><%=langOtherDatabase%>&nbsp;<input type="text" name="newdb" id="newdb"><input type="button" value="Browse" onclick="javascript:browseDB();" class="button"></td></tr>
-		<tr><td><input type=checkbox name="create" value="1">&nbsp;<%=langCreateNew%><font style="font-size:75%"><%=langCreateNewAlt%></font></td></tr>
-		
+
+<%call DBA_WriteNavigation%>
+
+<!--DATABASE OPTIONS-->
 <%
-	i = 1
-	for each s in arDatabase
-		if Len(s) > 0 then
+if Len(Session(DBA_cfgSessionDBPathName)) > 0 then
+	call DBA_BeginNewTable(langDatabaseOptions, "", "75%")
+	
+	Select Case action
+		Case "compact"
+			dba.CompactDatabase Request.QueryString("upgrade") = "1", null
+			if not dba.HasError then DBA_WriteSuccess langDatabaseCompacted
+		Case "backup"
+			call dba.BackupDatabase
+			if not dba.HasError then DBA_WriteSuccess langBackupCreated
+		Case "restore"
+			call dba.RestoreDatabase
+			if not dba.HasError then DBA_WriteSuccess langBackupRestored
+		Case "update_password"
+			if Request.Form("password").Item = Request.Form("password2").Item then
+				dba.CompactDatabase False, CStr(Request.Form("password").Item)
+				if not dba.HasError then 
+					DBA_WriteSuccess langNewPasswordSet
+					Session(DBA_cfgSessionDBPassword) = CStr(Request.Form("password").Item)
+				else
+					DBA_WriteError dba.LastError
+				end if
+			else
+				DBA_WriteError langPasswordsMismatch
+			end if
+		Case "remove_path"
+			call DBA_RemoveDatabase(Request.QueryString("path").Item)
+	End Select
+	
+	if Request.QueryString("action").Count > 0 and dba.HasError then DBA_WriteError dba.LastError
+	filesize = dba.Size
 %>
-        <tr>
-			<td onmouseover="bgColor='#99CCCC'" onmouseout="bgColor=''" onclick="document.getElementById('db<%=i%>').checked=true; return true" style="pointer:hand; cursor: hand">
-				<input type="radio" name="db" id="db<%=i%>" value="<%=Replace(s, """","\""")%>"><%=s%>&nbsp;&nbsp;<a href="<%=script%>?action=delete&amp;path=<%=Server.URLEncode(s)%>"><img src="images/delete.gif" alt="<%=langRemovePath%>" border="0" WIDTH="16" HEIGHT="16"></a>
-			</td>
+	<fieldset>
+	<legend><%=langProperties%></legend>
+	<table border="0">
+		<tr>
+			<td><b><%=langFileSize%></b></td>
+			<td><%=FormatNumber(filesize, 0, False, False, True)%> bytes</td>
 		</tr>
+		<tr>
+			<td><b><%=langSizeAfterCompact%></b></td>
+			<td><%=FormatNumber(filesize - dba.ReclaimedSpace, 0, False, False, True)%> bytes (- <%=FormatNumber(dba.ReclaimedSpace, 0, True, False, True)%> bytes)</td>
+		</tr>
+	</table>
+	</fieldset>
+	
+	<fieldset title="<%=langActions%>">
+	<legend><%=langActions%></legend>
+	<p align="center"><%=langAffectCurrent%></p>
+	<table align="center" border="0">
+<%	if dba.IsAccess97 then%>
+		<tr><td align="center"><a href="database.asp?action=compact&amp;upgrade=1" title="<%=langConvert2000Alt%>"><%=langConvert2000%></a></td></tr>
+<%	end if%>
+		<tr><td align="center"><a href="database.asp?action=compact" title="<%=langCompactRepairAlt%>"><%=langCompactRepair%></a></td></tr>
+		<tr><td align="center"><a href="database.asp?action=backup" title="<%=langMakeBackupAlt%>"><%=langMakeBackup%></a></td></tr>
+		<tr><td align="center"><a href="database.asp?action=restore" title="<%=langRestoreBackupAlt%>"><%=langRestoreBackup%></a></td></tr>
+		<tr><td align="center"><a href="export_db.asp" title="<%=langDatabaseExportAlt%>"><%=langDatabaseExport%></a></td></tr>
+		<tr><td align="center"><a href="database.asp?action=newpassword" title="<%=langNewDatabasePassword%>"><%=langNewDatabasePassword%></a></td></tr>
+<%		if action = "newpassword" and Request.Form("password").Count = 0 then%>
+			<tr><td align="center"><p align="center"><%=langNewDatabasePasswordAlt%></p>
+			<form action="database.asp" method="post">
+			<input type="hidden" name="action" value="update_password">
+			<table align="center" border="0">
+				<tr><td><%=langNewPassword%></td><td><input type="password" name="password"></td></tr>
+				<tr><td><%=langRetypeNewPassword%></td><td><input type="password" name="password2"></td></tr>
+				<tr><td align="center" colspan="2"><input type="submit" name="submit_password" value="<%=langChangePassword%>" class="button"></td></tr>
+			</table>
+			</form></td></tr>
+<%		end if%>
+	</table></fieldset>
 <%
-			i = i + 1
-		end if
-	Next
+	call DBA_EndNewTable
+end if
 %>
-	<tr><td>&nbsp;</td></tr>
+
+
+<!--DATABASE SELECTION-->
+<%call DBA_BeginNewTable(langDatabaseSelection, langDatabaseSelectionAlt, "75%")%>
+<p align="center"><%=langEnterPath%></p>
+
+<%if Request.Form("submit").Count > 0 and dba.HasError then DBA_WriteError dba.LastError%>
+
+<form action="database.asp" method="post">
+<table align="center" border="0">
 	<tr>
-		<td><!--Username:&nbsp;<input type="text" name="username" id="password" size="10">&nbsp;&nbsp;-->
-			<%=langDatabasePassword%>&nbsp;<input type="password" name="password" id="password" size="10">
+		<td><%=langDatabasePath%></td>
+		<td>
+			<input type="text" name="path" id="iPath">&nbsp;
+			<input type="button" value="Browse" class="button" onclick="javascript:browseDB();">
 		</td>
 	</tr>
-	<tr><td>&nbsp;</td></tr>
-    <tr>
-		<td align="center"><input type="submit" name="submit" value="<%=langSubmit%>" class="button"></td>
+	<tr>
+		<td><%=langDatabasePassword%></td>
+		<td><input type="password" name="password"></td>
+	</tr>
+	<tr>
+		<td align="center" colspan="2"><input type="checkbox" value="1" name="new" id="cbNew" title="<%=langCreateNewAlt%>">&nbsp;<%=langCreateNew%></td>
+	</tr>
+	<tr><td colspan="2">&nbsp;</td></tr>
+	<tr><td align="center" colspan="2">Select existing database</td></tr>
+	<tr>
+		<td align="center" colspan="2">
+			<select name="db" id="selDB" onchange="javascript:onDatabaseChange(this.options[this.selectedIndex].value);">
+				<option value=""></option>
+<%	
+	arrDatabases = DBA_GetDatabases()
+	for i=0 to ubound(arrDatabases)
+		path = arrDatabases(i)
+		if Len(path) > 15 then
+			path =	Left(arrDatabases(i), InStr(4, arrDatabases(i), "\")) & "...\" &_
+					Right(arrDatabases(i), Len(arrDatabases(i)) - InStrRev(arrDatabases(i), "\"))
+		end if
+%>
+				<option value="<%=arrDatabases(i)%>"><%=path%></option>
+<%	next%>
+			</select>&nbsp;<a href="javascript:removeDBPath();"><img src="images/delete.gif" border="0" width="16" height="16" alt="<%=langRemoveDBPathAlt%>"></a>
+		</td>
+	</tr>
+	<tr>
+		<td align="center" colspan="2"><input type="submit" name="submit" value="Open database" class="button"></td>
 	</tr>
 </table>
 </form>
-      
-<%if Len(Session("DBAdminDatabase")) > 0 then%>
-
-<%	
-	if Request.QueryString("action") = "compact" then
-		set fso = Server.CreateObject("Scripting.FileSystemObject")
-		sFileName = Session("DBAdminDatabase")
-		sFileName = Left(sFileName, InStrRev(sFileName, "\")) & fso.GetTempName
-		set jro = Server.CreateObject("JRO.JetEngine")
-		s = "5"
-		if Request.QueryString("type") = "97" then s = "4"
-		jro.CompactDatabase		"Provider=Microsoft.Jet.OLEDB.4.0; Data Source=" & Session("DBAdminDatabase"), _
-								"Provider=Microsoft.Jet.OLEDB.4.0; Data Source=" & sFileName & "; Jet OLEDB:Engine Type=" & s
-		if Err then
-			Response.Write "<p class=""Error"" align=center>" & err.Description & "</p>"
-			fso.DeleteFile sFileName
-		else
-			fso.DeleteFile Session("DBAdminDatabase")
-			fso.MoveFile sFileName, Session("DBAdminDatabase")
-			Response.Write "<p align=center>" & langDatabaseCompacted & "</p>"
-		end if
-		set jro = nothing
-		set fso = nothing
-	end if
-	
-	if Request.QueryString("action") = "backup" then
-		set fso = Server.CreateObject("Scripting.FileSystemObject")
-		sFileName = Session("DBAdminDatabase")
-		sFileName = Left(sFileName, InStrRev(sFileName, ".")) & "bak"
-		fso.CopyFile Session("DBAdminDatabase"), sFileName, True
-		if Err then
-			Response.Write "<p class=""Error"" align=center>" & Err.Description & "</p>"
-		else
-			Response.Write "<p align=center>" & langBackupCreated & "</p>"
-		end if
-		set fso = nothing
-	end if
-	
-	if Request.QueryString("action") = "restore" then
-		set fso = Server.CreateObject("Scripting.FileSystemObject")
-		sFileName = Session("DBAdminDatabase")
-		sFileName = Left(sFileName, InStrRev(sFileName, ".")) & "bak"
-		fso.CopyFile sFileName, Session("DBAdminDatabase"), True
-		if Err then
-				Response.Write "<p class=""Error"" align=center>" & Err.Description & "</p>"
-		else
-			Response.Write "<p align=center>" & langBackupRestored & "</p>"
-		end if
-		set fso = nothing
-	end if
+<%
+	call DBA_EndNewTable
+	set dba = Nothing
 %>
 
-<H2 align=center><%=langDatabaseOptions%></H2>
-<table align=center border=0 cellspacing="1">
-	<tr><th colspan="2" align=center><%=langAffectCurrent%></th></tr>
-	<tr>
-		<td valign=top bgcolor="#bbbbff"><a href="<%=script%>?action=compact"><%=langCompactRepair%></a></td>
-		<td bgcolor="#bbbbff"><%=langCompactRepairAlt%></td>
-	</tr>
-	<tr>
-		<td valign=top bgcolor="#bbbbff"><a href="<%=script%>?action=compact&amp;type=97"><%=langCompactRepair97%></a></td>
-		<td bgcolor="#bbbbff"><%=langCompactRepair97Alt%></td>
-	</tr>
-	<tr>
-		<td valign=top bgcolor="#bbbbff"><a href="<%=script%>?action=backup"><%=langMakeBackup%></a></td>
-		<td bgcolor="#bbbbff"><%=langMakeBackupAlt%></td>
-	</tr>
-	<tr>
-		<td valign=top bgcolor="#bbbbff"><a href="<%=script%>?action=restore"><%=langRestoreBackup%></td>
-		<td bgcolor="#bbbbff"><%=langRestoreBackupAlt%></td>
-	</tr>
-</table>
-<%end if%>      
-
-
-
-      </td>
-	</tr>
-</table>
-
-
+<!--#include file=scripts/inc_footer.inc-->
 </body>
 </html>
 

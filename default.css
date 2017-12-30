@@ -1,12 +1,30 @@
-BODY
+TD.title{
+	font-size: 16px;
+	color: white;
+	font-weight: bold;
+	padding-left: 5px;
+	width: 150px;
+}
+TD.subtitle{
+	font-weight: bold;
+	color: maroon;
+	padding-left: 5px;
+	padding-bottom: 2px;
+	padding-top: 2px;
+	background-color: #99cc99;
+}
+TD.contents{
+	padding: 10px;
+}
+TABLE.newtable
 {
-	padding-right: 20px;
-	padding-left: 20px;
-	font-size: 10pt;
-	padding-bottom: 20px;
-	padding-top: 20px;
+	margin-bottom: 20px;
+}
+BODY{
 	font-family: Verdana;
-	background-color: white;
+	font-size: 75%;
+	background-color: #EAEDE6;
+	line-height: 12pt;
 }
 A
 {
@@ -16,6 +34,7 @@ A
 A:hover
 {
 	text-decoration: underline;
+	color: Red;
 }
 H1
 {
@@ -24,15 +43,13 @@ H1
 TH
 {
 	color: white;
-	background-color: navy;
-}
-TABLE.RegularTable
-{
-	background-color: #99cccc;
+	background-color: #006699;
 }
 TABLE
 {
-	font-size: 10pt;
+	font-family: Verdana;
+	font-size: 100%;
+	line-height: 12pt;
 }
 DIV.Error
 {
@@ -43,26 +60,43 @@ P.Error
 	color: red;
 	text-align: center;
 }
-INPUT.Button
+INPUT.button
 {
-	border-right: gray outset;
-	border-top: gray outset;
-	font-size: xx-small;
-	border-left: gray outset;
+	border-right: gray 1px solid;
+	border-top: gray 1px solid;
+	font-size: 10pt;
+	border-left: gray 1px solid;
 	cursor: hand;
-	color: wheat;
-	border-bottom: gray outset;
-	background-color: teal;
+	cursor: pointer;
+	color: buttontext;
+	border-bottom: gray 1px solid;
+	background-color: buttonface;
 }
 INPUT
 {
-	color: maroon;
+	border-right: activecaption 1px solid;
+	border-top: activecaption 1px solid;
+	border-left: activecaption 1px solid;
+	color: buttontext;
+	border-bottom: activecaption 1px solid;
+	background-color: window;
 	font-family: Verdana;
-	background-color: silver;
 }
 TEXTAREA
 {
-	color: maroon;
+	border-right: activecaption 1px solid;
+	border-top: activecaption 1px solid;
+	border-left: activecaption 1px solid;
+	color: buttontext;
+	border-bottom: activecaption 1px solid;
+	background-color: window;
 	font-family: 'Courier New';
-	background-color: silver;
+}
+TR.oddrow
+{
+	background-color: #c9d9b9;
+}
+TR.evenrow
+{
+	background-color: #c6d9ce;
 }

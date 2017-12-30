@@ -1,105 +1,177 @@
 <%@ Language=VBScript %>
-<!--#include file=inc_config.asp -->
+<!--#include file=scripts\inc_common.asp -->
+<!doctype html public "-//w3c//dtd html 4.01 transitional//en">
 <html>
 <head>
-<meta name=vs_targetSchema content="http://schemas.microsoft.com/intellisense/ie5">
+<meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5">
 <meta NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
-<link href="default.css" rel="stylesheet">
-<title>Database Administration</title>
+<link href="default.css" rel="stylesheet" type="text/css">
+<title>DBA:Relations</title>
+<script type="text/javascript" language="javascript" src="scripts/common.js" defer></script>
+<script type="text/javascript" language="javascript">
+//<!--
+var arrTables = new Array();
+var dbtbl = null;
+var bCustomName = false;
+
+function DBField(name, isPrimary){
+	this.name = name;
+	this.IsPrimary = isPrimary;
+}
+function DBTable(){
+	this.name = "";
+	this.fields = new Array();
+	
+	this.addField = function(name, isPrimary){this.fields.push(new DBField(name, isPrimary));};
+}
+
+function loadTables(){
+	var fk, pk;
+	fk = document.getElementById('FKTable');
+	pk = document.getElementById('PKTable');
+	var i, j;
+	for(i = 0; i<arrTables.length; i++){
+		fk.options[fk.options.length] = new Option(arrTables[i].name, arrTables[i].name, false, false);
+
+		for(j=0; j<arrTables[i].fields.length; j++){
+			if(arrTables[i].fields[j].IsPrimary){
+				pk.options[pk.options.length] = new Option(arrTables[i].name, arrTables[i].name, false, false);
+				break;
+			}
+		}
+	}
+}
+function onPKTableChange(){
+	var tbl, fld;
+	tbl = document.getElementById('PKTable');
+	fld = document.getElementById('PKField');
+	fld.options.length = 0;
+	for(var i=0; i<arrTables.length; i++){
+		if(arrTables[i].name == tbl.options[tbl.selectedIndex].value){
+			for(var j=0; j<arrTables[i].fields.length; j++){
+				if(arrTables[i].fields[j].IsPrimary){
+					fld.options[fld.options.length] = new Option(arrTables[i].fields[j].name, arrTables[i].fields[j].name, false, false);
+				}
+			}
+			break;
+		}
+	}
+	buildFKName();
+}
+function onFKTableChange(){
+	var tbl, fld;
+	tbl = document.getElementById('FKTable');
+	fld = document.getElementById('FKField');
+	fld.options.length = 0;
+	for(var i=0; i<arrTables.length; i++){
+		if(arrTables[i].name == tbl.options[tbl.selectedIndex].value){
+			for(var j=0; j<arrTables[i].fields.length; j++){
+				fld.options[fld.options.length] = new Option(arrTables[i].fields[j].name, arrTables[i].fields[j].name, false, false);
+			}
+			break;
+		}
+	}
+	buildFKName();
+}
+function buildFKName(){
+	if(bCustomName) return;
+	
+	var pkTbl, pkFld, fkTbl, fkFld, oName;
+	fkTbl = document.getElementById('FKTable');
+	fkFld = document.getElementById('FKField');
+	pkTbl = document.getElementById('PKTable');
+	pkFld = document.getElementById('PKField');
+	oName = document.getElementById('FKName');
+	
+	oName.value =	"FK_" + 
+					pkTbl.options[pkTbl.selectedIndex].value + pkFld.options[pkFld.selectedIndex].value +
+					"_" +
+					fkTbl.options[fkTbl.selectedIndex].value + fkFld.options[fkFld.selectedIndex].value;
+}
+//-->
+</script>
 </head>
 <body>
-<!--#include file=inc_protect.asp -->
-<!--#include file=inc_functions.asp -->
+<%	call DBA_WriteNavigation%>
 
-<table WIDTH="100%" ALIGN="center">
-	<tr>
-		<td width="180px" valign="top"><!--#include file=inc_nav.asp --></td>
-		<td>
-		
-<h1 align="center"><%=langRelations%></h1>
 <%
 	On Error Resume Next
-	dim con, rec, script, sSQL, s
-	script = Request.ServerVariables("SCRIPT_NAME")
-
-	OpenConnection con
-	IsError
+	dim dba, key, dic, s, fld, tbl
+	set dba = new DBAdmin
+	dba.Connect Session(DBA_cfgSessionDBPathName), Session(DBA_cfgSessionDBPassword)
+	If not dba.IsOpen then Response.Redirect "database.asp"
 	
-	'create new foreign key
-	if Request.Form("submit").Count > 0 then
-		sSQL =	"ALTER TABLE [" & Replace(Request.Form("fk_table"), "'", "''") & "] ADD CONSTRAINT [" &_
-				Replace(Request.Form("fk_name"), "'", "''") & "] FOREIGN KEY ([" & Replace(Request.Form("fk_column"), "'", "''") &_
-				"]) REFERENCES [" & Replace(Replace(Request.Form("primary_table"), ".", "] (["), "'", "''") &_
-				"])"
-		if Request.Form("update") <> "" then sSQL = sSQL & " ON UPDATE " & Request.Form("update")
-		if Request.Form("delete") <> "" then sSQL = sSQL & " ON DELETE " & Request.Form("delete")
-		con.Execute sSQL, adExecuteNoRecords
-		if Err then
-			Response.Write "<P align=""center"" class=""error"">" & Err.Description & "</P>"
-		end if
+	DBA_BeginNewTable langRelations, langRelationsNote, "90%"
+	if dba.HasError then DBA_WriteError dba.LastError
+	if Request.Form("submit").Count > 0 then 
+		dba.CreateRelation Request.Form("fk_name"), Request.Form("pk_table"), Request.Form("pk_field"), Request.Form("fk_table"), Request.Form("fk_field"), Request.Form("onupdate"), Request.Form("ondelete")
+		if dba.HasError then DBA_WriteError dba.LastError
 	end if
 	
-	'delete foreign key
 	if Request.QueryString("action") = "delete" then
-		sSQL =	"ALTER TABLE [" & Replace(Request.QueryString("fk_table"), "'", "''") & "] DROP CONSTRAINT [" &_
-				Replace(Request.QueryString("fk_name"), "'", "''") & "]"
-		con.Execute sSQL, adExecuteNoRecords
-		if Err then
-			Response.Write "<P align=""center"" class=""error"">" & Err.Description & "</P>"
-		end if
+		dba.DeleteRelation Request.QueryString("fk_name"), Request.QueryString("fk_table")
 	end if
-	
-	set rec = con.OpenSchema(adSchemaForeignKeys)
-	
-%>	
-<p align="center">
-<%=langRelationsNote%>
-</p>
 
-
-<table align="center" width="100%" border="1" class="RegularTable">
-<%	
-		do while not rec.EOF and Err=0
-			if Len(rec("PK_NAME")) > 0 then
+	
+	'write out javascript
+	set dic = dba.Tables
+	Response.Write "<sc" & "ript language=""javascript"" type=""text/javascript"">" & vbCrLf
+	for each tbl in dic.Items
+		Response.Write	"dbtbl = new DBTable;" & vbCrLf &_
+						"dbtbl.name = '" & Replace(tbl.Name, "'", "\'") & "';" & vbCrLf
+		for each fld in tbl.Fields.Items
+			Response.Write	"dbtbl.addField('" & Replace(fld.Name, "'", "\'") & "', " & CInt(fld.IsPrimaryKey) & ");" & vbCrLf
+		next
+		Response.Write	"arrTables.push(dbtbl);" & vbCrLf & vbCrLf
+	next
+	Response.Write "</sc" & "ript>" & vbCrLf
+	
+	set dic = dba.Relations
 %>
+
+<table align="center" border="0" cellpadding="3" cellspacing="1" width="90%">
+<%	
+	for each key in dic.Keys
+%>
+	<tr>
+		<th colspan="7" align="center"><%=langForeignIndex%>:&nbsp;<i><%=dic.Item(key).Name%></i></th>
+	</tr>
 	<tr>
 		<th><%=langPrimaryIndex%></th>
 		<th><%=langPrimaryTable%></th>
 		<th><%=langPrimaryColumn%></th>
-		<th><%=langForeignIndex%></th>
 		<th><%=langForeignTable%></th>
 		<th><%=langForeignColumn%></th>
 		<th><%=langOnUpdate%></th>
 		<th><%=langOnDelete%></th>
 	</tr>
-	<tr onmouseover="bgColor='#DDDDDD'" onmouseout="bgColor=''">
-		<td><%=rec("PK_NAME")%></td>
-		<td><%=rec("PK_TABLE_NAME")%></td>
-		<td><%=rec("PK_COLUMN_NAME")%></td>
-		<td><%=rec("FK_NAME")%></td>
-		<td><%=rec("FK_TABLE_NAME")%></td>
-		<td><%=rec("FK_COLUMN_NAME")%></td>
-		<td><%=rec("UPDATE_RULE")%></td>
-		<td><%=rec("DELETE_RULE")%></td>
+	<tr class="evenrow">
+		<td><%=dic.Item(key).PrimaryIndex%></td>
+		<td><%=dic.Item(key).PrimaryTable%></td>
+		<td><%=dic.Item(key).PrimaryField%></td>
+		<td><%=dic.Item(key).ForeignTable%></td>
+		<td><%=dic.Item(key).ForeignField%></td>
+		<td><%=dic.Item(key).OnUpdate%></td>
+		<td><%=dic.Item(key).OnDelete%></td>
 	</tr>
 
 <%	'Readable form%>
-	<tr>
+	<tr class="evenrow">
 		<td valign="top">
-			<b>Description:</b><br>
-			<a href="<%=script%>?action=delete&amp;fk_name=<%=Server.URLEncode(rec("FK_NAME"))%>&amp;fk_table=<%=Server.URLEncode(rec("FK_TABLE_NAME"))%>"><img src="images/delete.gif" alt="<%=langDeleteRelationship%>" border="0" WIDTH="16" HEIGHT="16"></a>
+			<b><%=langDescription%></b><br>
+			<a href="relations.asp?action=delete&amp;fk_name=<%=Server.URLEncode(dic.Item(key).Name)%>&amp;fk_table=<%=Server.URLEncode(dic.Item(key).ForeignTable)%>"><img src="images/delete.gif" alt="<%=langDeleteRelationship%>" border="0" width="16" height="16"></a>
 		</td>
-		<td colspan="7">
+		<td colspan="6">
 		<ul>
 		<%
-		if rec("UPDATE_RULE") <> "NO ACTION" then
-			s = Replace(langIfFieldChanged, "$PK_COLUMN_NAME", rec("PK_COLUMN_NAME"))
-			s = Replace(s, "$PK_TABLE_NAME", rec("PK_TABLE_NAME"))
-			s = Replace(s, "$FK_COLUMN_NAME", rec("FK_COLUMN_NAME"))
-			s = Replace(s, "$FK_TABLE_NAME", rec("FK_TABLE_NAME"))
-			if rec("UPDATE_RULE") = "CASCADE" then
+		if dic.Item(key).OnUpdate <> "NO ACTION" then
+			s = Replace(langIfFieldChanged, "$PK_COLUMN_NAME", dic.Item(key).PrimaryField)
+			s = Replace(s, "$PK_TABLE_NAME",dic.Item(key).PrimaryTable)
+			s = Replace(s, "$FK_COLUMN_NAME", dic.Item(key).ForeignField)
+			s = Replace(s, "$FK_TABLE_NAME",dic.Item(key).ForeignTable)
+			if dic.Item(key).OnUpdate = "CASCADE" then
 				s = s & langChangedAlso
-			elseif rec("UPDATE_RULE") = "SET NULL" then
+			elseif dic.Item(key).OnUpdate = "SET NULL" then
 				s = s & langSetToNull
 			else
 				s = s & langSetToDefault
@@ -109,14 +181,14 @@
 		<%end if%>
 
 		<%
-		if rec("DELETE_RULE") <> "NO ACTION" then
-			s = Replace(langIfFieldDeleted, "$PK_COLUMN_NAME", rec("PK_COLUMN_NAME"))
-			s = Replace(s, "$PK_TABLE_NAME", rec("PK_TABLE_NAME"))
-			s = Replace(s, "$FK_COLUMN_NAME", rec("FK_COLUMN_NAME"))
-			s = Replace(s, "$FK_TABLE_NAME", rec("FK_TABLE_NAME"))
-			if rec("DELETE_RULE") = "CASCADE" then
+		if dic.Item(key).OnDelete <> "NO ACTION" then
+			s = Replace(langIfFieldDeleted, "$PK_COLUMN_NAME", dic.Item(key).PrimaryField)
+			s = Replace(s, "$PK_TABLE_NAME",dic.Item(key).PrimaryTable)
+			s = Replace(s, "$FK_COLUMN_NAME", dic.Item(key).ForeignField)
+			s = Replace(s, "$FK_TABLE_NAME",dic.Item(key).ForeignTable)
+			if dic.Item(key).OnDelete = "CASCADE" then
 				s = s & langWillBeDeleted
-			elseif rec("DELETE_RULE") = "SET NULL" then
+			elseif dic.Item(key).OnDelete = "SET NULL" then
 				s = s & langSetToNull
 			else
 				s = s & langSetToDefault
@@ -126,174 +198,63 @@
 		<%end if%>
 		</ul></td>
 	</tr>
-	<tr>
-		<td valign=top><B>SQL</B></td>
-		<td colspan="7">
-		<%
-		sSQL =	"ALTER TABLE [" & Replace(rec("FK_TABLE_NAME"), "'", "''") & "] ADD CONSTRAINT [" &_
-				Replace(rec("FK_NAME"), "'", "''") & "] FOREIGN KEY ([" & Replace(rec("FK_COLUMN_NAME"), "'", "''") &_
-				"]) REFERENCES [" & Replace(rec("PK_TABLE_NAME"), "'", "''") & "] ([" & Replace(rec("PK_COLUMN_NAME"), "'", "''") &_
-				"])"
-		if rec("UPDATE_RULE") <> "NO ACTION" then sSQL = sSQL & " ON UPDATE " & rec("UPDATE_RULE")
-		if rec("DELETE_RULE") <> "NO ACTION" then sSQL = sSQL & " ON DELETE " & rec("DELETE_RULE")
-		%>
-		<%=HighlightSQL(sSQL)%></td>
+	<tr class="evenrow">
+		<td valign=top><b>SQL</b></td>
+		<td colspan="6"><%=HighlightSQL(dic.Item(key).SQL)%></td>
 	</tr>
-	<tr><td colspan="8" bgcolor="white"><hr width="75%"></td></tr>
-<%		
-			end if
-			rec.MoveNext
-		loop
-		rec.close
+	<tr><td colspan="7"><hr width="75%"></td></tr>
+<%
+	next
 %>
 </table>
 
-
-<br><br>
-<h3 align="center"><%=langCreateRelationship%></h3>
-
-<form action="<%=script%>" method="POST">
-<table border="0" align="center">
+<%
+	call DBA_EndNewTable
+	DBA_BeginNewTable langCreateRelationship, "", "90%"
+%>
+<form action="relations.asp" method="post">
+<table align="center" border="0">
 	<tr>
 		<th><%=langForeignIndexName%></th>
 		<th><%=langPrimaryTable%></th>
+		<th><%=langPrimaryColumn%></th>
 		<th><%=langForeignTable%></th>
 		<th><%=langForeignColumn%></th>
 	</tr>
 	<tr>
-		<td><input type="text" name="fk_name" id="FKName" onchange="bCustomName=true;"></td>
-		<td>
-			<%set rec = con.OpenSchema(adSchemaPrimaryKeys)%>
-			<select name="primary_table" size="1" id="PrimarySelect" onchange="javascript:onColumnChange();">
-			<%do while not rec.EOF
-				if rec("TABLE_NAME") <> "MSysAccessObjects" and rec("TABLE_NAME") <> "MSysIMEXColumns" and rec("TABLE_NAME") <> "MSysIMEXSpecs" then
-			%>
-				<option value="<%=rec("TABLE_NAME") & "." & rec("COLUMN_NAME")%>"><%=rec("TABLE_NAME")%></option>
-			<%	end if
-				rec.MoveNext
-			  loop%>
-			</select>
-			<%rec.Close%>
-		</td>
-		<td>
-			<%
-				dim sTables, s1, sLastTable, ar1, i, ar2
-				set rec = con.OpenSchema(adSchemaColumns)
-				s1 = ""
-				sLastTable = ""
-				sTables = ""
-				do while not rec.EOF
-					if rec("TABLE_NAME") <> "MSysAccessObjects" and rec("TABLE_NAME") <> "MSysIMEXColumns" and rec("TABLE_NAME") <> "MSysIMEXSpecs" then
-						if sLastTable <> rec("TABLE_NAME") then
-							sLastTable = rec("TABLE_NAME")
-							if Right(sTables, 1) = "." then sTables = Left(sTables, Len(sTables)-1)
-							sTables = sTables & "!" & sLastTable & "."
-						end if
-						sTables = sTables & rec("COLUMN_NAME") & "."
-					end if
-					rec.MoveNext
-				loop
-				if Left(sTables, 1) = "!" then sTables = Right(sTables, Len(sTables)-1)
-				if Right(sTables, 1) = "." or Right(sTables, 1) = "!" then sTables = Left(sTables, Len(sTables)-1)
-				rec.close
-				ar1 = Split(sTables, "!")
-			%>
-			<script language="Javascript">
-			var bCustomName = false;
-			function onTableChange(){
-				var arColumns;
-				<%
-					Response.Write "arColumns = new Array("
-					s = ""
-					for each s1 in ar1
-						Response.Write s & "new Array("
-						ar2 = Split(s1, ".")
-						s = ""
-						for i=1 to UBound(ar2)
-							Response.Write s & "'" & Replace(ar2(i), "'", "\'") & "'"
-							s = ","
-						next
-						response.Write ")"
-					next
-					Response.Write ");" & vbCrLf
-				%>
-				
-				var oTableSelect = document.getElementById("TableSelect"),
-					oColumnSelect = document.getElementById("ColumnSelect");
-				var i, oOption;
-				if(oTableSelect != null && oColumnSelect != null){
-					oColumnSelect.options.length = 0;
-					for(i=0; i<arColumns[oTableSelect.selectedIndex].length; i++){
-						oOption = document.createElement("OPTION");
-						oColumnSelect.appendChild(oOption);
-						oOption.value = arColumns[oTableSelect.selectedIndex][i];
-						oOption.text = arColumns[oTableSelect.selectedIndex][i];
-					}
-					var oFKName = document.getElementById("FKName"),
-						oPrimarySelect = document.getElementById("PrimarySelect");
-					if(!bCustomName && oFKName != null && oPrimarySelect != null){
-						oFKName.value = oPrimarySelect[oPrimarySelect.selectedIndex].value.replace(/\./ig, "") + oTableSelect[oTableSelect.selectedIndex].value + oColumnSelect[oColumnSelect.selectedIndex].value;
-					}
-				}
-			}
-			function onColumnChange(){
-				var oTableSelect = document.getElementById("TableSelect"),
-					oColumnSelect = document.getElementById("ColumnSelect"),
-					oFKName = document.getElementById("FKName"),
-					oPrimarySelect = document.getElementById("PrimarySelect");
-				if(!bCustomName && oFKName != null && oPrimarySelect != null && oTableSelect != null && oColumnSelect != null){
-					oFKName.value = oPrimarySelect[oPrimarySelect.selectedIndex].value.replace(/\./ig, "") + oTableSelect[oTableSelect.selectedIndex].value + oColumnSelect[oColumnSelect.selectedIndex].value;
-				}
-			}
-			</script>
-			<select name="fk_table" id="TableSelect" onchange="javascript:onTableChange();">
-			<%for each s1 in ar1%>
-				<option value="<%=Split(s1, ".")(0)%>"><%=Split(s1, ".")(0)%></option>
-			<%next%>
-			</select>
-		</td>
-		<td>
-			<select name="fk_column" id="ColumnSelect" style="width:200px" onchange="javascript:onColumnChange();">
-			<%
-				ar2 = Split(ar1(0), ".")
-				for i=1 to UBound(ar2)
-			%>
-				<option value="<%=ar2(i)%>"><%=ar2(i)%></option>
-			<%	next%>
-			</select>
-		</td>
+		<td><input type="text" name="fk_name" id="FKName" onchange="bCustomName = true;"></td>
+		<td><select name="pk_table" id="PKTable" onchange="javascript:onPKTableChange();"><option value=""></option></select></td>
+		<td><select name="pk_field" id="PKField" onchange="javascript:buildFKName();"><option value=""></option></select></td>
+		<td><select name="fk_table" id="FKTable" onchange="javascript:onFKTableChange();"><option value=""></option></select></td>
+		<td><select name="fk_field" id="FKField" onchange="javascript:buildFKName();"><option value=""></option></select></td>
 	</tr>
 	<tr>
-		<td colspan="2" align="center"><b><%=langOnUpdate%></b>
-			<select name="update">
-				<option value><%=langNoAction%></option>
+		<td>&nbsp;</td>
+		<td align="center"><b><%=langOnUpdate%></b>
+			<select name="onupdate">
+				<option value="NO ACTION"><%=langNoAction%></option>
 				<option value="CASCADE"><%=langUpdate%></option>
-				<option value="SET NULL"><%=langSetToNull2%></option>
 			</select>
 		</td>
-		<td colspan="2" align="center"><b><%=langOnDelete%></b>
-			<select name="delete">
-				<option value><%=langNoAction%></option>
+		<td>&nbsp;</td>
+		<td align="center"><b><%=langOnDelete%></b>
+			<select name="ondelete">
+				<option value="NO ACTION"><%=langNoAction%></option>
 				<option value="CASCADE"><%=langDelete%></option>
-				<option value="SET NULL"><%=langSetToNull2%></option>
 			</select>
 		</td>
+		<td>&nbsp;</td>
 	</tr>
+	<tr><td colspan="5" align="center">
+		<input type="submit" name="submit" value="<%=langCreateRelationship%>" class="button">
+	</td></tr>
 </table>
-<p align="center"><input type="submit" name="submit" value="<%=langCreateRelationship%>" class="button"></p>
 </form>
-
-
-
 <%
-	con.Close
-	set rec = nothing
-	set con = nothing
-%>		
-		</td>
-	</tr>
-</table>
-
-
+	call DBA_EndNewTable
+	set dba = Nothing
+%>
+<script type="text/javascript" language="javascript">loadTables();</script>
+<!--#include file=scripts\inc_footer.inc -->
 </body>
 </html>

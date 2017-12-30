@@ -1,27 +1,24 @@
 <%@ Language=VBScript %>
-<!--#include file=inc_config.asp -->
-<!--#include file=inc_protect.asp -->
-<!--#include file=inc_functions.asp -->
+<!--#include file=scripts\inc_common.asp -->
 <%
-On Error Resume Next
-dim con, rec, s, xml
-OpenConnection con
-IsError
-set rec = Server.CreateObject("ADODB.Recordset")
-rec.CursorLocation = adUseClient
-rec.Open Request.QueryString("sql").Item, con
+'	On Error Resume Next
+	dim dba, rec, s, xml
+	set dba = new DBAdmin
+	dba.Connect Session(DBA_cfgSessionDBPathName), Session(DBA_cfgSessionDBPassword)
+	set rec = dba.RunScript(Request("sql").Item, False, True, null)
 
-set s = Server.CreateObject("ADODB.Stream")
-Response.AddHeader "Content-Disposition", "attachment; filename=" & Session.SessionID & "_export.xml"
-Response.CharSet  = "UTF-8"
-Response.ContentType = "application/octet-stream"
-rec.Save s, adPersistXML 
-Response.Write s.ReadText
-s.Close
-set s = nothing
+	set s = Server.CreateObject("ADODB.Stream")
+	rec.Save s, adPersistXML
+	Randomize
+	Response.AddHeader "Content-Disposition", "attachment; filename=" & Int((Rnd() * 10000000)) & "_export.xml"
+	Response.ContentType = "application/octet-stream"
+	Response.CharSet  = "UTF-8"
+	Response.Write s.ReadText
+	s.Close
 
-rec.Close
-con.Close
-set rec = nothing
-set con = nothing
+	set s = nothing
+
+	rec.Close
+	set rec = nothing
+	set dba = Nothing
 %>

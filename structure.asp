@@ -1,231 +1,271 @@
 <%@ Language=VBScript %>
-<!--#include file=inc_config.asp -->
+<!--#include file=scripts\inc_common.asp -->
+<!doctype html public "-//w3c//dtd html 4.01 transitional//en">
 <html>
 <head>
-<meta name=vs_targetSchema content="http://schemas.microsoft.com/intellisense/ie5">
+<meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5">
 <meta NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
 <link href="default.css" rel="stylesheet">
-<title>Database Administration</title>
-<script LANGUAGE="javascript">
-<!--
-function showIndexes(){
-	var oTable = document.getElementById("tblIndexes");
-	if(oTable != null){
-		if(oTable.style.display != "none"){
-			oTable.style.display = "none";
-		}else{
-			oTable.style.display = "";
-		}
+<title>DBA:Table Structure</title>
+<script type="text/javascript" language="javascript" src="scripts/common.js" defer></script>
+<script language="javascript" type="text/javascript">
+//<!--
+function deleteColumn(name){
+	var str = '<%=Replace(langAreYouSureToDelete, """", "\""")%>';
+	str = str.replace("\$name", name);
+	if(confirm(str)){
+		document.location.replace('structure.asp?table=<%=Server.URLEncode(Request("table"))%>&field=' + name + '&action=delete_field');
 	}
+}
+function onFieldTypeChange(newType){
+	var isText = newType == "TEXT" || newType == "MEMO" ? true : false;
+	document.getElementById('trZeroLength').style.display = isText ? "" : "none";
+	document.getElementById('trCompress').style.display = isText ? "" : "none";
 }
 //-->
 </script>
 </head>
 <body>
-<!--#include file=inc_protect.asp -->
-<!--#include file=inc_functions.asp -->
-<table WIDTH="100%" ALIGN="center">
-	<tr>
-		<td width="180px" valign="top"><!--#include file=inc_nav.asp --></td>
-		<td>
+<%	call DBA_WriteNavigation%>
+
 <%
 	On Error Resume Next
-	dim con, rec, sTableName, sSQL, field, fld,autonumber, sColumns, oIndexes, sError, arIndexes
-	pk = ""
-	sTableName = Request("table")
-	field = Request("field")
+	dim dba, dic, strTable, item, action, sClass, sPrimaryIndexName, oTable
+	strTable = CStr(Request("table"))
+	action = CStr(Request("action"))
+	set dba = new DBAdmin
+	dba.Connect Session(DBA_cfgSessionDBPathName), Session(DBA_cfgSessionDBPassword)
+	
+	DBA_BeginNewTable strTable & langTableStructure, "", "90%"
+	If not dba.IsOpen then Response.Redirect "database.asp"
+	if dba.HasError then DBA_WriteError dba.LastError
+	
+	set oTable = dba.Tables.Item(strTable)
+	'perform requested actions first
+	Select Case action
+		Case "create_field"
+			set item = new DBAField
+			item.Name = Request.Form("fname").Item
+			item.FieldType = Request.Form("type").Item
+			item.DefaultValue = Request.Form("default").Item
+			item.IsNullable = Request.Form("nullable").Item
+			item.MaxLength = Request.Form("length").Item
+			item.Description = Request.Form("description").Item
+			item.AllowZeroLength = Request.Form("zero_length").Item
+			item.Compressed = Request.Form("compress").Item
+			oTable.CreateField item, Request.Form("indexed").Item
+			set item = nothing
+			if dba.HasError then DBA_WriteError dba.LastError
+		Case "delete_field"
+			oTable.DeleteField Request.QueryString("field").Item
+			if dba.HasError then DBA_WriteError dba.LastError
+		Case "key"
+			oTable.CreateIndex "", Request.QueryString("field").Item, True, True
+			if dba.HasError then DBA_WriteError dba.LastError
+		Case "delete_index"
+			oTable.DeleteIndex Request.QueryString("index").Item, Request.QueryString("field").Item
+			if dba.HasError then DBA_WriteError dba.LastError
+		Case "create_index"
+			oTable.CreateIndex Request.Form("index").Item, Request.Form("field").Item, Request.Form("unique").Item, False
+			if dba.HasError then DBA_WriteError dba.LastError
+		Case "update_field"
+			set item = oTable.Fields.Item(Request.Form("oldname").Item)
+			item.Name = Request.Form("fname").Item
+			item.FieldType = Request.Form("type").Item
+			item.MaxLength = Request.Form("length").Item
+			item.DefaultValue = Request.Form("default").Item
+			item.Description = Request.Form("description").Item
+			item.AllowZeroLength = Request.Form("zero_length").Item
+			item.IsNullable = Request.Form("nullable").Item
+			item.UpdateBatch
+			if dba.HasError then DBA_WriteError dba.LastError
+	End Select
+	
+	'find out primary index name
+	sPrimaryIndexName = ""
+	set dic = dba.Tables.Item(strTable).Indexes
+	for each item in dic.Items
+		if item.IsPrimary then
+			sPrimaryIndexName = item.Name
+			Exit For
+		end if
+	next
+	
+	set dic = dba.Tables.Item(strTable).Fields
+%>
 
-	OpenConnection con
-	IsError
-	set rec = Server.CreateObject("ADODB.Recordset")
-	
-	'new field
-	if Request("submit").Count > 0 then
-		if Request.Form("edit") = "1" then
-			sSQL = "ALTER TABLE [" & sTableName & "] ALTER COLUMN [" & Request.Form("name") & "] " & Request("type")
-		else
-			sSQL = "ALTER TABLE [" & sTableName & "] ADD COLUMN [" & Request("name") & "] " & Request("type")
-		end if
-		if Request("type") = "TEXT" then sSQL = sSQL & "(" & Request("length") & ")"
-		if Request.Form("maynull") <> "1" then sSQL = sSQL & " NOT NULL"
-		if Request("unique") = "1" and Request("pk") <> "1" then sSQL = sSQL & " UNIQUE"
-		if Request("pk") = "1" and Request.Form("edit") <> "1" then sSQL = sSQL & " PRIMARY KEY"
-		if Len(Request.Form("default")) > 0 then 
-			if Request.Form("type") = "TEXT" or Request.Form("type") = "MEMO" then
-				sSQL = sSQL & " DEFAULT """ & Request.Form("default") & """"
-			else
-				sSQL = sSQL & " DEFAULT " & Request.Form("default")
-			end if
-		elseif Request.Form("edit") = "1" then sSQL = sSQL & " DEFAULT"
-		end if
-		con.Execute sSQL, adExecuteNoRecords
-		if Err <> 0 then
-			Response.Write "<P class=Error align=center>" & Err.Description & "</P>"
-'			Response.Write sSQL
-		end if
-	end if
-
-	set oIndexes = new TableIndexes
-	oIndexes.OpenTable sTableName
-	
-	'# add new Primary Key
-	if Request.QueryString("action") = "key" then
-		sError = oIndexes.CreateIndex("PrimaryKey", field, True, True)
-		if Len(sError) > 0 then
-			Response.Write "<P class=Error align=center>" & sError & "</P>"
-		end if
-	end if
-	
-	'delete field
-	if Request.QueryString("action") = "delete" then
-		set rec = con.OpenSchema(adSchemaIndexes, Array(empty,empty,empty,empty, sTableName))
-		do while not rec.EOF
-			if rec("COLUMN_NAME") = field then
-				oIndexes.DeleteIndex rec("INDEX_NAME")
-			end if
-			rec.MoveNext
-		loop
-		sSQL = "ALTER TABLE [" & sTableName & "] DROP COLUMN [" & field & "]"
-		con.Execute sSQL, adExecuteNoRecords
-		if Err <> 0 then
-			Response.Write "<P class=Error align=center>" & Err.Description & "</P>"
-		End if
-		rec.close
-	end if
-	
-	'delete index
-	if Request.QueryString("action") = "delete_index" then
-		sError = oIndexes.DeleteIndex(Request.QueryString("index"), field)
-		If Len(sError) > 0 then
-			Response.Write "<P class=Error align=center>" & sError & "</P>"
-		End if
-	end if
-	
-	'create index
-	if Request.Form("create_index").Count > 0 then
-		sError = oIndexes.CreateIndex(Request.Form("index_name"), Request.Form("column_name"), False, CBool(Request.Form("unique")))
-		if Len(sError) > 0 then
-			Response.Write "<P align=center class=error>" & sError & "</P>"
-		end if
-	end if
-
-	'find the autonumber field
-	autonumber = ""
-	rec.Open sTableName, con, adOpenForwardOnly, adLockReadOnly, adCmdTable
-	if Err = 0 then
-		for each fld in rec.Fields
-			if fld.type = adInteger and (fld.Attributes and adFldIsNullable) = 0 then
-				autonumber = fld.Name
-				Exit For
-			end if
-		next
-		rec.Close 
+<!--FIELDS-->
+<table align="center" width="90%" border="0" cellpadding="3" cellspacing="1">
+	<tr>
+		<th><%=langOrdinal%></th>
+		<th><%=langName%></th>
+		<th><%=langDataType%></th>
+		<th><%=langNullable%></th>
+		<th><%=langMaxLength%></th>
+		<th><%=langDefaultValue2%></th>
+		<th><%=langDescription%></th>
+		<th><%=langActions%></th>
+	</tr>
+<%	
+	for each item in dic.Items
+		WriteFieldTR item
+	next
+%>
+</table>
+<%
+	call DBA_EndNewTable
+	if action = "edit" then 
+		call WriteFieldEditForm(dic.Item(Request.QueryString("field").Item))
+	else
+		set item = new DBAField
+		item.Ordinal = dic.Count + 1
+		call WriteFieldEditForm(item)
+		set item = nothing
 	end if
 %>
-<p align="center">
-<h3 align="center"><%=langTableIndexes%></h3>
-<p align="center"><a href="javascript:showIndexes()"><%=langShowHideIndexes%></a></p>
-<table align="center" width="100%" border="1" cellpadding="1" cellspacing="1" id="tblIndexes" style="display:none" class=RegularTable>
+
+<!--INDEXES-->
+<%
+	DBA_BeginNewTable strTable & langTableIndexes, "", "90%"
+%>
+<form action="structure.asp" method="post">
+<table align="center" width="90%" border="0" cellpadding="3" cellspacing="1">
 	<tr>
-		<th class=RegularTH><%=langIndexName%></th>
-		<th class=RegularTH><%=langColumn%></th>
-		<th class=RegularTH><%=langUnique%></th>
-		<th class=RegularTH><%=langAction%></th>
+		<th><%=langIndexName%></th>
+		<th><%=langColumn%></th>
+		<th><%=langUnique%></th>
+		<th><%=langActions%></th>
 	</tr>
 <%
-	arIndexes = oIndexes.GetIndexes
-	for i=0 to UBound(arIndexes)-1
-		if Len(arIndexes(i)(0)) > 0 then
+	set dic = dba.Tables.Item(strTable).Indexes
+	sClass = ""
+	for each item in dic.Items
+		if sClass = "oddrow" then sClass = "evenrow" else sClass = "oddrow"
 %>
-	<tr onmouseover="bgColor='#DDDDDD'" onmouseout="bgColor=''">
-		<td class=RegularTD>
-<%			if oIndexes.IsPrimaryKey(arIndexes(i)(1)) then%>
-				<img src="images/key.gif" border="0" WIDTH="16" HEIGHT="16" alt="<%=langPrimaryColumnAlt%>">
+	<tr class="<%=sClass%>" onmouseover="style.backgroundColor='#ffdfbf'" onmouseout="style.backgroundColor=''">
+		<td>
+<%			if item.IsPrimary then%>
+				<img src="images/key.gif" border="0" width="16" height="16" alt="<%=langPrimaryColumnAlt%>">
 <%			end if%>
-		<%=arIndexes(i)(0)%>
+		<%=item.Name%>
 		</td>
-		<td class=RegularTD><%=arIndexes(i)(1)%></td>
-		<td align="center" class=RegularTD>
-			<%if CBool(arIndexes(i)(2)) = True then%>
-			<img src="images/check.gif" border="0" WIDTH="16" HEIGHT="16" alt="<%=langUniqueIndexAlt%>">
+		<td><%=item.TargetField%></td>
+		<td align="center">
+			<%if item.IsUnique then%>
+			<img src="images/check.gif" border="0" width="16" height="16" alt="<%=langUniqueIndexAlt%>">
 			<%end if%>
 			&nbsp;
 		</td>
-		<td align="center" class=RegularTD>
-			<a href="structure.asp?table=<%=Server.URLEncode(sTableName)%>&amp;action=delete_index&amp;index=<%=Server.URLEncode(arIndexes(i)(0))%>&field=<%=Server.URLEncode(arIndexes(i)(1))%>"><img src="images/delete.gif" alt="<%=langDeleteIndexAlt%>" border="0" WIDTH="16" HEIGHT="16"></a>
+		<td align="center">
+			<a href="structure.asp?table=<%=Server.URLEncode(strTable)%>&amp;action=delete_index&amp;index=<%=Server.URLEncode(item.Name)%>&field=<%=Server.URLEncode(item.TargetField)%>"><img src="images/delete.gif" alt="<%=langDeleteIndexAlt%>" border="0" width="16" height="16"></a>
 		</td>
 	</tr>
-<%		
-		end if
-		if Err then Exit For
-	Next
-%>
-	<form action="<%=script%>" method=post>
-	<input type=hidden name=table value="<%=sTableName%>">
+<%	next%>
 	<tr>
-		<td><input type=text name=index_name size=15></td>
-		<td><input type=text name=column_name size=15></td>
-		<td align=center><input type=checkbox name=unique value="1"></td>
-		<td align=right><input type=submit name=create_index value="<%=langCreateIndex%>" class=button></td>
+		<th align="left"><input type="text" name="index" size="10"></th>
+		<th align="left">
+			<select name="field">
+<%	for each item in dba.Tables.Item(strTable).Fields.Items%>
+				<option value="<%=item.Name%>"><%=item.Name%></option>
+<%	next%>
+			</select>
+		</th>
+		<th align="center"><input type="checkbox" name="unique" value="1"></th>
+		<th align="right"><input type="submit" name="submit" value="<%=langCreateIndex%>" class="button"></th>
 	</TR>
-	</form>
-</table></p>
+</table>
+<input type="hidden" name="table" value="<%=strTable%>">
+<input type="hidden" name="action" value="create_index">
+</form>
 
-<!--Columns definitions-->
+<!--GENERATED SQL QUERY-->
 <%
-	'open schema
-	set rec = con.OpenSchema(adSchemaColumns, Array(empty,empty,sTableName))
-	if Err then
-		Response.Write "<P class=Error align=center>Error opening columns schema: " & Err.Description & "</P>"
-	end if
+	call DBA_EndNewTable
+	DBA_BeginNewTable strTable & langCreateTableQuery, langCreateTableQueryAlt, "75%"
 %>
-<h1><%=langTableStructure & sTableName%></h3>
-<table WIDTH="100%" ALIGN="center" BORDER="1" CELLSPACING="1" CELLPADDING="1" class=RegularTable>
-	<tr>
-		<th class=RegularTH><%=langOrdinal%></th>
-		<th class=RegularTH><%=langName%></th>
-		<th class=RegularTH><%=langDataType%></th>
-		<th class=RegularTH><%=langNullable%></th>
-		<th class=RegularTH><%=langMaxLength%></th>
-		<th class=RegularTH><%=langDefaultValue2%></th>
-		<th class=RegularTH><%=langDescription%></th>
-		<th class=RegularTH><%=langAction%></th>
-	</tr>
-<%	do while not rec.EOF and Err = 0
+	<div id="divSQL" align="left"><%=HighlightSQL(dba.Tables.Item(strTable).SQL)%></div>
+<%	if InStr(1, Request.ServerVariables("HTTP_USER_AGENT"), "MSIE") > 0 then%>
+		<p>&nbsp;</p>
+		<div align="center"><input type="button" value="<%=langCopyToClipboard%>" onclick="javascript:copyToClipboard(document.getElementById('divSQL'));" class="button"></div>
+<%	end if%>
+<%
+	call DBA_EndNewTable
+	set dba = Nothing
+%>
+<!--#include file=scripts\inc_footer.inc -->
+</body>
+</html>
 
-		'continue to build create table query
-		sColumns = sColumns & rec("ORDINAL_POSITION") & ";[" & rec("COLUMN_NAME") & "] " & GetSQLTypeName(rec("DATA_TYPE"), rec("CHARACTER_MAXIMUM_LENGTH"))
-		if rec("DATA_TYPE") = 128 or (rec("DATA_TYPE") = 130 and rec("CHARACTER_MAXIMUM_LENGTH") > 0) then sColumns = sColumns & "(" & rec("CHARACTER_MAXIMUM_LENGTH") & ")"
-		if not rec("IS_NULLABLE") then sColumns = sColumns & " NOT NULL"
-		if rec("COLUMN_HASDEFAULT") then 
-			sColumns = sColumns & " DEFAULT "
-			if rec("DATA_TYPE") = 130 then 
-				sColumns = sColumns & """" & rec("COLUMN_DEFAULT") & """"
-			else
-				sColumns = sColumns & rec("COLUMN_DEFAULT")
-			end if
+<%
+	Sub WriteFieldTR(byref fld)
+		if sClass = "oddrow" then sClass = "evenrow" else sClass = "oddrow"
+%>
+		<tr class="<%=sClass%>" onmouseover="style.backgroundColor='#ffdfbf'" onmouseout="style.backgroundColor=''">
+			<td align=center><%=fld.Ordinal%></td>
+			<td>
+				<%if fld.IsPrimaryKey then%>
+					<img src="images/key.gif" border="0" width="16" height="16" alt="<%=langPrimaryColumnAlt%>">
+				<%end if%>
+				<%=fld.Name%>
+			</td>
+			<td><%=fld.GetTypeName%></td>
+			<td align="center">
+				<%if fld.IsNullable then%>
+				<img src="images/check.gif" border="0" width="16" height="16">
+				<%end if%>
+				&nbsp;
+			</td>
+			<td><%if fld.MaxLength > 0 then Response.Write fld.MaxLength else Response.Write "&nbsp;"%></td>
+			<td><%=fld.DefaultValue%>&nbsp;</td>
+			<td><%=fld.Description%>&nbsp;</td>
+			<td align="center">
+				<a href="structure.asp?table=<%=Server.URLEncode(strTable)%>&amp;field=<%=Server.URLEncode(fld.Name)%>&amp;action=edit"><img src="images/edit.gif" alt="<%=langEditField%>" border="0" width="16" height="16"></a>&nbsp;
+				<%if fld.IsPrimaryKey then%>
+					<a href="structure.asp?table=<%=Server.URLEncode(strTable)%>&amp;field=<%=Server.URLEncode(fld.Name)%>&index=<%=Server.URLEncode(sPrimaryIndexName)%>&amp;action=delete_index"><img src="images/un_key.gif" alt="<%=langRemovePK%>" border="0" width="16" height="16"></a>&nbsp;
+				<%else%>
+					<a href="structure.asp?table=<%=Server.URLEncode(strTable)%>&amp;field=<%=Server.URLEncode(fld.Name)%>&amp;action=key"><img src="images/key.gif" alt="<%=langSetAsPK%>" border="0" width="16" height="16"></a>&nbsp;
+				<%end if%>
+				<a href="javascript:deleteColumn('<%=Server.URLEncode(fld.Name)%>')"><img src="images/delete.gif" alt="<%=langDeleteField%>" border="0" width="16" height="16"></a>
+			</td>
+		</tr>
+<%	End Sub%>
+
+<%	
+	Sub WriteFieldEditForm(byref fld)
+		dim isText, isNewField, strNullable, strCompress
+		if Len(fld.Name) =  0 then 
+			DBA_BeginNewTable strTable & "&nbsp;:&nbsp;" & langAddNewColumn, "", "50%" 
+			action = "create_field"
+			isNewField = True
+			strNullable = "<input type=""checkbox"" name=""nullable"" value=""-1"">"
+			strCompress = "<input type=""checkbox"" name=""compress"" value=""-1"">"
+		else 
+			DBA_BeginNewTable strTable & "&nbsp;:&nbsp;" & langEditField, "", "50%"
+			action = "update_field"
+			isNewField = False
+			strNullable = "<input type=""hidden"" name=""nullable"" value=""" & CInt(fld.IsNullable) & """>" & CStr(fld.IsNullable)
+			strCompress = CStr(fld.Compressed)
 		end if
-		sColumns = sColumns & vbTab
-		
-		
-		if Request.QueryString("action") = "edit" and field = rec("COLUMN_NAME") then%>
-		
-		<!--Field editing form-->
-	<tr>
-		<td class=RegularTD align=center><%=rec("ORDINAL_POSITION")%></td>
-		<td class=RegularTD>
-			<%if oIndexes.IsPrimaryKey(rec("COLUMN_NAME")) then%>
-				<img src="images/key.gif" border="0" WIDTH="16" HEIGHT="16" alt="<%=langPrimaryColumnAlt%>">
-			<%end if%>
-			<%=rec("COLUMN_NAME")%>
-		</td>
-		<form action="structure.asp" method="POST" id="form1" name="form1">
-		<input type="hidden" name="edit" value="1">
-		<input type="hidden" name="name" value="<%=rec("COLUMN_NAME")%>">
-		<input type="hidden" name="table" value="<%=sTableName%>">
-			<td class=RegularTD>
-				<select name="type">
-					<option value="<%=GetSQLTypeName(rec("DATA_TYPE"), rec("CHARACTER_MAXIMUM_LENGTH"))%>"><%=GetTypeName(rec("DATA_TYPE"), rec("CHARACTER_MAXIMUM_LENGTH"))%></option>
+		if fld.GetSQLTypeName = "TEXT" or fld.getSQLTypeName = "MEMO" then isText = True else IsText = False
+%>
+<!--Field editing form -->
+		<form action="structure.asp" method="post">
+		<input type="hidden" name="oldname" value="<%=fld.Name%>">
+		<input type="hidden" name="table" value="<%=strTable%>">
+		<input type="hidden" name="action" value="<%=action%>">
+		<table align="center" border="0" cellpadding="3" cellspacing="1">
+			<tr>
+				<td><%=langOrdinal%></td>
+				<td><%=fld.Ordinal%></td>
+			</tr>
+			<tr>
+				<td><%=langName%></td>
+				<td><input type="text" name="fname" value="<%=fld.Name%>"></td>
+			</tr>
+			<tr>
+				<td><%=langDataType%></td>
+				<td><select name="type" onchange="javascript:onFieldTypeChange(this.options[this.selectedIndex].value);">
+					<option value="<%=fld.GetSQLTypeName%>"><%=fld.GetTypeName%></option>
 					<option value="DATETIME">Date/Time</option>
 					<option value="LONG">Long Integer</option>
 					<option value="TEXT">Text</option>
@@ -240,233 +280,54 @@ function showIndexes(){
 					<option value="REAL">Single</option>
 					<option value="BIT">Boolean</option>
 					<option value="UNIQUEIDENTIFIER">Replication ID</option>
-				</select>
-			</td>
-			<td class=RegularTD align=center>
-				<%if rec("IS_NULLABLE") = True then%>
-					<input type=hidden name=maynull value="1" checked>
-					True
-				<%else%>
-					False
+				</select></td>
+			</tr>
+			<tr>
+				<td><%=langNullable%></td>
+				<td><%=strNullable%></td>
+			</tr>
+			<tr>
+				<td><%=langMaxLength%></td>
+				<td><input type="text" name="length" size="5" value="<%=fld.MaxLength%>"></td>
+			</tr>
+			<tr>
+				<td><%=langDefaultValue2%></td>
+				<td><input type="text" name="default" size="20" value="<%=fld.DefaultValue%>"></td>
+			</tr>
+			<tr>
+				<td><%=langDescription%></td>
+				<td><input type="text" name="description" value="<%=fld.Description%>"></td>
+			</tr>
+			<tr id="trZeroLength" style="<%if not isText then Response.Write "display:none"%>">
+				<td><%=langAllowZeroLength%></td>
+				<td><input type="checkbox" name="zero_length" value="-1" <%if fld.AllowZeroLength then Response.Write " checked "%>></td>
+			</tr>
+			<tr id="trCompress" style="<%if not isText then Response.Write "display:none"%>">
+				<td><%=langUnicodeCompress%></td>
+				<td><%=strCompress%></td>
+			</tr>
+<%		if isNewField then%>
+			<tr>
+				<td><%=langIndexed%></td>
+				<td><select name="indexed">
+					<option value="0"><%=langNo%></option>
+					<option value="1"><%=langIndxedDuplicates%></option>
+					<option value="2"><%=langIndexedUnique%></option>
+				</select></td>
+			</tr>
+<%		end if%>
+			<tr>
+				<td align="center" colspan="2">
+					<input type="submit" name="submit" value="<%=langUpdate%>" class="button">
+				<%if Len(fld.Name) > 0 then%>
+					<input type="button" value="<%=langCancel%>" class="button" onclick="javascript:window.location.replace('structure.asp?table=<%=Server.URLEncode(strTable)%>');">
 				<%end if%>
-			</td>
-			<td class=RegularTD><input type="text" name="length" size=5 value="<%=rec("CHARACTER_MAXIMUM_LENGTH")%>"></td>
-			<td class=RegularTD><input type="text" name="default" size=20 value="<%=rec("COLUMN_DEFAULT")%>"></td>
-			<td class=RegularTD align=right colspan=2>
-				<input type="submit" name="submit" value="<%=langUpdate%>" class=button>
-				<input type="button" value="<%=langCancel%>" class=button onclick="javascript:window.location.replace('<%=script%>?table=<%=Server.URLEncode(sTableName)%>');">
-			</td>
+				</td>
+			</tr>
+		</table>
 		</form>
 		<!--End of form-->
-		<%else%>
-		
-	<tr onmouseover="bgColor='#DDDDDD'" onmouseout="bgColor=''">
-		<td class=RegularTD align=center><%=rec("ORDINAL_POSITION")%></td>
-		<td class=RegularTD>
-			<%if oIndexes.IsPrimaryKey(rec("COLUMN_NAME")) then%>
-				<img src="images/key.gif" border="0" WIDTH="16" HEIGHT="16" alt="<%=langPrimaryColumnAlt%>">
-			<%end if%>
-			<%=rec("COLUMN_NAME")%>
-		</td>
-		<td class=RegularTD>
-			<%if rec("COLUMN_NAME") = autonumber then%>
-				AutoNumber
-			<%else%>
-				<%=GetTypeName(rec("DATA_TYPE"), rec("CHARACTER_MAXIMUM_LENGTH"))%>
-			<%end if%>
-		</td>
-		<td align="center" class=RegularTD>
-			<%if rec("IS_NULLABLE") then%>
-			<img src="images/check.gif" border="0" WIDTH="16" HEIGHT="16">
-			<%end if%>
-			&nbsp;
-		</td>
-		<td class=RegularTD><%=rec("CHARACTER_MAXIMUM_LENGTH")%>&nbsp;</td>
-		<td class=RegularTD><%=rec("COLUMN_DEFAULT")%>&nbsp;</td>
-		<td class=RegularTD><%=rec("DESCRIPTION")%>&nbsp;</td>
-		<td align="center" class=RegularTD>
-			<a href="structure.asp?table=<%=Server.URLEncode(sTableName)%>&amp;field=<%=Server.URLEncode(rec("COLUMN_NAME"))%>&amp;action=edit"><img src="images/edit.gif" alt="<%=langEditField%>" border="0" WIDTH="16" HEIGHT="16"></a>&nbsp;
-			<%if oIndexes.IsPrimaryKey(rec("COLUMN_NAME")) then%>
-				<a href="structure.asp?table=<%=Server.URLEncode(sTableName)%>&amp;field=<%=Server.URLEncode(rec("COLUMN_NAME"))%>&index=<%=Server.URLEncode(oIndexes.GetPrimaryKeyName)%>&amp;action=delete_index"><img src="images/un_key.gif" alt="<%=langRemovePK%>" border="0" WIDTH="16" HEIGHT="16"></a>&nbsp;
-			<%else%>
-				<a href="structure.asp?table=<%=Server.URLEncode(sTableName)%>&amp;field=<%=Server.URLEncode(rec("COLUMN_NAME"))%>&amp;action=key"><img src="images/key.gif" alt="<%=langSetAsPK%>" border="0" WIDTH="16" HEIGHT="16"></a>&nbsp;
-			<%end if%>
-			<a href="javascript:deleteColumn('<%=Server.URLEncode(rec("COLUMN_NAME"))%>')"><img src="images/delete.gif" alt="<%=langDeleteField%>" border="0" WIDTH="16" HEIGHT="16"></a>
-		</td>
-		<%end if%>
-	</tr>
-<%		rec.MoveNext 
-	loop
+<%	
+		DBA_EndNewTable
+	End Sub
 %>
-
-
-<!--New field definition-->
-<%if Request.QueryString("action") <> "edit" then%>
-<form action="structure.asp" method="POST" id="form1" name="form1">
-<input type="hidden" name="table" value="<%=sTableName%>">
-<tr><TD colspan="8" align=center><B><%=langAddNewColumn%></B></TD></TR>
-<tr>
-	<td class=RegularTD align=center>*<%=UBound(Split(sColumns, vbTab))+1%>*</td>
-	<td><input type="text" name="name"></td>
-	<td class=RegularTD>
-		<select name="type">
-			<option value="DATETIME">Date/Time</option>
-			<option value="LONG">Long Integer</option>
-			<option value="TEXT">Text</option>
-			<option value="COUNTER">AutoNumber</option>
-			<option value="MEMO">Memo</option>
-			<option value="MONEY">Currency</option>
-			<option value="BINARY">Binary</option>
-			<option value="TINYINT">Byte</option>
-			<option value="DECIMAL">Decimal</option>
-			<option value="FLOAT">Double</option>
-			<option value="INTEGER">Integer</option>
-			<option value="REAL">Single</option>
-			<option value="BIT">Boolean</option>
-			<option value="UNIQUEIDENTIFIER">Replication ID</option>
-		</select>
-	</td>
-	<td class=RegularTD align=center><input type="checkbox" name="maynull" value="1" id="maynull"></td>
-	<td class=RegularTD><input type="text" name="length" size=5></td>
-	<td class=RegularTD><input type="text" name="default" size=20></td>
-	<td class=RegularTD><input type="checkbox" name="unique" id="unique" value="1"><%=langUnique%></td>
-	<td class=RegularTD align=center><input type="submit" name="submit" value="<%=langAdd%>" class=button></td>
-</tr>
-</form>
-<%end if%>
-<!--End new field definition-->
-
-
-</table>
-		
-
-<!--CREATE TABLE query-->
-<P>
-<TABLE align=center class=RegularTable width="75%">
-	<TR>
-		<TH><%=langCreateTableQuery%><BR>
-			<font size=1><%=langCreateTableQueryAlt%></font>
-		</TH>
-	</TR>
-	<TR><TD style="border:1px inset"><%=BuildTableDef()%></TD></TR>
-</TABLE>
-</P>
-
-		</td>
-	</tr>
-</table>
-</body>
-</html>
-<%
-	rec.Close
-	con.Close
-	set rec = nothing
-	set con = nothing
-	set oIndexes = nothing
-%>
-<script LANGUAGE="vbscript" RUNAT="Server">
-Function GetTypeName(intType, intLength)
-	Select Case intType
-	Case 3		GetTypeName = "Long Integer"
-	Case 7		GetTypeName = "Date/Time"
-	Case 11		GetTypeName = "Boolean"
-	Case 6		GetTypeName = "Currency"
-	Case 128	GetTypeName = "Binary"
-	Case 17		GetTypeName = "Byte"
-	Case 131	GetTypeName = "Decimal"
-	Case 5		GetTypeName = "Double"
-	Case 2		GetTypeName = "Integer"
-	Case 4		GetTypeName = "Single"
-	Case 72		GetTypeName = "Replication ID"
-	Case 130
-		if intLength = 0 then
-			GetTypeName = "Memo"
-		else
-			GetTypeName = "Text"
-		end if
-	Case Else	GetTypeName = intType
-	End Select
-End Function
-
-Function GetSQLTypeName(intType, intLength)
-	Select Case intType
-	Case 3		GetSQLTypeName = "LONG"
-	Case 7		GetSQLTypeName = "DATETIME"
-	Case 11		GetSQLTypeName = "BIT"
-	Case 6		GetSQLTypeName = "MONEY"
-	Case 128	GetSQLTypeName = "BINARY"
-	Case 17		GetSQLTypeName = "TINYINT"
-	Case 131	GetSQLTypeName = "DECIMAL"
-	Case 5		GetSQLTypeName = "FLOAT"
-	Case 2		GetSQLTypeName = "INTEGER"
-	Case 4		GetSQLTypeName = "REAL"
-	Case 72		GetSQLTypeName = "UNIQUEIDENTIFIER"
-	Case 130
-		if intLength = 0 then
-			GetSQLTypeName = "MEMO"
-		else
-			GetSQLTypeName = "TEXT"
-		end if
-	Case Else	GetSQLTypeName = "TEXT"
-	End Select
-End Function
-
-Function BuildTableDef
-	dim sTableDef, s, arTemp, arFields, i
-	sTableDef = "CREATE TABLE [" & sTableName & "] ("
-	arTemp = Split(sColumns, vbTab)
-	ReDim arFields(UBound(arTemp))
-	for each s in arTemp
-		if Len(s) > 0 then 
-			i = Left(s, InStr(1, s, ";") - 1)
-			arFields(i) = Replace(s, i & ";", "", 1, 1)
-		end if
-	next
-	for each s in arFields
-		if Len(s) > 0 then sTableDef = sTableDef & s & ","
-	next
-
-	if InStrRev(sTableDef, ",") = Len(sTableDef) then sTableDef = Left(sTableDef, Len(sTableDef)-1)	
-	sTableDef = sTableDef & ")"
-	if InStrRev(sTableDef, "()") = Len(sTableDef)-1 then sTableDef = Left(sTableDef, Len(sTableDef)-2)	
-	'replace LONG with AUTONUMBER
-	if Len(autonumber) > 0 then sTableDef = Replace(sTableDef, "[" & autonumber & "] LONG", "[" & autonumber & "] COUNTER", 1, 1, vbTextCompare)
-	
-	'append Primary Keys query
-	sTableDef = sTableDef & ";<BR>"
-	if Len(oIndexes.GetPrimaryKeyName) > 0 then
-		sTableDef = sTableDef & "CREATE INDEX [" & oIndexes.GetPrimaryKeyName() & "] ON [" & sTableName & "]("
-		arTemp = oIndexes.GetPrimaryKeys
-		for each i in arTemp
-			if Len(i) > 0 then sTableDef = sTableDef & "[" & i & "],"
-		Next
-		if Right(sTableDef, 1) = "," then sTableDef = Left(sTableDef, Len(sTableDef)-1)
-		sTableDef = sTableDef & ") WITH PRIMARY;<BR>"
-	end if
-	
-	'Append other indexes query
-	arTemp = oIndexes.GetIndexes
-	for i=0 to UBound(arTemp)-1
-		if not oIndexes.IsPrimaryKey(arTemp(i)(1)) and not oIndexes.IsForeignKey(arTemp(i)(0)) then
-			sTableDef = sTableDef & "CREATE "
-			if CBool(arTemp(i)(2)) = true then sTableDef = sTableDef & "UNIQUE "
-			sTableDef = sTableDef & "INDEX [" & arTemp(i)(0) & "] ON [" & sTableName & "]([" & arTemp(i)(1) & "]);<BR>"
-		end if
-	Next
-	
-	BuildTableDef = HighlightSQL(sTableDef)
-End Function
-
-</script>
-
-<script LANGUAGE="javascript">
-<!--
-function deleteColumn(name){
-	var str = "<%=Replace(langAreYouSureToDelete, """", "\""")%>";
-	str = str.replace("\$name", name);
-	if(confirm(str)){
-		document.location.replace("structure.asp?table=<%=Server.URLEncode(sTableName)%>&field=" + name + "&action=delete");
-	}
-}
-//-->
-</script>

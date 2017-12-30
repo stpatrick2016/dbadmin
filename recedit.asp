@@ -1,10 +1,12 @@
 <%@ Language=VBScript %>
-<!--#include file=inc_config.asp -->
-<HTML>
-<HEAD>
-<meta name=vs_targetSchema content="http://schemas.microsoft.com/intellisense/ie5">
-<META NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
-<LINK href=default.css rel=stylesheet>
+<!--#include file=scripts\inc_common.asp -->
+<!doctype html public "-//w3c//dtd html 4.01 transitional//en">
+<html>
+<head>
+<meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5">
+<meta NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
+<link href="default.css" rel="stylesheet" type="text/css">
+<title>DBA:Record Edit</title>
 <%
 	Const TableNameKey = "BBC017D1-0A13-4a9d-9A53-52A0CC6A7540"
 	Const PKNameKey = "57AFDC29-37C8-48e1-96BE-12D7B79C1825"
@@ -14,6 +16,7 @@
 	Dim Separator 
 	Separator = vbTab
 %>
+<script type="text/javascript" language="javascript" src="scripts/common.js" defer></script>
 <script language="javascript" type="text/javascript">
 function onCancelEdit(table, page){
 	location.href = "data.asp?table=" + table + "&page=" + page;
@@ -33,28 +36,25 @@ function onDelete(){
 	return ret;
 }
 </script>
-</HEAD>
-<BODY>
-<!--#include file=inc_protect.asp -->
-<!--#include file=inc_functions.asp -->
-<TABLE WIDTH=100% ALIGN=center>
-	<TR>
-		<TD width=180px valign=top><!--#include file=inc_nav.asp --></TD>
-		<TD>
+</head>
+<body>
 		
 		
 <%
-	
-'	On error Resume Next
-	dim con, rec, sSQL, sTable, pk, key, fld, bIsEdit, sName, i
+	call DBA_WriteNavigation
+
+	On Error Resume Next
+	dim rec, sSQL, sTable, pk, key, fld, bIsEdit, sName, i
 	dim action, strRedirect, oIndexes, page, varBookmark
 	dim bHasPrev, bHasNext, bGoNext, bDoUpdate
+	dim dba, PrimaryKeys, DefaultValue
 	
-	sTable = Request("table")
+	sTable = Request("table").Item
 	pk = Split(Request("pk"), Separator)
 	key = Split(Request("key"), Separator)
-	action = Request("action")
-	page = Request("page")
+	action = Request(ActionNameKey)
+	if Len(action) = 0 then action = Request("action").Item
+	page = Request("page").Item
 	
 	bHasPrev = True
 	bHasNext = True
@@ -68,22 +68,34 @@ function onDelete(){
 		bIsEdit = False
 		sName = langAdd
 	end if
-	OpenConnection con
-	set rec = Server.CreateObject("ADODB.Recordset")
-	IsError
-	rec.CacheSize = 4
-	rec.PageSize = 4
-	
+	set dba = new DBAdmin
+	dba.Connect Session(DBA_cfgSessionDBPathName), Session(DBA_cfgSessionDBPassword)
+	DBA_BeginNewTable sName & "&nbsp;" & langRecord, "", ""
+%>
+<p align=center><%=langAutoNumberNote%></p>
+<p align=center><%=langRecEditNote%></p>
+<a name="form"></a>
+<%	
+
+	if dba.HasError then DBA_WriteError dba.LastError
 	if Request.Form(TableNameKey).Count > 0 then
 		sTable = Request.Form(TableNameKey)
 		pk = Split(Request.Form(PKNameKey), Separator)
 		key = Split(Request.Form(KeyNameKey), Separator)
 		action = Request(ActionNameKey)
+
+		'retrieve string with primary keys names
+		PrimaryKeys = ""
+		for each i in dba.Tables.Item(sTable).Indexes.Items
+			if i.IsPrimary then PrimaryKeys = PrimaryKeys & i.TargetField & Separator
+		next
+		if Right(PrimaryKeys, 1) = Separator then PrimaryKeys = Left(PrimaryKeys, Len(PrimaryKeys)-1)
+
 		if InStr(1, Request.Form(NextPos), "update", vbTextCompare) > 0 or (Len(action) = 0 and UBound(key) = -1) then bDoUpdate = True
 		if action = "edit" then
 			sSQL = ""
 			fld = ""
-			for i=0 to UBound(pk)-1
+			for i=0 to UBound(pk)
 				if Len(pk(i)) > 0 and Len(key(i)) > 0 then
 					sSQL = sSQL & fld & " [" & pk(i) & "]=" & key(i)
 					fld = " AND"
@@ -93,7 +105,7 @@ function onDelete(){
 		else
 			bIsEdit = False
 		end if
-		rec.Open "[" & sTable & "]", con, adOpenKeyset, adLockOptimistic
+		set rec = dba.Tables.Item(sTable).GetRawData(4, "[" & sTable & "]", False)
 		if Len(sSQL) > 0 then rec.Filter = sSQL
 		if rec.EOF or bIsEdit = False then 
 			if bDoUpdate = True then rec.AddNew 
@@ -106,7 +118,9 @@ function onDelete(){
 			for each fld in rec.Fields 
 				if not fld.Properties("ISAUTOINCREMENT") and Len(fld.Name) > 0 then
 					if Len(Request.Form(fld.Name)) = 0 then
-						fld.Value = null
+						if bIsEdit then 
+							if fld.Type = adWChar or fld.Type = adVarWChar or fld.Type = adLongVarWChar then fld.Value = "" else fld.Value = null
+						end if
 					elseif fld.Type = adDate then 
 						fld.Value = CDate(Request.Form(fld.Name)) 
 					else 
@@ -118,7 +132,7 @@ function onDelete(){
 		end if
 		varBookmark = rec.Bookmark
 		if Err then
-			Response.Write "<DIV class=Error align=center>" & Err.Description & "</DIV>"
+			call DBA_WriteError(Err.Description)
 			rec.Close
 		else
 			rec.Filter = ""
@@ -145,30 +159,31 @@ function onDelete(){
 			End Select
 			
 			if bGoNext then
-				strRedirect =	"recedit.asp?table=" & Server.URLEncode(sTable) &_
+				strRedirect = 	"recedit.asp?table=" & Server.URLEncode(sTable) &_
 								"&pk=" & Server.URLEncode(Join(pk, Separator)) &_
 								"&action=" & action &_
 								"&page=" & page
 				key = ""
-				if action = "edit" then
-					set oIndexes = new TableIndexes
-					oIndexes.OpenTable sTable
-					fld = oIndexes.GetPrimaryKeys()
-					set oIndexes = nothing
-					key = GetPKValues(fld, rec, False)
-				end if
+				if action = "edit" then key = GetPKValues(Split(PrimaryKeys, Separator), rec, False)
 				strRedirect =	strRedirect & "&key=" & Server.URLEncode(key)
 				if bDoUpdate = True then strRedirect = strRedirect & "&message=" & Server.URLEncode(langRecordUpdated)
+				strRedirect = strRedirect & "&d#form"
 			else
 				strRedirect = "data.asp?table=" & Server.URLEncode(sTable)
 			end if
 			rec.Close
-			con.Close
 			set rec = nothing
-			set con = nothing
 			Response.Redirect strRedirect
-			'Response.End
 		end if
+	end if
+	
+	if Len(PrimaryKeys) = 0 then
+		'retrieve string with primary keys names
+		PrimaryKeys = ""
+		for each i in dba.Tables.Item(sTable).Indexes.Items
+			if i.IsPrimary then PrimaryKeys = PrimaryKeys & i.TargetField & Separator
+		next
+		if Right(PrimaryKeys, 1) = Separator then PrimaryKeys = Left(PrimaryKeys, Len(PrimaryKeys)-1)
 	end if
 	
 	sSQL = ""
@@ -176,12 +191,9 @@ function onDelete(){
 		fld = ""
 		dim test
 		if UBound(pk) = -1 then
-			set oIndexes = new TableIndexes
-			oIndexes.OpenTable sTable
-			pk = oIndexes.GetPrimaryKeys()
-			set oIndexes = nothing
+			pk = Split(PrimaryKeys, Separator)
 		else
-			for i=0 to UBound(pk)-1
+			for i=0 to UBound(pk)
 				if Len(pk(i)) > 0 and Len(key(i)) > 0 then
 					sSQL = sSQL & fld & " [" & pk(i) & "]=" & key(i)
 					fld = " AND"
@@ -189,7 +201,7 @@ function onDelete(){
 			Next
 		end if
 	end if
-	rec.Open "[" & sTable & "]", con, adOpenKeyset, adLockReadOnly 
+	set rec = dba.Tables.Item(sTable).GetRawData(4, "[" & sTable & "]", True)
 	if Len(sSQL) > 0 then rec.Filter = sSQL
 	if action = "edit" and Len(sSQL) = 0 then key = GetPKValues(pk, rec, True)
 	varBookmark = rec.Bookmark
@@ -208,38 +220,43 @@ function onDelete(){
 	end if
 %>
 
-<H1><%=sName & "&nbsp;" & langRecord%></H1>
-<P align=center><%=langAutoNumberNote%></P>
-<p align=center><%=langRecEditNote%></p>
-<%if Request.QueryString("message").count > 0 then%>
-<p align=center><font color=Green><%=Request.QueryString("message")%></font></p>
-<%end if%>
-<FORM action="<%=Request.ServerVariables("SCRIPT_NAME")%>" method=POST>
-<INPUT type=hidden name="<%=TableNameKey%>" value="<%=sTable%>">
-<INPUT type=hidden name="<%=PKNameKey%>" value="<%=Join(pk, Separator)%>">
-<INPUT type=hidden name="<%=ActionNameKey%>" value="<%=action%>">
-<INPUT type=hidden name="<%=KeyNameKey%>" value="<%=Join(key, Separator)%>">
-<input type=hidden name="<%=NextPos%>" id="<%=NextPos%>" value="">
-<TABLE border=0 class=RegularTable align=center>
+<%if Request.QueryString("message").count > 0 then DBA_WriteSuccess Request.QueryString("message")%>
 
-<%	for each fld in rec.Fields%>
-		<%if fld.Type <> adBinary and fld.Type <> adVarBinary and fld.Type <> adLongVarBinary then%>
-	<TR>
-		<TD style="border:2px outset" valign=top><B><%=fld.Name%></B>&nbsp;(<%=GetTypeName(fld.Type)%>)</TD>
-		<TD>
+<form action="recedit.asp" method="post">
+<input type="hidden" name="<%=TableNameKey%>" value="<%=sTable%>">
+<input type="hidden" name="<%=PKNameKey%>" value="<%=PrimaryKeys%>">
+<input type="hidden" name="<%=ActionNameKey%>" value="<%=action%>">
+<input type="hidden" name="<%=KeyNameKey%>" value="<%=Join(key, Separator)%>">
+<input type="hidden" name="<%=NextPos%>" id="<%=NextPos%>" value="">
+<table border=0 align="center">
+
+<%	for each fld in rec.Fields
+		if fld.Type <> adBinary and fld.Type <> adVarBinary and fld.Type <> adLongVarBinary then
+			if dba.Tables.Item(sTable).Fields.Item(fld.Name).HasDefault then
+				DefaultValue = dba.Tables.Item(sTable).Fields.Item(fld.Name).DefaultValue
+			else
+				DefaultValue = ""
+			end if
+%>
+	<tr>
+		<td valign=top bgcolor="#006699"><font color="white">
+			<b><%=fld.Name%></b>&nbsp;(<%=GetTypeName(fld.Type)%>)
+			<%if Len(DefaultValue) > 0 then Response.Write "<br>Default:&nbsp;" & DefaultValue%>
+		</font></td>
+		<td style="border: 1px solid #c6d9ce" valign="top">
 			<%if fld.Type = 203 or fld.Type = 201 then%>
-			<TEXTAREA name="<%=fld.Name%>" rows=4 cols=40><%if bIsEdit then Response.Write fld.Value%></TEXTAREA>
+			<TEXTAREA name="<%=fld.Name%>" rows=4 cols=40><%if bIsEdit then Response.Write fld.Value%></textarea>
 			<%elseif fld.Properties("ISAUTOINCREMENT") then%>
 			AutoNumber (<%=fld.Value%>)
 			<%else%>
 			<INPUT type=text name="<%=fld.Name%>" value="<%if bIsEdit then Response.Write fld.Value%>">
 			<%end if%>
-		</TD>
-	</TR>
+		</td>
+	</tr>
 		<%end if%>
 <%	Next%>
 
-</TABLE>
+</table>
 <table align=center>
 	<tr>
 		<td>
@@ -248,13 +265,13 @@ function onDelete(){
 			<%end if%>
 		</td>
 		<td>&nbsp;</td>
-		<td><input type=submit value="<%=sName%>" class=button onclick="javascript:onGoNext('update');"></td>
-		<td><INPUT type=reset value="<%=langReset%>" class=button></td>
-		<td><INPUT type=button value="<%=langCancel%>" class=button onclick="javascript:onCancelEdit('<%=sTable%>', '<%=page%>');"></td>
+		<td><input type="submit" value="<%=sName%>" class="button" onclick="javascript:onGoNext('update');"></td>
+		<td><input type="reset" value="<%=langReset%>" class="button"></td>
+		<td><input type="button" value="<%=langCancel%>" class="button" onclick="javascript:onCancelEdit('<%=sTable%>', '<%=page%>');"></td>
 		<td>&nbsp;</td>
 		<td>
 			<%if bHasNext = True then%>
-			<input type=submit value="<%=sName & " + " & langNext%>" class="button" onclick="javascript:onGoNext('update_next');">
+			<input type="submit" value="<%=sName & " + " & langNext%>" class="button" onclick="javascript:onGoNext('update_next');">
 			<%end if%>
 		</td>
 	</tr>
@@ -262,59 +279,53 @@ function onDelete(){
 	<tr>
 		<td colspan="2" align="right">
 			<%if bHasPrev = True then%>
-			<input type=submit value="<< <%=langPrev%>" class="button" onclick="javascript:onGoNext('prev');">
+			<input type="submit" value="<< <%=langPrev%>" class="button" onclick="javascript:onGoNext('prev');">
 			<%end if%>
 		</td>
 		<td align=right><input type=submit value=" <%=langFirst%> " class="button" onclick="javascript:onGoNext('first');"></td>
 		<td>&nbsp;</td>
-		<td><input type=submit value=" <%=langLast%> " class="button" onclick="javascript:onGoNext('last');"></td>
+		<td><input type="submit" value=" <%=langLast%> " class="button" onclick="javascript:onGoNext('last');"></td>
 		<td colspan="2">
 			<%if bHasNext = True then%>
-			<input type=submit value="<%=langNext%> >>" class="button" onclick="javascript:onGoNext('next');">
+			<input type="submit" value="<%=langNext%> >>" class="button" onclick="javascript:onGoNext('next');">
 			<%end if%>
 		</td>
 	</tr>
-	<tr><td colspan="7" align=center><hr align=center width="75%"></td></tr>
+	<tr><td colspan="7" align=center><hr align="center" width="75%"></td></tr>
 	<tr>
-		<td colspan="3" align="right"><input type=submit value=" <%=langAdd%> " class="button" onclick="javascript:onAddNew();"></td>
+		<td colspan="3" align="right"><input type="submit" value=" <%=langAdd%> " class="button" onclick="javascript:onAddNew();"></td>
 		<td>&nbsp;</td>
-		<td colspan="3"><input type=submit value="<%=langDelete%>" class="button" onclick="return onDelete();"></td>
+		<td colspan="3"><input type="submit" value="<%=langDelete%>" class="button" onclick="return onDelete();"></td>
 	</tr>
 	<%end if%>
 </table>
-</FORM>
+</form>
 <%
 	rec.Close
-	con.Close
 	set rec = nothing
-	set con = nothing
+	call DBA_EndNewTable
+	set dba = Nothing
 %>
-		
-		</TD>
-	</TR>
-</TABLE>
-
-<P>&nbsp;</P>
-
-</BODY>
-</HTML>
-<SCRIPT LANGUAGE=vbscript RUNAT=Server>
+<!--#include file=scripts\inc_footer.inc -->
+</body>
+</html>
+<script language="vbscript" runat="server">
 Function GetTypeName(intType)
 	Select Case intType
-	Case 3		GetTypeName = "Long Integer"
-	Case 7		GetTypeName = "Date/Time"
-	Case 11		GetTypeName = "Boolean"
-	Case 6		GetTypeName = "Currency"
+	Case 3			GetTypeName = "Long Integer"
+	Case 7			GetTypeName = "Date/Time"
+	Case 11			GetTypeName = "Boolean"
+	Case 6			GetTypeName = "Currency"
 	Case 128,204	GetTypeName = "Binary"
-	Case 17		GetTypeName = "Byte"
-	Case 131	GetTypeName = "Decimal"
-	Case 5		GetTypeName = "Double"
-	Case 2		GetTypeName = "Integer"
-	Case 4		GetTypeName = "Single"
-	Case 72		GetTypeName = "Replication ID"
-	Case 203,201 GetTypeName = "Memo"
-	Case 202,200 GetTypeName = "Text"
-	Case Else	GetTypeName = intType
+	Case 17			GetTypeName = "Byte"
+	Case 131		GetTypeName = "Decimal"
+	Case 5			GetTypeName = "Double"
+	Case 2			GetTypeName = "Integer"
+	Case 4			GetTypeName = "Single"
+	Case 72			GetTypeName = "Replication ID"
+	Case 203,201	GetTypeName = "Memo"
+	Case 202,200	GetTypeName = "Text"
+	Case Else		GetTypeName = intType
 	End Select
 End Function
 
@@ -333,10 +344,11 @@ Function GetPKValues (ByRef pk, ByRef rec, bAsArray)
 			key = key & Separator
 		end if
 	Next
+	if Right(key, 1) = Separator then key = Left(key, Len(key)-1)
 	if bAsArray = True then
 		GetPKValues = Split(key, Separator)
 	else
 		GetPKValues = key
 	end if
 End Function
-</SCRIPT>
+</script>

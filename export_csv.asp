@@ -1,15 +1,10 @@
 <%@ Language=VBScript %>
-<!--#include file=inc_config.asp -->
-<!--#include file=inc_protect.asp -->
-<!--#include file=inc_functions.asp -->
-
-
-<%if Request.Form("submit").Count > 0 then%>
-
-
+<!--#include file=scripts\inc_common.asp -->
 <%
+if Request.Form("action") = "export" then
+
 	On Error Resume Next
-	dim con, rec, s, fld
+	dim dba, rec, s, fld
 	dim DlmColumn, DlmRow, DlmText
 	
 	if Request.Form("column") = "TAB" then 
@@ -24,13 +19,12 @@
 	DlmRow = vbCrLf
 	DlmText = Request.Form("text")
 	
-	OpenConnection con
-	IsError
-	set rec = Server.CreateObject("ADODB.Recordset")
-	rec.CursorLocation = adUseClient
-	rec.Open Request.Form("sql").Item, con
+	set dba = new DBAdmin
+	dba.Connect Session(DBA_cfgSessionDBPathName), Session(DBA_cfgSessionDBPassword)
+	set rec = dba.RunScript(Request.Form("sql").Item, False, True, null)
 	
-	Response.AddHeader "Content-Disposition", "attachment; filename=" & Session.SessionID & "_export.csv"
+	Randomize
+	Response.AddHeader "Content-Disposition", "attachment; filename=" & Int((Rnd() * 10000000)) & "_export.csv"
 	Response.ContentType = "application/octet-stream"
 	
 	
@@ -49,7 +43,9 @@
 		for each fld in rec.Fields
 			Select Case fld.Type 
 				Case adBSTR,adChar,adLongVarChar,adLongVarWChar,adVarChar,adVarWChar,adWChar
-					s = s & DlmText & Replace(fld.Value, DlmText, DlmText & DlmText) & DlmText & DlmColumn
+					s = s & DlmText
+					if not IsNull(fld.Value) and Len(fld.Value) > 0 then s = s & Replace(fld.Value, DlmText, DlmText & DlmText)
+					s = s & DlmText & DlmColumn
 				Case adBinary, adLongVarBinary, adVarBinary
 					s = s & DlmColumn
 				Case Else
@@ -64,65 +60,61 @@
 	Response.Write DlmRow
 
 	rec.Close
-	con.Close
 	set rec = nothing
-	set con = nothing
+	set dba = Nothing
 %>
-
-
 <%else%>
-<HTML>
-<HEAD>
-<META NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
-<LINK href=default.css rel=stylesheet>
-</HEAD>
-<BODY>
-<TABLE WIDTH=100% ALIGN=center>
-	<TR>
-		<TD width=180px valign=top><!--#include file=inc_nav.asp --></TD>
-		<TD>
-		
-<H1 align=center><%=langExcelExportAlt%></H1>
-<P align=center><%=langPleaseDefineExp%></P>
-<FORM action="export_csv.asp" method=POST id=form1 name=form1>
-<INPUT type=hidden name=sql value="<%=Request.QueryString("sql")%>">
-<TABLE ALIGN=center CELLSPACING=1 CELLPADDING=1>
-	<TR>
-		<TD><%=langColumnDelimiter%></TD>
-		<TD>
-			<SELECT name="column">
-				<OPTION value="TAB">{<%=langTab%>}</OPTION>
-				<OPTION value="SPACE">{<%=langSpace%>}</OPTION>
-				<OPTION value=";">;</OPTION>
-				<OPTION value=",">,</OPTION>
-				<OPTION value="OTHER">{<%=langOther%>} --></OPTION>
-			</SELECT>&nbsp;
-			<INPUT type="text" name="other" size=2 maxlength=1>
-		</TD>
-	</TR>
-	<TR>
-		<TD><%=langTextQualifier%></TD>
-		<TD>
-			<SELECT name="text">
-				<OPTION value='"'>"</OPTION>
-				<OPTION value="'">'</OPTION>
-				<OPTION value="">{None}</OPTION>
-			</SELECT>
-		</TD>
-	</TR>
-	<TR>
-		<TD colspan="2"><INPUT type=checkbox name="nofields" value="1">&nbsp;<%=langNoFieldNames%></TD>
-	</TR>
-</TABLE>
-<P align=center><INPUT type=submit name=submit value="Export" class="button"></P>
-</FORM>
-		
-		</TD>
-	</TR>
-</TABLE>
-
-<P>&nbsp;</P>
-
-</BODY>
-</HTML>
+<!doctype html public "-//w3c//dtd html 4.01 transitional//en">
+<html>
+<head>
+<meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5">
+<meta name="GENERATOR" content="Microsoft Visual Studio 6.0">
+<link href="default.css" rel="stylesheet" type="text/css">
+<title>DBA:Excel Export</title>
+<script type="text/javascript" language="javascript" src="scripts/common.js" defer></script>
+</head>
+<body>
+<%	
+	call DBA_WriteNavigation
+	DBA_BeginNewTable langExcelExportAlt, "", "90%"
+%>
+<p align="center"><%=langPleaseDefineExp%></p>
+<form action="export_csv.asp" method="POST">
+	<input type="hidden" name="sql" value="<%=Request.QueryString("sql")%>">
+	<input type="hidden" name="action" value="export">
+	<table align="center" cellspacing="1" cellpadding="1">
+		<tr>
+			<td><%=langColumnDelimiter%></td>
+			<td>
+				<select name="column">
+					<option value="TAB">{<%=langTab%>}</option>
+					<option value="SPACE">{<%=langSpace%>}</option>
+					<option value=";">;</option>
+					<option value=",">,</option>
+					<option value="OTHER">{<%=langOther%>} --></option>
+				</select>&nbsp; <input type="text" name="other" size="2" maxlength="1">
+			</td>
+		</tr>
+		<tr>
+			<td><%=langTextQualifier%></td>
+			<td>
+				<select name="text">
+					<option value='"'>"</option>
+					<option value="'">'</option>
+					<option value="">{None}</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2"><input type="checkbox" name="nofields" value="1">&nbsp;<%=langNoFieldNames%></td>
+		</tr>
+		<tr>
+			<td colspan="2" align="center"><input type="submit" name="submit" value="Export" class="button"></td>
+		</tr>
+	</table>
+</form>
+<%	call DBA_EndNewTable%>
+<!--#include file=scripts\inc_footer.inc -->
+</body>
+</html>
 <%end if%>

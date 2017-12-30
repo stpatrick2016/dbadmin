@@ -1,15 +1,16 @@
 <%@ Language=VBScript %>
-<!--#include file=config.asp -->
+<!--#include file=scripts/inc_common.asp -->
 <html>
 <head>
+<meta name=vs_targetSchema content="http://schemas.microsoft.com/intellisense/ie5">
 <meta NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
-<link rel="stylesheet" href="default.css">
+<link rel="stylesheet" href="default.css" type="text/css">
 <title>Browse for database</title>
 <script LANGUAGE="javascript">
 <!--
 function pickFile(s){
 	if(window.opener != null && window.opener != 'undefined'){
-		window.opener.document.getElementById("newdb").value = s;
+		window.opener.document.getElementById("iPath").value = s;
 		window.close();
 	}else{
 		prompt("<%=langOldBrowser%>",s);
@@ -28,7 +29,6 @@ function onDriveChange(drive){
 </script>
 </head>
 <body>
-<!--#include file=inc_protect.asp -->
 <h3><%=langBrowse%></h3>
 <P align=center><%=langOnlyMDB%></P>
 <%
