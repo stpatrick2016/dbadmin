@@ -1,6 +1,8 @@
 <%@ Language=VBScript %>
+<!--#include file=inc_config.asp -->
 <html>
 <head>
+<meta name=vs_targetSchema content="http://schemas.microsoft.com/intellisense/ie5">
 <meta NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
 <link href="default.css" rel="stylesheet">
 <title>Database Administration</title>
@@ -20,7 +22,6 @@ function showIndexes(){
 </script>
 </head>
 <body>
-<!--#include file=config.asp -->
 <!--#include file=inc_protect.asp -->
 <!--#include file=inc_functions.asp -->
 <table WIDTH="100%" ALIGN="center">
@@ -34,8 +35,7 @@ function showIndexes(){
 	sTableName = Request("table")
 	field = Request("field")
 
-	set con = Server.CreateObject("ADODB.Connection")
-	con.Open strProvider & Session("DBAdminDatabase") & Session("DBAdminAuth")
+	OpenConnection con
 	IsError
 	set rec = Server.CreateObject("ADODB.Recordset")
 	
@@ -88,7 +88,7 @@ function showIndexes(){
 		sSQL = "ALTER TABLE [" & sTableName & "] DROP COLUMN [" & field & "]"
 		con.Execute sSQL, adExecuteNoRecords
 		if Err <> 0 then
-			Response.Write "<P class=Error align=center>Error deleting column: " & Err.Description & "</P>"
+			Response.Write "<P class=Error align=center>" & Err.Description & "</P>"
 		End if
 		rec.close
 	end if
@@ -97,7 +97,7 @@ function showIndexes(){
 	if Request.QueryString("action") = "delete_index" then
 		sError = oIndexes.DeleteIndex(Request.QueryString("index"), field)
 		If Len(sError) > 0 then
-			Response.Write "<P class=Error align=center>Error deleting index: " & sError & "</P>"
+			Response.Write "<P class=Error align=center>" & sError & "</P>"
 		End if
 	end if
 	
@@ -123,14 +123,14 @@ function showIndexes(){
 	end if
 %>
 <p align="center">
-<h3 align="center">Table's Indexes</h3>
-<p align="center"><a href="javascript:showIndexes()">Show/Hide Indexes table</a></p>
+<h3 align="center"><%=langTableIndexes%></h3>
+<p align="center"><a href="javascript:showIndexes()"><%=langShowHideIndexes%></a></p>
 <table align="center" width="100%" border="1" cellpadding="1" cellspacing="1" id="tblIndexes" style="display:none" class=RegularTable>
 	<tr>
-		<th class=RegularTH>Index Name</th>
-		<th class=RegularTH>Column</th>
-		<th class=RegularTH>Unique</th>
-		<th class=RegularTH>Action</th>
+		<th class=RegularTH><%=langIndexName%></th>
+		<th class=RegularTH><%=langColumn%></th>
+		<th class=RegularTH><%=langUnique%></th>
+		<th class=RegularTH><%=langAction%></th>
 	</tr>
 <%
 	arIndexes = oIndexes.GetIndexes
@@ -140,19 +140,19 @@ function showIndexes(){
 	<tr onmouseover="bgColor='#DDDDDD'" onmouseout="bgColor=''">
 		<td class=RegularTD>
 <%			if oIndexes.IsPrimaryKey(arIndexes(i)(1)) then%>
-				<img src="images/key.gif" border="0" WIDTH="16" HEIGHT="16" alt="Primary Key column">
+				<img src="images/key.gif" border="0" WIDTH="16" HEIGHT="16" alt="<%=langPrimaryColumnAlt%>">
 <%			end if%>
 		<%=arIndexes(i)(0)%>
 		</td>
 		<td class=RegularTD><%=arIndexes(i)(1)%></td>
 		<td align="center" class=RegularTD>
 			<%if CBool(arIndexes(i)(2)) = True then%>
-			<img src="images/check.gif" border="0" WIDTH="16" HEIGHT="16" alt="The index is unique">
+			<img src="images/check.gif" border="0" WIDTH="16" HEIGHT="16" alt="<%=langUniqueIndexAlt%>">
 			<%end if%>
 			&nbsp;
 		</td>
 		<td align="center" class=RegularTD>
-			<a href="structure.asp?table=<%=Server.URLEncode(sTableName)%>&amp;action=delete_index&amp;index=<%=Server.URLEncode(arIndexes(i)(0))%>&field=<%=Server.URLEncode(arIndexes(i)(1))%>"><img src="images/delete.gif" alt="Delete the index" border="0" WIDTH="16" HEIGHT="16"></a>
+			<a href="structure.asp?table=<%=Server.URLEncode(sTableName)%>&amp;action=delete_index&amp;index=<%=Server.URLEncode(arIndexes(i)(0))%>&field=<%=Server.URLEncode(arIndexes(i)(1))%>"><img src="images/delete.gif" alt="<%=langDeleteIndexAlt%>" border="0" WIDTH="16" HEIGHT="16"></a>
 		</td>
 	</tr>
 <%		
@@ -166,7 +166,7 @@ function showIndexes(){
 		<td><input type=text name=index_name size=15></td>
 		<td><input type=text name=column_name size=15></td>
 		<td align=center><input type=checkbox name=unique value="1"></td>
-		<td align=right><input type=submit name=create_index value="Create index" class=button></td>
+		<td align=right><input type=submit name=create_index value="<%=langCreateIndex%>" class=button></td>
 	</TR>
 	</form>
 </table></p>
@@ -179,17 +179,17 @@ function showIndexes(){
 		Response.Write "<P class=Error align=center>Error opening columns schema: " & Err.Description & "</P>"
 	end if
 %>
-<h1>Table structure for table: <%=sTableName%></h3>
+<h1><%=langTableStructure & sTableName%></h3>
 <table WIDTH="100%" ALIGN="center" BORDER="1" CELLSPACING="1" CELLPADDING="1" class=RegularTable>
 	<tr>
-		<th class=RegularTH>Ordinal</th>
-		<th class=RegularTH>Name</th>
-		<th class=RegularTH>Data type</th>
-		<th class=RegularTH>Nullable</th>
-		<th class=RegularTH>Max. length</th>
-		<th class=RegularTH>Default Value</th>
-		<th class=RegularTH>Description</th>
-		<th class=RegularTH>Actions</th>
+		<th class=RegularTH><%=langOrdinal%></th>
+		<th class=RegularTH><%=langName%></th>
+		<th class=RegularTH><%=langDataType%></th>
+		<th class=RegularTH><%=langNullable%></th>
+		<th class=RegularTH><%=langMaxLength%></th>
+		<th class=RegularTH><%=langDefaultValue2%></th>
+		<th class=RegularTH><%=langDescription%></th>
+		<th class=RegularTH><%=langAction%></th>
 	</tr>
 <%	do while not rec.EOF and Err = 0
 
@@ -215,7 +215,7 @@ function showIndexes(){
 		<td class=RegularTD align=center><%=rec("ORDINAL_POSITION")%></td>
 		<td class=RegularTD>
 			<%if oIndexes.IsPrimaryKey(rec("COLUMN_NAME")) then%>
-				<img src="images/key.gif" border="0" WIDTH="16" HEIGHT="16" alt="Primary Key column">
+				<img src="images/key.gif" border="0" WIDTH="16" HEIGHT="16" alt="<%=langPrimaryColumnAlt%>">
 			<%end if%>
 			<%=rec("COLUMN_NAME")%>
 		</td>
@@ -253,8 +253,8 @@ function showIndexes(){
 			<td class=RegularTD><input type="text" name="length" size=5 value="<%=rec("CHARACTER_MAXIMUM_LENGTH")%>"></td>
 			<td class=RegularTD><input type="text" name="default" size=20 value="<%=rec("COLUMN_DEFAULT")%>"></td>
 			<td class=RegularTD align=right colspan=2>
-				<input type="submit" name="submit" value="Update" class=button>
-				<input type="button" value="Cancel" class=button onclick="javascript:window.location.replace('<%=script%>?table=<%=Server.URLEncode(sTableName)%>');">
+				<input type="submit" name="submit" value="<%=langUpdate%>" class=button>
+				<input type="button" value="<%=langCancel%>" class=button onclick="javascript:window.location.replace('<%=script%>?table=<%=Server.URLEncode(sTableName)%>');">
 			</td>
 		</form>
 		<!--End of form-->
@@ -264,7 +264,7 @@ function showIndexes(){
 		<td class=RegularTD align=center><%=rec("ORDINAL_POSITION")%></td>
 		<td class=RegularTD>
 			<%if oIndexes.IsPrimaryKey(rec("COLUMN_NAME")) then%>
-				<img src="images/key.gif" border="0" WIDTH="16" HEIGHT="16" alt="Primary Key column">
+				<img src="images/key.gif" border="0" WIDTH="16" HEIGHT="16" alt="<%=langPrimaryColumnAlt%>">
 			<%end if%>
 			<%=rec("COLUMN_NAME")%>
 		</td>
@@ -285,13 +285,13 @@ function showIndexes(){
 		<td class=RegularTD><%=rec("COLUMN_DEFAULT")%>&nbsp;</td>
 		<td class=RegularTD><%=rec("DESCRIPTION")%>&nbsp;</td>
 		<td align="center" class=RegularTD>
-			<a href="structure.asp?table=<%=Server.URLEncode(sTableName)%>&amp;field=<%=Server.URLEncode(rec("COLUMN_NAME"))%>&amp;action=edit"><img src="images/edit.gif" alt="Edit the field" border="0" WIDTH="16" HEIGHT="16"></a>&nbsp;
+			<a href="structure.asp?table=<%=Server.URLEncode(sTableName)%>&amp;field=<%=Server.URLEncode(rec("COLUMN_NAME"))%>&amp;action=edit"><img src="images/edit.gif" alt="<%=langEditField%>" border="0" WIDTH="16" HEIGHT="16"></a>&nbsp;
 			<%if oIndexes.IsPrimaryKey(rec("COLUMN_NAME")) then%>
-				<a href="structure.asp?table=<%=Server.URLEncode(sTableName)%>&amp;field=<%=Server.URLEncode(rec("COLUMN_NAME"))%>&index=<%=Server.URLEncode(oIndexes.GetPrimaryKeyName)%>&amp;action=delete_index"><img src="images/un_key.gif" alt="Remove Primary Key" border="0" WIDTH="16" HEIGHT="16"></a>&nbsp;
+				<a href="structure.asp?table=<%=Server.URLEncode(sTableName)%>&amp;field=<%=Server.URLEncode(rec("COLUMN_NAME"))%>&index=<%=Server.URLEncode(oIndexes.GetPrimaryKeyName)%>&amp;action=delete_index"><img src="images/un_key.gif" alt="<%=langRemovePK%>" border="0" WIDTH="16" HEIGHT="16"></a>&nbsp;
 			<%else%>
-				<a href="structure.asp?table=<%=Server.URLEncode(sTableName)%>&amp;field=<%=Server.URLEncode(rec("COLUMN_NAME"))%>&amp;action=key"><img src="images/key.gif" alt="Set as Primary Key" border="0" WIDTH="16" HEIGHT="16"></a>&nbsp;
+				<a href="structure.asp?table=<%=Server.URLEncode(sTableName)%>&amp;field=<%=Server.URLEncode(rec("COLUMN_NAME"))%>&amp;action=key"><img src="images/key.gif" alt="<%=langSetAsPK%>" border="0" WIDTH="16" HEIGHT="16"></a>&nbsp;
 			<%end if%>
-			<a href="javascript:deleteColumn('<%=Server.URLEncode(rec("COLUMN_NAME"))%>')"><img src="images/delete.gif" alt="Delete the field" border="0" WIDTH="16" HEIGHT="16"></a>
+			<a href="javascript:deleteColumn('<%=Server.URLEncode(rec("COLUMN_NAME"))%>')"><img src="images/delete.gif" alt="<%=langDeleteField%>" border="0" WIDTH="16" HEIGHT="16"></a>
 		</td>
 		<%end if%>
 	</tr>
@@ -304,7 +304,7 @@ function showIndexes(){
 <%if Request.QueryString("action") <> "edit" then%>
 <form action="structure.asp" method="POST" id="form1" name="form1">
 <input type="hidden" name="table" value="<%=sTableName%>">
-<tr><TD colspan="8" align=center><B>Add new column</B></TD></TR>
+<tr><TD colspan="8" align=center><B><%=langAddNewColumn%></B></TD></TR>
 <tr>
 	<td class=RegularTD align=center>*<%=UBound(Split(sColumns, vbTab))+1%>*</td>
 	<td><input type="text" name="name"></td>
@@ -329,8 +329,8 @@ function showIndexes(){
 	<td class=RegularTD align=center><input type="checkbox" name="maynull" value="1" id="maynull"></td>
 	<td class=RegularTD><input type="text" name="length" size=5></td>
 	<td class=RegularTD><input type="text" name="default" size=20></td>
-	<td class=RegularTD><input type="checkbox" name="unique" id="unique" value="1">Unique field</td>
-	<td class=RegularTD align=center><input type="submit" name="submit" value="Add" class=button></td>
+	<td class=RegularTD><input type="checkbox" name="unique" id="unique" value="1"><%=langUnique%></td>
+	<td class=RegularTD align=center><input type="submit" name="submit" value="<%=langAdd%>" class=button></td>
 </tr>
 </form>
 <%end if%>
@@ -344,9 +344,8 @@ function showIndexes(){
 <P>
 <TABLE align=center class=RegularTable width="75%">
 	<TR>
-		<TH>CREATE TABLE query for this table<BR>
-			<font size=1>Table definition is separated from its indexes<BR>
-			Also foreign keys have to be created separately</font>
+		<TH><%=langCreateTableQuery%><BR>
+			<font size=1><%=langCreateTableQueryAlt%></font>
 		</TH>
 	</TR>
 	<TR><TD style="border:1px inset"><%=BuildTableDef()%></TD></TR>
@@ -463,7 +462,9 @@ End Function
 <script LANGUAGE="javascript">
 <!--
 function deleteColumn(name){
-	if(confirm("Are you sure you want to delete column " + name + " and all indexes to it?")){
+	var str = "<%=Replace(langAreYouSureToDelete, """", "\""")%>";
+	str = str.replace("\$name", name);
+	if(confirm(str)){
 		document.location.replace("structure.asp?table=<%=Server.URLEncode(sTableName)%>&field=" + name + "&action=delete");
 	}
 }

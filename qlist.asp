@@ -1,13 +1,14 @@
 <%@ Language=VBScript %>
+<!--#include file=inc_config.asp -->
 <html>
 <head>
+<meta name=vs_targetSchema content="http://schemas.microsoft.com/intellisense/ie5">
 <meta NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
 <link href="default.css" rel="stylesheet">
-<title>Database Administration</title>
 <SCRIPT LANGUAGE=javascript>
 <!--
 function runSP(sp){
-	var params = window.prompt("Please enter the parameters of procedure divided by commas. Remember to enclose text parameters in single quotation marks.", "");
+	var params = window.prompt("<%=langEnterQParams%>", "");
 	if(params != null && params.length > 0)
 		window.location.reload("ftquery.asp?query=" + escape("EXECUTE [" + sp + "] " + params));
 }
@@ -15,7 +16,6 @@ function runSP(sp){
 </SCRIPT>
 </head>
 <body>
-<!--#include file=config.asp -->
 <!--#include file=inc_protect.asp -->
 <!--#include file=inc_functions.asp -->
 <table WIDTH="100%" ALIGN="center">
@@ -23,13 +23,12 @@ function runSP(sp){
 		<td width="180px" valign="top"><!--#include file=inc_nav.asp --></td>
 		<td>
 
-<h1>Stored Procedures (Queries) List</h1>		
+<h1><%=langStoredProceduresList%></h1>		
 <%
 	on Error Resume Next
 	dim con, rec, script, sSQL
 	script = Request.ServerVariables("SCRIPT_NAME")
-	set con = Server.CreateObject("ADODB.Connection")
-	con.Open strProvider & Session("DBAdminDatabase") & Session("DBAdminAuth")
+	OpenConnection con
 	IsError
 	
 	'create a procedure
@@ -56,9 +55,9 @@ function runSP(sp){
 	
 <table class="RegularTable" width="100%" border="1" cellpadding="1" cellspacing="1">
 	<tr>
-		<th class="RegularTH">Name</th>
-		<th class="RegularTH">Code</th>
-		<th class="RegularTH">Actions</th>
+		<th class="RegularTH"><%=langSPName%></th>
+		<th class="RegularTH"><%=langSPCode%></th>
+		<th class="RegularTH"><%=langSPActions%></th>
 	</tr>
 	
 	<%do while not rec.EOF and Err=0%>
@@ -79,26 +78,23 @@ function runSP(sp){
 <form action="<%=script%>" method="POST">
 <table align="center" border="0">
 	<tr>
-		<th align="center"><font size="4"><b>Create a new procedure</b></font></th>
+		<th align="center"><font size="4"><b><%=langCreateProcedure%></b></font></th>
 	</tr>
 	<tr>
-		<th align="center">Note, if you won't add any parameter in your SQL statement, then a new
-		View will be created instead</th>
+		<th align="center"><%=langCreateProcedureNote%></th>
 	</tr>
-	<tr><td align=center><b>Procedure name:</b></td></tr>
+	<tr><td align=center><b><%=langProcedureName%></b></td></tr>
 	<tr><td align=center><input type="text" name="name"></td></tr>
-	<tr><td align="center"><b>SQL Statement</b><br>
-		Parameters can be defined in 2 ways. First way, add PARAMETERS clause in your SQL statement
-		with all parameters and thier types listed. For example:<br>
+	<tr><td align="center"><b><%=langSQLStatement%></b><br>
+		<%=langParams1stWay%><br>
 		<pre>
 		PARAMETERS <EM>Param1</EM> LONG, <EM>Param2</EM> TEXT(255);
 		SELECT * FROM Table1 WHERE Column1=<EM>Param1</EM> OR Column2=<EM>Param2</EM>;</pre>
-		The second way, when parameters determined on-the-fly. If you will add a parameter that
-		is not recognized as a column name or SQL reserved word, it will be threated as parameter.
+		<%=langParams2ndWay%>
 	</td></tr>
 	<tr><td align="center"><textarea name="code" cols="50" rows="6"></textarea></td></tr>
 </table>	
-<p align="center"><input type="submit" name="submit" value="Create procedure" class=button></p>
+<p align="center"><input type="submit" name="submit" value="<%=langCreateProcedure%>" class=button></p>
 </form>
 </p>
 <%	end if%>
@@ -116,7 +112,7 @@ function runSP(sp){
 <script LANGUAGE="javascript">
 <!--
 function deleteProcedure(name){
-	if(confirm("Are you sure you want to delete a stored procedure " + name + "?")){
+	if(confirm("<%=langDeleteProcedurePrompt%> " + name + "?")){
 		document.location.replace("<%=script%>?action=delete&q=" + name);
 	}
 }

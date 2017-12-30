@@ -1,68 +1,68 @@
 BODY
 {
-    PADDING-RIGHT: 20px;
-    PADDING-LEFT: 20px;
-    FONT-SIZE: 10pt;
-    PADDING-BOTTOM: 20px;
-    PADDING-TOP: 20px;
-    FONT-FAMILY: Verdana;
-    BACKGROUND-COLOR: white
+	padding-right: 20px;
+	padding-left: 20px;
+	font-size: 10pt;
+	padding-bottom: 20px;
+	padding-top: 20px;
+	font-family: Verdana;
+	background-color: white;
 }
 A
 {
-    COLOR: blue;
-    TEXT-DECORATION: none
+	color: blue;
+	text-decoration: none;
 }
 A:hover
 {
-    TEXT-DECORATION: underline
+	text-decoration: underline;
 }
 H1
 {
-    TEXT-ALIGN: center
+	text-align: center;
 }
 TH
 {
-    COLOR: white;
-    BACKGROUND-COLOR: navy
+	color: white;
+	background-color: navy;
 }
 TABLE.RegularTable
 {
-    BACKGROUND-COLOR: #99cccc
+	background-color: #99cccc;
 }
 TABLE
 {
-    FONT-SIZE: 10pt
+	font-size: 10pt;
 }
 DIV.Error
 {
-    COLOR: red
+	color: red;
 }
 P.Error
 {
-    COLOR: red;
-    TEXT-ALIGN: center
+	color: red;
+	text-align: center;
 }
 INPUT.Button
 {
-    BORDER-RIGHT: gray outset;
-    BORDER-TOP: gray outset;
-    FONT-SIZE: xx-small;
-    BORDER-LEFT: gray outset;
-    CURSOR: hand;
-    COLOR: wheat;
-    BORDER-BOTTOM: gray outset;
-    BACKGROUND-COLOR: teal
+	border-right: gray outset;
+	border-top: gray outset;
+	font-size: xx-small;
+	border-left: gray outset;
+	cursor: hand;
+	color: wheat;
+	border-bottom: gray outset;
+	background-color: teal;
 }
 INPUT
 {
-    COLOR: teal;
-    FONT-FAMILY: Verdana;
-    BACKGROUND-COLOR: silver
+	color: maroon;
+	font-family: Verdana;
+	background-color: silver;
 }
 TEXTAREA
 {
-    COLOR: teal;
-    FONT-FAMILY: 'Courier New';
-    BACKGROUND-COLOR: silver
+	color: maroon;
+	font-family: 'Courier New';
+	background-color: silver;
 }

@@ -1,12 +1,13 @@
 <%@ Language=VBScript %>
+<!--#include file=inc_config.asp -->
 <html>
 <head>
+<meta name=vs_targetSchema content="http://schemas.microsoft.com/intellisense/ie5">
 <meta NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
 <link href="default.css" rel="stylesheet">
 <title>Database Administration</title>
 </head>
 <body>
-<!--#include file=config.asp -->
 <!--#include file=inc_protect.asp -->
 <!--#include file=inc_functions.asp -->
 <table WIDTH="100%" ALIGN="center">
@@ -14,13 +15,12 @@
 		<td width="180px" valign="top"><!--#include file=inc_nav.asp --></td>
 		<td>
 
-<h1>Views List</h1>		
+<h1><%=langViewsList%></h1>		
 <%
 	On Error Resume Next
 	dim con, rec, script
 	script = Request.ServerVariables("SCRIPT_NAME")
-	set con = Server.CreateObject("ADODB.Connection")
-	con.Open strProvider & Session("DBAdminDatabase") & Session("DBAdminAuth")
+	OpenConnection con
 	IsError
 
 	'create a view
@@ -47,9 +47,9 @@
 	
 <table class="RegularTable" width="100%" border="1" cellpadding="1" cellspacing="1">
 	<tr>
-		<th class="RegularTH">Name</th>
-		<th class="RegularTH">Code</th>
-		<th class="RegularTH">Actions</th>
+		<th class="RegularTH"><%=langName%></th>
+		<th class="RegularTH"><%=langCode%></th>
+		<th class="RegularTH"><%=langAction%></th>
 	</tr>
 	
 	<%do while not rec.EOF and Err=0%>
@@ -57,8 +57,8 @@
 		<td class="RegularTD" valign="top"><%=rec("TABLE_NAME")%></td>
 		<td class="RegularTD"><%=HighlightSQL(Replace(rec("VIEW_DEFINITION"), vbCrLf, "<BR>"))%></td>
 		<td class="RegularTD" align="center">
-			<a href="ftquery.asp?query=<%=Server.URLEncode("SELECT * FROM [" & rec("TABLE_NAME")) & "]"%>"><img src="images/run.gif" alt="Execute view" border="0" WIDTH="16" HEIGHT="16"></a>&nbsp;
-			<a href="javascript:deleteView('<%=Server.URLEncode(rec("TABLE_NAME"))%>');"><img src="images/delete.gif" alt="Delete view" border="0" WIDTH="16" HEIGHT="16"></a>
+			<a href="ftquery.asp?query=<%=Server.URLEncode("SELECT * FROM [" & rec("TABLE_NAME")) & "]"%>"><img src="images/run.gif" alt="<%=langRunViewAlt%>" border="0" WIDTH="16" HEIGHT="16"></a>&nbsp;
+			<a href="javascript:deleteView('<%=Server.URLEncode(rec("TABLE_NAME"))%>');"><img src="images/delete.gif" alt="<%=langDeleteViewAlt%>" border="0" WIDTH="16" HEIGHT="16"></a>
 		</td>
 	</tr>
 	<%	rec.MoveNext
@@ -70,16 +70,16 @@
 <form action="<%=script%>" method="POST" id="form1" name="form1">
 <table align="center" border="0">
 	<tr>
-		<th align="center" colspan="2"><font size="4"><b>Create a new view</b></font></th>
+		<th align="center" colspan="2"><font size="4"><b><%=langCreateNewView%></b></font></th>
 	</tr>
 	<tr>
-		<td>View name:</td>
+		<td><%=langViewName%></td>
 		<td><input type="text" name="name"></td>
 	</tr>
-	<tr><td colspan="2" align="center"><b>SQL Statement</b></td></tr>
+	<tr><td colspan="2" align="center"><b><%=langSQLStatement%></b></td></tr>
 	<tr><td colspan="2" align="center"><textarea name="code" cols="50" rows="6"></textarea></td></tr>
 </table>	
-<p align="center"><input type="submit" name="submit" value="Create view" class=button></p>
+<p align="center"><input type="submit" name="submit" value="<%=langCreateNewView%>" class=button></p>
 </form>
 </p>
 
@@ -99,7 +99,9 @@
 <script LANGUAGE="javascript">
 <!--
 function deleteView(name){
-	if(confirm("Are you sure you want to delete view " + name + "?")){
+	var str = "<%=Replace(langSureToDeleteView, """", "\""")%>";
+	str = str.replace("\$name", name);
+	if(confirm(str)){
 		document.location.replace("<%=script%>?action=delete&v=" + name);
 	}
 }

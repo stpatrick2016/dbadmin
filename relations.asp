@@ -1,12 +1,13 @@
 <%@ Language=VBScript %>
+<!--#include file=inc_config.asp -->
 <html>
 <head>
+<meta name=vs_targetSchema content="http://schemas.microsoft.com/intellisense/ie5">
 <meta NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
 <link href="default.css" rel="stylesheet">
 <title>Database Administration</title>
 </head>
 <body>
-<!--#include file=config.asp -->
 <!--#include file=inc_protect.asp -->
 <!--#include file=inc_functions.asp -->
 
@@ -15,14 +16,13 @@
 		<td width="180px" valign="top"><!--#include file=inc_nav.asp --></td>
 		<td>
 		
-<h1 align="center">Relationships</h1>
+<h1 align="center"><%=langRelations%></h1>
 <%
 	On Error Resume Next
-	dim con, rec, script, sSQL
+	dim con, rec, script, sSQL, s
 	script = Request.ServerVariables("SCRIPT_NAME")
 
-	set con = Server.CreateObject("ADODB.Connection")
-	con.Open strProvider & Session("DBAdminDatabase") & Session("DBAdminAuth")
+	OpenConnection con
 	IsError
 	
 	'create new foreign key
@@ -53,8 +53,7 @@
 	
 %>	
 <p align="center">
-Each of relationships described also in more readable form.<br>
-Note that only relationships that have any meaning are displayed
+<%=langRelationsNote%>
 </p>
 
 
@@ -64,14 +63,14 @@ Note that only relationships that have any meaning are displayed
 			if Len(rec("PK_NAME")) > 0 then
 %>
 	<tr>
-		<th>Primary Index</th>
-		<th>Primary Table</th>
-		<th>Primary Column</th>
-		<th>Foreign Index</th>
-		<th>Foreign Table</th>
-		<th>Foreign Column</th>
-		<th>On Update</th>
-		<th>On Delete</th>
+		<th><%=langPrimaryIndex%></th>
+		<th><%=langPrimaryTable%></th>
+		<th><%=langPrimaryColumn%></th>
+		<th><%=langForeignIndex%></th>
+		<th><%=langForeignTable%></th>
+		<th><%=langForeignColumn%></th>
+		<th><%=langOnUpdate%></th>
+		<th><%=langOnDelete%></th>
 	</tr>
 	<tr onmouseover="bgColor='#DDDDDD'" onmouseout="bgColor=''">
 		<td><%=rec("PK_NAME")%></td>
@@ -88,35 +87,42 @@ Note that only relationships that have any meaning are displayed
 	<tr>
 		<td valign="top">
 			<b>Description:</b><br>
-			<a href="<%=script%>?action=delete&amp;fk_name=<%=Server.URLEncode(rec("FK_NAME"))%>&amp;fk_table=<%=Server.URLEncode(rec("FK_TABLE_NAME"))%>"><img src="images/delete.gif" alt="Delete this relationship" border="0" WIDTH="16" HEIGHT="16"></a>
+			<a href="<%=script%>?action=delete&amp;fk_name=<%=Server.URLEncode(rec("FK_NAME"))%>&amp;fk_table=<%=Server.URLEncode(rec("FK_TABLE_NAME"))%>"><img src="images/delete.gif" alt="<%=langDeleteRelationship%>" border="0" WIDTH="16" HEIGHT="16"></a>
 		</td>
 		<td colspan="7">
 		<ul>
-		<%if rec("UPDATE_RULE") <> "NO ACTION" then%>
-			<li>If field <b><i><%=rec("PK_COLUMN_NAME")%></i></b> changed in <b><i><%=rec("PK_TABLE_NAME")%></i></b>, 
-			then field <b><i><%=rec("FK_COLUMN_NAME")%></i></b> in <b><i><%=rec("FK_TABLE_NAME")%></i></b> will be 
-			<%if rec("UPDATE_RULE") = "CASCADE" then%>
-				changed also.
-			<%elseif rec("UPDATE_RULE") = "SET NULL" then%>
-				set to null.
-			<%else%>
-				set to default value.
-			<%end if%>
-			</li>
+		<%
+		if rec("UPDATE_RULE") <> "NO ACTION" then
+			s = Replace(langIfFieldChanged, "$PK_COLUMN_NAME", rec("PK_COLUMN_NAME"))
+			s = Replace(s, "$PK_TABLE_NAME", rec("PK_TABLE_NAME"))
+			s = Replace(s, "$FK_COLUMN_NAME", rec("FK_COLUMN_NAME"))
+			s = Replace(s, "$FK_TABLE_NAME", rec("FK_TABLE_NAME"))
+			if rec("UPDATE_RULE") = "CASCADE" then
+				s = s & langChangedAlso
+			elseif rec("UPDATE_RULE") = "SET NULL" then
+				s = s & langSetToNull
+			else
+				s = s & langSetToDefault
+			end if
+		%>
+			<li><%=s%></li>
 		<%end if%>
 
-		<%if rec("DELETE_RULE") <> "NO ACTION" then%>
-			<li>If record with <b><i><%=rec("PK_COLUMN_NAME")%></i></b> deleted from <b><i><%=rec("PK_TABLE_NAME")%></i></b>, 
-			<%if rec("DELETE_RULE") = "CASCADE" then%>
-				then all records with same <b><i><%=rec("FK_COLUMN_NAME")%></i></b> will be deleted from <b><i><%=rec("FK_TABLE_NAME")%>.</i></b>
-			<%elseif rec("DELETE_RULE") = "SET NULL" then%>
-				then equal to it field <b><i><%=rec("FK_COLUMN_NAME")%></i></b> in <b><i><%=rec("FK_TABLE_NAME")%></i></b> will be 
-				set to null.
-			<%else%>
-				then equal to it field <b><i><%=rec("FK_COLUMN_NAME")%></i></b> in <b><i><%=rec("FK_TABLE_NAME")%></i></b> will be 
-				set to default value.
-			<%end if%>
-			</li>
+		<%
+		if rec("DELETE_RULE") <> "NO ACTION" then
+			s = Replace(langIfFieldDeleted, "$PK_COLUMN_NAME", rec("PK_COLUMN_NAME"))
+			s = Replace(s, "$PK_TABLE_NAME", rec("PK_TABLE_NAME"))
+			s = Replace(s, "$FK_COLUMN_NAME", rec("FK_COLUMN_NAME"))
+			s = Replace(s, "$FK_TABLE_NAME", rec("FK_TABLE_NAME"))
+			if rec("DELETE_RULE") = "CASCADE" then
+				s = s & langWillBeDeleted
+			elseif rec("DELETE_RULE") = "SET NULL" then
+				s = s & langSetToNull
+			else
+				s = s & langSetToDefault
+			end if
+		%>
+			<li><%=s%></li>
 		<%end if%>
 		</ul></td>
 	</tr>
@@ -144,15 +150,15 @@ Note that only relationships that have any meaning are displayed
 
 
 <br><br>
-<h3 align="center">Create new relationship</h3>
+<h3 align="center"><%=langCreateRelationship%></h3>
 
 <form action="<%=script%>" method="POST">
 <table border="0" align="center">
 	<tr>
-		<th>Foreign index name</th>
-		<th>Primary table</th>
-		<th>Foreign(child) table</th>
-		<th>Foreign column</th>
+		<th><%=langForeignIndexName%></th>
+		<th><%=langPrimaryTable%></th>
+		<th><%=langForeignTable%></th>
+		<th><%=langForeignColumn%></th>
 	</tr>
 	<tr>
 		<td><input type="text" name="fk_name" id="FKName" onchange="bCustomName=true;"></td>
@@ -171,7 +177,7 @@ Note that only relationships that have any meaning are displayed
 		</td>
 		<td>
 			<%
-				dim sTables, s1, sLastTable, ar1, i, ar2, s
+				dim sTables, s1, sLastTable, ar1, i, ar2
 				set rec = con.OpenSchema(adSchemaColumns)
 				s1 = ""
 				sLastTable = ""
@@ -258,23 +264,23 @@ Note that only relationships that have any meaning are displayed
 		</td>
 	</tr>
 	<tr>
-		<td colspan="2" align="center"><b>On update:&nbsp;</b>
+		<td colspan="2" align="center"><b><%=langOnUpdate%></b>
 			<select name="update">
-				<option value>No Action</option>
-				<option value="CASCADE">Update</option>
-				<option value="SET NULL">Set to Null</option>
+				<option value><%=langNoAction%></option>
+				<option value="CASCADE"><%=langUpdate%></option>
+				<option value="SET NULL"><%=langSetToNull2%></option>
 			</select>
 		</td>
-		<td colspan="2" align="center"><b>On delete:&nbsp;</b>
+		<td colspan="2" align="center"><b><%=langOnDelete%></b>
 			<select name="delete">
-				<option value>No Action</option>
-				<option value="CASCADE">Delete</option>
-				<option value="SET NULL">Set to Null</option>
+				<option value><%=langNoAction%></option>
+				<option value="CASCADE"><%=langDelete%></option>
+				<option value="SET NULL"><%=langSetToNull2%></option>
 			</select>
 		</td>
 	</tr>
 </table>
-<p align="center"><input type="submit" name="submit" value="Create Relationship" class="button"></p>
+<p align="center"><input type="submit" name="submit" value="<%=langCreateRelationship%>" class="button"></p>
 </form>
 
 

@@ -1,12 +1,40 @@
 <%@ Language=VBScript %>
+<!--#include file=inc_config.asp -->
 <HTML>
 <HEAD>
+<meta name=vs_targetSchema content="http://schemas.microsoft.com/intellisense/ie5">
 <META NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
 <LINK href=default.css rel=stylesheet>
-<TITLE>Database Administration</TITLE>
+<%
+	Const TableNameKey = "BBC017D1-0A13-4a9d-9A53-52A0CC6A7540"
+	Const PKNameKey = "57AFDC29-37C8-48e1-96BE-12D7B79C1825"
+	Const ActionNameKey = "714A51CC-797B-4ce5-99C7-81DB8721D68B"
+	Const KeyNameKey = "0C61DD31-D805-4f58-A369-E4F33595FB86"
+	Const NextPos = "B0802058-4FBB-4729-BA67-5CE30EDF3FC6"
+	Dim Separator 
+	Separator = vbTab
+%>
+<script language="javascript" type="text/javascript">
+function onCancelEdit(table, page){
+	location.href = "data.asp?table=" + table + "&page=" + page;
+}
+function onGoNext(str){
+	document.getElementById('<%=NextPos%>').value = str;
+}
+function onAddNew(){
+	onGoNext('next');
+	document.getElementById('<%=ActionNameKey%>').value = '';
+}
+function onDelete(){
+	var ret = confirm('<%=langSureToDeleteRecord%>');
+	if(ret == true){
+		onGoNext('delete');
+	}
+	return ret;
+}
+</script>
 </HEAD>
 <BODY>
-<!--#include file=config.asp -->
 <!--#include file=inc_protect.asp -->
 <!--#include file=inc_functions.asp -->
 <TABLE WIDTH=100% ALIGN=center>
@@ -16,34 +44,44 @@
 		
 		
 <%
-	Const TableNameKey = "BBC017D1-0A13-4a9d-9A53-52A0CC6A7540"
-	Const PKNameKey = "57AFDC29-37C8-48e1-96BE-12D7B79C1825"
-	Const ActionNameKey = "714A51CC-797B-4ce5-99C7-81DB8721D68B"
-	Const KeyNameKey = "0C61DD31-D805-4f58-A369-E4F33595FB86"
 	
-'	On error Resume NExt
+'	On error Resume Next
 	dim con, rec, sSQL, sTable, pk, key, fld, bIsEdit, sName, i
+	dim action, strRedirect, oIndexes, page, varBookmark
+	dim bHasPrev, bHasNext, bGoNext, bDoUpdate
+	
 	sTable = Request("table")
-	pk = Split(Request("pk"), ".")
-	key = Split(Request("key"), ".")
-	if Request.QueryString("action") = "edit" then 
+	pk = Split(Request("pk"), Separator)
+	key = Split(Request("key"), Separator)
+	action = Request("action")
+	page = Request("page")
+	
+	bHasPrev = True
+	bHasNext = True
+	bGoNext = False
+	bDoUpdate = False
+	
+	if action = "edit" then 
 		bIsEdit = True
-		sName = "Update"
+		sName = langUpdate
 	else
 		bIsEdit = False
-		sName = "Add"
+		sName = langAdd
 	end if
-	set con = Server.CreateObject("ADODB.Connection")
-	con.Open strProvider & Session("DBAdminDatabase")
+	OpenConnection con
 	set rec = Server.CreateObject("ADODB.Recordset")
 	IsError
+	rec.CacheSize = 4
+	rec.PageSize = 4
 	
 	if Request.Form(TableNameKey).Count > 0 then
 		sTable = Request.Form(TableNameKey)
-		pk = Split(Request.Form(PKNameKey), ".")
-		key = Split(Request.Form(KeyNameKey), ".")
-		if Request.Form(ActionNameKey) = "edit" then
-			sSQL = "SELECT * FROM [" & sTable & "] WHERE"
+		pk = Split(Request.Form(PKNameKey), Separator)
+		key = Split(Request.Form(KeyNameKey), Separator)
+		action = Request(ActionNameKey)
+		if InStr(1, Request.Form(NextPos), "update", vbTextCompare) > 0 or (Len(action) = 0 and UBound(key) = -1) then bDoUpdate = True
+		if action = "edit" then
+			sSQL = ""
 			fld = ""
 			for i=0 to UBound(pk)-1
 				if Len(pk(i)) > 0 and Len(key(i)) > 0 then
@@ -53,61 +91,135 @@
 			Next
 			bIsEdit = True
 		else
-			sSQL = "[" & sTable & "]"
 			bIsEdit = False
 		end if
-		rec.Open sSQL, con, adOpenDynamic, adLockOptimistic
+		rec.Open "[" & sTable & "]", con, adOpenKeyset, adLockOptimistic
+		if Len(sSQL) > 0 then rec.Filter = sSQL
 		if rec.EOF or bIsEdit = False then 
-			rec.AddNew 
+			if bDoUpdate = True then rec.AddNew 
 			bIsEdit = False
 		else
 			bIsEdit = True
 		end if
-		for each fld in rec.Fields 
-			if not fld.Properties("ISAUTOINCREMENT") and Len(fld.Name) > 0 then
-				if fld.Type = adDate then 
-					fld.Value = CDate(Request.Form(fld.Name)) 
-				else 
-					fld.Value = Request.Form(fld.Name)
+		
+		if bDoUpdate = True then
+			for each fld in rec.Fields 
+				if not fld.Properties("ISAUTOINCREMENT") and Len(fld.Name) > 0 then
+					if Len(Request.Form(fld.Name)) = 0 then
+						fld.Value = null
+					elseif fld.Type = adDate then 
+						fld.Value = CDate(Request.Form(fld.Name)) 
+					else 
+						fld.Value = Request.Form(fld.Name)
+					end if
 				end if
-			end if
-		Next
-		rec.Update 
+			Next
+			rec.Update 
+		end if
+		varBookmark = rec.Bookmark
 		if Err then
 			Response.Write "<DIV class=Error align=center>" & Err.Description & "</DIV>"
 			rec.Close
 		else
+			rec.Filter = ""
+			rec.Bookmark = varBookmark
+			bGoNext = False
+			Select Case Request.Form(NextPos)
+				Case "next", "update_next"
+					rec.MoveNext
+					if not rec.EOF or action <> "edit" then bGoNext = True
+				Case "prev", "update_prev"
+					rec.MovePrevious
+					if not rec.BOF Then bGoNext = true
+				Case "first"
+					rec.MoveFirst
+					bGoNext = True
+				Case "last"
+					rec.MoveLast
+					bGoNext = True
+				Case "delete"
+					rec.Delete
+					rec.MovePrevious
+					if not rec.EOF then rec.MoveNext 
+					if not rec.EOF or not rec.BOF then bGoNext = True
+			End Select
+			
+			if bGoNext then
+				strRedirect =	"recedit.asp?table=" & Server.URLEncode(sTable) &_
+								"&pk=" & Server.URLEncode(Join(pk, Separator)) &_
+								"&action=" & action &_
+								"&page=" & page
+				key = ""
+				if action = "edit" then
+					set oIndexes = new TableIndexes
+					oIndexes.OpenTable sTable
+					fld = oIndexes.GetPrimaryKeys()
+					set oIndexes = nothing
+					key = GetPKValues(fld, rec, False)
+				end if
+				strRedirect =	strRedirect & "&key=" & Server.URLEncode(key)
+				if bDoUpdate = True then strRedirect = strRedirect & "&message=" & Server.URLEncode(langRecordUpdated)
+			else
+				strRedirect = "data.asp?table=" & Server.URLEncode(sTable)
+			end if
 			rec.Close
 			con.Close
 			set rec = nothing
 			set con = nothing
-			Response.Redirect "data.asp?table=" & sTable
+			Response.Redirect strRedirect
+			'Response.End
 		end if
 	end if
 	
-	if Request.QueryString("action") = "edit" then 
-		sSQL = "SELECT * FROM [" & sTable & "] WHERE"
+	sSQL = ""
+	if action = "edit" then 
 		fld = ""
-		for i=0 to UBound(pk)-1
-			if Len(pk(i)) > 0 and Len(key(i)) > 0 then
-				sSQL = sSQL & fld & " [" & pk(i) & "]=" & key(i)
-				fld = " AND"
-			end if
-		Next
-	else
-		sSQL = "[" & sTable & "]"
+		dim test
+		if UBound(pk) = -1 then
+			set oIndexes = new TableIndexes
+			oIndexes.OpenTable sTable
+			pk = oIndexes.GetPrimaryKeys()
+			set oIndexes = nothing
+		else
+			for i=0 to UBound(pk)-1
+				if Len(pk(i)) > 0 and Len(key(i)) > 0 then
+					sSQL = sSQL & fld & " [" & pk(i) & "]=" & key(i)
+					fld = " AND"
+				end if
+			Next
+		end if
 	end if
-	rec.Open sSQL, con, adOpenForwardOnly, adLockReadOnly 
+	rec.Open "[" & sTable & "]", con, adOpenKeyset, adLockReadOnly 
+	if Len(sSQL) > 0 then rec.Filter = sSQL
+	if action = "edit" and Len(sSQL) = 0 then key = GetPKValues(pk, rec, True)
+	varBookmark = rec.Bookmark
+	rec.Filter = ""
+	rec.Bookmark = varBookmark
+	
+	if action = "edit" then
+		rec.MoveNext
+		if rec.EOF then bHasNext = False
+		rec.MovePrevious
+		rec.MovePrevious
+		if rec.BOF then bHasPrev = False
+		rec.Bookmark = varBookmark
+	else
+		bHasPrev = False
+	end if
 %>
 
-<H1><%=sName%> a record</H1>
-<P align=center>Note that AutoNumber fields you cannot edit as they are updated automatically.
-Also columns of type Binary won't be shown here</P>
+<H1><%=sName & "&nbsp;" & langRecord%></H1>
+<P align=center><%=langAutoNumberNote%></P>
+<p align=center><%=langRecEditNote%></p>
+<%if Request.QueryString("message").count > 0 then%>
+<p align=center><font color=Green><%=Request.QueryString("message")%></font></p>
+<%end if%>
 <FORM action="<%=Request.ServerVariables("SCRIPT_NAME")%>" method=POST>
 <INPUT type=hidden name="<%=TableNameKey%>" value="<%=sTable%>">
-<INPUT type=hidden name="<%=PKNameKey%>" value="<%=Request.QueryString("pk")%>">
-<INPUT type=hidden name="<%=ActionNameKey%>" value="<%=Request.QueryString("action")%>">
-<INPUT type=hidden name="<%=KeyNameKey%>" value="<%=Request.QueryString("key")%>">
+<INPUT type=hidden name="<%=PKNameKey%>" value="<%=Join(pk, Separator)%>">
+<INPUT type=hidden name="<%=ActionNameKey%>" value="<%=action%>">
+<INPUT type=hidden name="<%=KeyNameKey%>" value="<%=Join(key, Separator)%>">
+<input type=hidden name="<%=NextPos%>" id="<%=NextPos%>" value="">
 <TABLE border=0 class=RegularTable align=center>
 
 <%	for each fld in rec.Fields%>
@@ -118,7 +230,7 @@ Also columns of type Binary won't be shown here</P>
 			<%if fld.Type = 203 or fld.Type = 201 then%>
 			<TEXTAREA name="<%=fld.Name%>" rows=4 cols=40><%if bIsEdit then Response.Write fld.Value%></TEXTAREA>
 			<%elseif fld.Properties("ISAUTOINCREMENT") then%>
-			AutoNumber
+			AutoNumber (<%=fld.Value%>)
 			<%else%>
 			<INPUT type=text name="<%=fld.Name%>" value="<%if bIsEdit then Response.Write fld.Value%>">
 			<%end if%>
@@ -128,11 +240,48 @@ Also columns of type Binary won't be shown here</P>
 <%	Next%>
 
 </TABLE>
-<P align=center>
-	<INPUT type=submit value="<%=sName%>" class=button>
-	<INPUT type=reset value="Restore" class=button>
-	<INPUT type=button value="Cancel" class=button onclick="javascript:window.history.go(-1);">
-</P>
+<table align=center>
+	<tr>
+		<td>
+			<%if bHasPrev = True then%>
+			<input type="submit" value="<%=sName & " + " & langPrev%>" class="button" onclick="javascript:onGoNext('update_prev');">
+			<%end if%>
+		</td>
+		<td>&nbsp;</td>
+		<td><input type=submit value="<%=sName%>" class=button onclick="javascript:onGoNext('update');"></td>
+		<td><INPUT type=reset value="<%=langReset%>" class=button></td>
+		<td><INPUT type=button value="<%=langCancel%>" class=button onclick="javascript:onCancelEdit('<%=sTable%>', '<%=page%>');"></td>
+		<td>&nbsp;</td>
+		<td>
+			<%if bHasNext = True then%>
+			<input type=submit value="<%=sName & " + " & langNext%>" class="button" onclick="javascript:onGoNext('update_next');">
+			<%end if%>
+		</td>
+	</tr>
+	<%if action = "edit" then%>
+	<tr>
+		<td colspan="2" align="right">
+			<%if bHasPrev = True then%>
+			<input type=submit value="<< <%=langPrev%>" class="button" onclick="javascript:onGoNext('prev');">
+			<%end if%>
+		</td>
+		<td align=right><input type=submit value=" <%=langFirst%> " class="button" onclick="javascript:onGoNext('first');"></td>
+		<td>&nbsp;</td>
+		<td><input type=submit value=" <%=langLast%> " class="button" onclick="javascript:onGoNext('last');"></td>
+		<td colspan="2">
+			<%if bHasNext = True then%>
+			<input type=submit value="<%=langNext%> >>" class="button" onclick="javascript:onGoNext('next');">
+			<%end if%>
+		</td>
+	</tr>
+	<tr><td colspan="7" align=center><hr align=center width="75%"></td></tr>
+	<tr>
+		<td colspan="3" align="right"><input type=submit value=" <%=langAdd%> " class="button" onclick="javascript:onAddNew();"></td>
+		<td>&nbsp;</td>
+		<td colspan="3"><input type=submit value="<%=langDelete%>" class="button" onclick="return onDelete();"></td>
+	</tr>
+	<%end if%>
+</table>
 </FORM>
 <%
 	rec.Close
@@ -167,5 +316,27 @@ Function GetTypeName(intType)
 	Case 202,200 GetTypeName = "Text"
 	Case Else	GetTypeName = intType
 	End Select
+End Function
+
+Function GetPKValues (ByRef pk, ByRef rec, bAsArray)
+	dim key, fld
+	for each fld in pk
+		if Len(fld) > 0 then
+			Select Case rec(fld).Type 
+				Case adBSTR,adChar,adLongVarChar,adLongVarWChar,adVarChar,adVarWChar,adWChar
+					key = key & "'" & Replace(rec(fld), "'", "''") & "'"
+				Case adDate,adDBDate, adDBTime, adDBTimeStamp,adFileTime
+					key = key & "CDate('" & FormatDateTime(rec(fld), vbLongDate) & " " & FormatDateTime(rec(fld), vbLongTime) & "')"
+				Case Else
+					key = key & rec(fld)
+			End Select
+			key = key & Separator
+		end if
+	Next
+	if bAsArray = True then
+		GetPKValues = Split(key, Separator)
+	else
+		GetPKValues = key
+	end if
 End Function
 </SCRIPT>

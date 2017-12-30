@@ -1,5 +1,5 @@
 <%@ Language=VBScript %>
-<!--#include file=config.asp -->
+<!--#include file=inc_config.asp -->
 <!--#include file=inc_protect.asp -->
 <!--#include file=inc_functions.asp -->
 
@@ -8,7 +8,7 @@
 
 
 <%
-'	On Error Resume Next
+	On Error Resume Next
 	dim con, rec, s, fld
 	dim DlmColumn, DlmRow, DlmText
 	
@@ -24,8 +24,7 @@
 	DlmRow = vbCrLf
 	DlmText = Request.Form("text")
 	
-	set con = Server.CreateObject("ADODB.Connection")
-	con.Open strProvider & Session("DBAdminDatabase")
+	OpenConnection con
 	IsError
 	set rec = Server.CreateObject("ADODB.Recordset")
 	rec.CursorLocation = adUseClient
@@ -76,7 +75,6 @@
 <HEAD>
 <META NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
 <LINK href=default.css rel=stylesheet>
-<TITLE>Database Administration</TITLE>
 </HEAD>
 <BODY>
 <TABLE WIDTH=100% ALIGN=center>
@@ -84,27 +82,26 @@
 		<TD width=180px valign=top><!--#include file=inc_nav.asp --></TD>
 		<TD>
 		
-<H1 align=center>Export as text delimited CSV file</H1>
-<P align=center>Please define the column and rows delimiters, or use default and 
-click Export</P>
+<H1 align=center><%=langExcelExportAlt%></H1>
+<P align=center><%=langPleaseDefineExp%></P>
 <FORM action="export_csv.asp" method=POST id=form1 name=form1>
 <INPUT type=hidden name=sql value="<%=Request.QueryString("sql")%>">
 <TABLE ALIGN=center CELLSPACING=1 CELLPADDING=1>
 	<TR>
-		<TD>Column Delimiter</TD>
+		<TD><%=langColumnDelimiter%></TD>
 		<TD>
 			<SELECT name="column">
-				<OPTION value="TAB">{Tab}</OPTION>
-				<OPTION value="SPACE">{Space}</OPTION>
+				<OPTION value="TAB">{<%=langTab%>}</OPTION>
+				<OPTION value="SPACE">{<%=langSpace%>}</OPTION>
 				<OPTION value=";">;</OPTION>
 				<OPTION value=",">,</OPTION>
-				<OPTION value="OTHER">{Other} --></OPTION>
+				<OPTION value="OTHER">{<%=langOther%>} --></OPTION>
 			</SELECT>&nbsp;
 			<INPUT type="text" name="other" size=2 maxlength=1>
 		</TD>
 	</TR>
 	<TR>
-		<TD>Text qualifier</TD>
+		<TD><%=langTextQualifier%></TD>
 		<TD>
 			<SELECT name="text">
 				<OPTION value='"'>"</OPTION>
@@ -114,7 +111,7 @@ click Export</P>
 		</TD>
 	</TR>
 	<TR>
-		<TD colspan="2"><INPUT type=checkbox name="nofields" value="1">&nbsp;No field names</TD>
+		<TD colspan="2"><INPUT type=checkbox name="nofields" value="1">&nbsp;<%=langNoFieldNames%></TD>
 	</TR>
 </TABLE>
 <P align=center><INPUT type=submit name=submit value="Export" class="button"></P>

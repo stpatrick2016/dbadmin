@@ -1,10 +1,12 @@
 <SCRIPT LANGUAGE=vbscript RUNAT=Server>
 
 Class TableIndexes
-	Private sTableName, sPKColumns, sPKIndexName, sIXColumns, sIndexes, sForeignKeys
+	Private sTableName, sPKColumns, sPKIndexName, sIXColumns, sIndexes, sForeignKeys,Separator
+	
 
 	'#Opens or refreshes indexes list
 	Public Sub OpenTable(sTable)
+		Separator = vbTab
 		sTableName = sTable
 		sPKColumns = ""
 		sPKIndexName = ""
@@ -13,8 +15,7 @@ Class TableIndexes
 		sForeignKeys = ""
 
 		dim con, rec
-		set con = Server.CreateObject("ADODB.Connection")
-		con.Open strProvider & Session("DBAdminDatabase")
+		OpenConnection con
 		
 		'get all indexes
 		set rec = con.OpenSchema(adSchemaIndexes,Array(empty,empty,empty,empty, sTableName))
@@ -28,7 +29,7 @@ Class TableIndexes
 		'get foreign keys
 		set rec = con.OpenSchema(adSchemaForeignKeys, Array(empty,empty,empty,empty,empty,sTableName))
 		do while not rec.EOF and Err=0
-			sForeignKeys = sForeignKeys & rec("FK_NAME") & "."
+			sForeignKeys = sForeignKeys & rec("FK_NAME") & Separator
 			rec.MoveNext
 		loop
 		rec.Close
@@ -40,7 +41,7 @@ Class TableIndexes
 
 	'#Determines if column is a primary key
 	Function IsPrimaryKey(column)
-		if InStr(1, sPKColumns, column & ".", vbTextCompare) > 0 then
+		if InStr(1, sPKColumns, column & Separator, vbTextCompare) > 0 then
 			IsPrimaryKey = True
 		else
 			IsPrimaryKey = False
@@ -49,7 +50,7 @@ Class TableIndexes
 	
 	'#checks if the index is a foreign key
 	Function IsForeignKey(index)
-		if InStr(1, sForeignKeys, index & ".", vbTextCompare) > 0 then
+		if InStr(1, sForeignKeys, index & Separator, vbTextCompare) > 0 then
 			IsForeignKey = True
 		else
 			IsForeignKey = False
@@ -58,15 +59,15 @@ Class TableIndexes
 
 	'#Returns an array of Primary Keys
 	Function GetPrimaryKeys
-		GetPrimaryKeys = Split(sPKColumns, ".")
+		GetPrimaryKeys = Split(sPKColumns, Separator)
 	End Function
 	
 	'#Returns an array with all indexes for this table.
 	'#Structure of array: (index)(index_name,column_name,unique)
 	Function GetIndexes
 		dim ar1, ret(), ar2, ar3, i
-		ar1 = Split(sIndexes, ".")
-		ar3 = Split(sIXColumns, ".")
+		ar1 = Split(sIndexes, Separator)
+		ar3 = Split(sIXColumns, Separator)
 		Redim ret(UBound(ar1))
 
 		for i=0 to UBound(ar1)
@@ -87,8 +88,7 @@ Class TableIndexes
 	'#create a new index
 	Function CreateIndex(index,column,primary,unique)
 		dim con, sSQL, s
-		set con = Server.CreateObject("ADODB.Connection")
-		con.Open strProvider & Session("DBAdminDatabase")
+		OpenConnection con
 		if primary then
 			if GetPrimaryKeysCount() > 0 then
 				sSQL = "DROP INDEX [" & index & "] ON [" & sTableName & "]"
@@ -124,8 +124,7 @@ Class TableIndexes
 	'#deletes index and/or primary key
 	Function DeleteIndex(index, column)
 		dim con, sSQL, s
-		set con = Server.CreateObject("ADODB.Connection")
-		con.Open strProvider & Session("DBAdminDatabase") & Session("DBAdminAuth")
+		OpenConnection con
 		sSQL = "DROP INDEX [" & index & "] ON [" & sTableName & "]"
 		con.Execute sSQL, adExecuteNoRecords
 		if Err then
@@ -138,7 +137,7 @@ Class TableIndexes
 		if index = sPKIndexName then	
 			if GetPrimaryKeysCount() > 1 then
 				dim arKeys
-				sPKColumns = Replace(sPKColumns, column & ".", "", 1, -1, vbTextCompare)
+				sPKColumns = Replace(sPKColumns, column & Separator, "", 1, -1, vbTextCompare)
 				arKeys = GetPrimaryKeys()
 				sSQL = "CREATE INDEX [" & index & "] ON [" & sTableName & "] ("
 				for each s in arKeys
@@ -178,8 +177,8 @@ Class TableIndexes
 
 	'#Appends primary key to array
 	Private Sub AppendPrimaryKey(column,index)
-		if InStr(1, sPKColumns, column & ".", vbTextCompare) <= 0 then	
-			sPKColumns = sPKColumns & column & "."
+		if InStr(1, sPKColumns, column & Separator, vbTextCompare) <= 0 then	
+			sPKColumns = sPKColumns & column & Separator
 			sPKIndexName = index
 		end if
 	End Sub
@@ -196,8 +195,8 @@ Class TableIndexes
 			end if
 		Next
 		if not Found then	
-			sIXColumns = sIXColumns & column & "."
-			sIndexes = sIndexes & index & "!" & unique & "."
+			sIXColumns = sIXColumns & column & Separator
+			sIndexes = sIndexes & index & "!" & unique & Separator
 		end if
 	End Sub
 	
@@ -207,7 +206,7 @@ Class TableIndexes
 		if Len(sPKColumns) = 0 then
 			ret = 0
 		else
-			ret = UBound(Split(sPKColumns, "."))
+			ret = UBound(Split(sPKColumns, Separator))
 		end if
 		GetPrimaryKeysCount = ret
 	End Function
@@ -240,6 +239,14 @@ Sub IsError
 		Response.Write "</td></tr></table></body></html>"
 		Response.End 
 	end if
+End Sub
+
+Sub OpenConnection(ByRef objCon)
+	dim constr
+	set objCon = Server.CreateObject("ADODB.Connection")
+	constr = strProvider & Session("DBAdminDatabase")
+	if Len(CStr(Session("DBAdminDBPassword"))) > 0 then constr = constr & ";Jet OLEDB:Database password=" & CStr(Session("DBAdminDBPassword"))
+	objCon.Open constr
 End Sub
 
 </SCRIPT>

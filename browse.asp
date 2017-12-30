@@ -1,4 +1,5 @@
 <%@ Language=VBScript %>
+<!--#include file=config.asp -->
 <html>
 <head>
 <meta NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
@@ -11,7 +12,7 @@ function pickFile(s){
 		window.opener.document.getElementById("newdb").value = s;
 		window.close();
 	}else{
-		prompt("Your browser doesn't support this method. Copy the database path manually",s);
+		prompt("<%=langOldBrowser%>",s);
 		window.close();
 	}
 }
@@ -27,10 +28,9 @@ function onDriveChange(drive){
 </script>
 </head>
 <body>
-<!--#include file=config.asp -->
 <!--#include file=inc_protect.asp -->
-<h3>Browse for database</h3>
-<P align=center>Only files with .MDB extention will be shown here</P>
+<h3><%=langBrowse%></h3>
+<P align=center><%=langOnlyMDB%></P>
 <%
 dim fso, dir, strCurDir, s, script, d
 script = Request.ServerVariables("SCRIPT_NAME")
@@ -44,13 +44,13 @@ On Error Resume Next
 
 set dir = fso.GetFolder(strCurDir)
 if Err then
-	Response.Write "<P class=Error align=center>Cannot access the folder. You probably has no rights to view it. Error: " & Err.Description & "</P>"
+	Response.Write "<P class=Error align=center>" & langCannotAccessFolder & Err.Description & "</P>"
 	strCurDir = Request.QueryString("curdir")
 	set dir = fso.GetFolder(strCurDir)
 end if
 %>
 <P align=left>
-	<b>Drive selector</B><BR>
+	<b><%=langDriveSelector%></B><BR>
 	<SELECT name=drive id=drive onchange="javascript:onDriveChange(this.options[this.selectedIndex].value);">
 <%
 set d = fso.GetDrive(fso.GetDriveName(fso.GetAbsolutePathName(strCurDir)))
@@ -63,7 +63,7 @@ set d = fso.GetDrive(fso.GetDriveName(fso.GetAbsolutePathName(strCurDir)))
 	</SELECT>
 </P>
 <table align="left" border="0" width="100%">
-<TR><td style="border:1px solid navy"><b>Current path:</B><br><%=strCurDir%></td></tr>
+<TR><td style="border:1px solid navy"><b><%=langCurrentPath%></B><br><%=strCurDir%></td></tr>
 <%
 set d = nothing
 if not dir.IsRootFolder then
@@ -91,12 +91,12 @@ set fso = nothing
 <SCRIPT LANGUAGE=vbscript RUNAT=Server>
 Function GetDriveType(dtype)
 	Select Case dtype
-		Case 1: GetDriveType = "Removable"
-		Case 2: GetDriveType = "Fixed"
-		Case 3: GetDriveType = "Network"
+		Case 1: GetDriveType = langRemovable
+		Case 2: GetDriveType = langFixed
+		Case 3: GetDriveType = langNetwork
 		Case 4: GetDriveType = "CD-ROM"
 		Case 5: GetDriveType = "RAM-Disk"
-		Case Else:	GetDriveType = "Unknown"
+		Case Else:	GetDriveType = langUnknown
 	End Select
 End Function
 </SCRIPT>

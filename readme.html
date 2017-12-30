@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>StP Database Administrator for MS Access Readme</title>
+		<META http-equiv="Content-Type" content="text/html; charset=windows-1250">
+		<meta content="JavaScript" name="vs_defaultClientScript">
+		<meta content="http://schemas.microsoft.com/intellisense/ie5" name="vs_targetSchema">
+		<meta content="Microsoft Visual Studio.NET 7.0" name="GENERATOR">
+		<meta content="VisualStudio.HTML" name="ProgId">
+		<meta content="Microsoft Visual Studio.NET 7.0" name="Originator">
+		<style type="text/css"> A { COLOR: blue; TEXT-DECORATION: none }
+	A:hover { COLOR: red; TEXT-DECORATION: underline }
+	BODY{background-color: white; font-family: Verdana; font-size: 10pt}
+	H1,H2,H3,H4,H5{font-family: 'Times New Roman'}
+		</style>
+	</head>
+	<body text="black" vLink="blue" link="blue" bgColor="white" MS_POSITIONING="FlowLayout">
+		<H1>StP Database Administrator for MS Access version 1.7 Readme</H1>
+		<H3>Overview</H3>
+		<P>StP Database Administrator is a tool that allows you to manage your MS Access 
+			databases through your browser, providing various set of functions you can 
+			perform with your databases, without having downloading it, changing, uploading 
+			again. Most of features needed for database management are included, you can 
+			even create a new blank databases on-line.</P>
+		<H3>Requirements</H3>
+		<UL>
+			<LI>
+			ASP enabled web server (such as IIS or PWS) - on server side
+			<LI>
+			Any Mozilla-compartible web browser: MS Internet Explorer 5.x or higher, 
+			Netscape 6.x, Opera, Mozilla
+			<LI>
+				Write permissions on the web server - optional</LI></UL>
+		<H3>Installation</H3>
+		<P>The installation is easy. Just unzip all files in the downloaded archive and 
+			place them on&nbsp;your server&nbsp;to some directory on your choice (should be 
+			accessible from web). After you have uploaded all files, navigate to this 
+			directory to the page "default.asp" and login with password "admin". Now you 
+			should change the default password to your own.<BR>
+			In case you don't have write permissions on your web server, you should edit 
+			the "config.asp" file manually and change the "admin" password to your own.</P>
+		<H3>Upgrade from previous version</H3>
+		<P>When upgrading from previous version you should always replace all files but one 
+			- "config.asp". This file has not been changed and to avoid losing your 
+			settings (such as your password), do not override it. All other files should be 
+			replaced to avoid problems and apply any chages and bug fixes.</P>
+		<H3><A name="faq"></A>FAQ</H3>
+		<UL>
+			<LI>
+				<A name="a1_a2"></A><font color="red"><b>Why I get "Permission denied" when trying to 
+						change my password?</b><br>
+					<b>When I'm opening a database I get this error: "Couldn't save configuration file: 
+						Permission denied"</b></font><br>
+				When you are changing a password or opening a database, Database Administrator 
+				tries to save settings in "config.asp" configuration file. Some hosting 
+				providers doesn't have write permissions to all directories on the web, so 
+				saving a file failes. In case of password you should manually edit "config.asp" 
+				file, change the password and upload it again to your web site. With databases 
+				you should use "Browse" button to specify the path to your database.
+				<BR>
+			<LI>
+				<A name="a3"></A><font color="red"><b>Cannot create a blank database</b></font><br>
+				Make sure you that the folder in which you are trying to create a new database 
+				has write permissions. Usually there is always at least one folder that has it 
+				- a folder where your hosting provider lets you to place your MS Access 
+				databases
+				<br>
+			<LI>
+				<A name="a4"></A><font color="red"><b>I got an error "TypeLib not found" in 
+						inc_protect.asp</b></font><br>
+				A type library for ADO is not registered on your server, so you cannot use 
+				METADATA tag to specify it. Usually it happens on Windows 98 machines, but 
+				fortunately can be solved easy. In the zip archive there is one file called 
+				"inc_protect_adovbs.asp". You should rename it to "inc_protect.asp", 
+				overwriting existing one. Make sure that the file "adovbs.inc" (included in the 
+				archive) is in same folder as the rest of files
+				<br>
+			<LI>
+				<A name="a5"></A><font color="red"><b>I don't have write permissions, so how to save 
+						connections manually?</b></font><br>
+				Open "config.asp" file in any text editor (such as Notepad) and edit the last 
+				line (variable "strDatabases"), writing the full path to your database. 
+				Remember that the path should be on your web server and not on your home 
+				computer. Separate each database with vertical line - "|". Example:<BR>
+				<FONT color="green">Const strDatabases = 
+					"c:\Inetpub\databases\myfirstdb.mdb|C:\Inetpub\Databases\mysecond.mdb"</FONT>.
+				<BR>
+			<LI>
+				<FONT color="red"><STRONG>I can't see Views created with Database Administrator in MS 
+						Access.</STRONG></FONT><BR>
+				MS Access doesn't support Views, only Stored Procedures (named Queries in MS 
+				Access) can be created and changed. Stp Database Administrator, which uses ADO, 
+				&nbsp;has full support for both Stored Procedures and Views. But if you want to 
+				be able to see your Views in MS Access later, always create them as Stored 
+				Procedures.
+				<BR>
+			<LI>
+				<STRONG><FONT color="red">What is that trash that I see instead of ASP script in the 
+						source files?<BR>
+					</FONT></STRONG>The whole Database Administrator is encoded using Microsoft 
+				Script Encoder, thus I will be sure that the source won't be changed or used in 
+				any way other than administration of your databases. There are several files 
+				left unencoded, such as language files or configuration.
+				<br>
+			</LI>
+		</UL>
+		<H3>Special thanx</H3>
+		<P>I want to thank all people who helped me with support, testing, ideas and 
+			suggestions regarding Database Administrator. Special thanx goes to <A href="http://www.codeproject.com/script/profile/whos_who.asp?vt=arts&amp;id=29452" target="_blank">
+				Christopher Duncan</A> , who gave me fresh ideas and suggestions, also for 
+			his book <A href="http://www.ShowProgramming.com/TheCareerProgrammer.asp">The 
+				Career Programmer: Guerilla Tactics for an Imperfect World (Apress)</A>, 
+			which helped me at my work :)<BR>
+			Also I want to thank my friend Marinka, who has helped me with suggestions and 
+			was always arguing me :)</P>
+		<H3>Contact information</H3>
+		<P>If you have any problems, questions, suggestions, feel free to either post in 
+			the <A href="http://www.stpworks.com/forum/" title="StpWorks.com Forum" target="_blank">
+				StpWorks.com forum</A> or write directly to my e-mail: <A href="mailto:stpatrick@mail.com?subject=StpDatabase Administrator question">
+				stpatrick@mail.com</A>. Make sure to check for updates, using the link in 
+			Database Administrator.</P>
+		<P>Philip Patrick, creator of Stp Database Administrator for MS Access.</P>
+	</body>
+</html>

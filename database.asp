@@ -1,10 +1,12 @@
 <%@ Language=VBScript %>
+<!--#include file=inc_config.asp -->
 <html>
 <head>
+<meta name=vs_targetSchema content="http://schemas.microsoft.com/intellisense/ie5">
 <meta NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
-<link href="default.css" rel="stylesheet">
-<title>Database Administration</title>
-<script LANGUAGE="javascript">
+<link href="default.css" rel="stylesheet" type="text/css">
+<title><%=langDatabaseAdministration%></title>
+<script LANGUAGE="javascript" type="text/javascript">
 <!--
 var win;
 function browseDB(){
@@ -14,7 +16,6 @@ function browseDB(){
 </script>
 </head>
 <body>
-<!--#include file=config.asp -->
 <!--#include file=inc_protect.asp -->
 <!--#include file=inc_functions.asp -->
 <%
@@ -52,11 +53,11 @@ function browseDB(){
 			if Request.QueryString("action") <> "delete" then
 				Session("DBAdminDatabase") = sFileName
 				if Len(Request.Form("username").Item) > 0 then
-					Session("DBAdminAuth") = "; User ID=" & Request.Form("username") & "; Password=" & Request.Form("password")
-'					Session("DBAdminAuth") = "; Password=" & Request.Form("password")
+					Session("DBAdminUserID") = CStr(Request.Form("username"))
 				else
-					Session("DBAdminAuth") = ""
+					Session("DBAdminUserID") = ""
 				end if
+				Session("DBAdminDBPassword") = CStr(Request.Form("password"))
 			end if
 		end if
 
@@ -73,7 +74,7 @@ function browseDB(){
 			if Request.Form("db") = "0" or Request.QueryString("action") = "delete" then
 				set f = fso.CreateTextFile(Server.MapPath("config.asp"), true)
 				if Err then
-					Response.Write "<P class=Error align=center>Couldn't save configuration file: " & Err.Description & "</P>"
+					Response.Write "<P class=Error align=center>" & langCouldnotSaveConfig & "&nbsp;" & Err.Description & "</P>"
 				else
 					if Request.QueryString("action") = "delete" then
 						str = Replace(strDatabases, Request.QueryString("path"), "")
@@ -104,7 +105,7 @@ function browseDB(){
 				set fso = nothing
 			end if
 		else
-			Response.Write "<p align=center class=""Error"">Database doesn't exist</p>"
+			Response.Write "<p align=center class=""Error"">" & langDatabaseNotExists & "</p>"
 		end if
 	end if
 %>
@@ -112,16 +113,16 @@ function browseDB(){
 	<tr>
 		<td width="180" valign="top"><!--#include file=inc_nav.asp --></td>
 		<td>
-      <h1>Database selection</h1>
-      <p align="center">Enter a path to database or click Browse to choose it from your drive</p>
-      <p align="center">Current database is: <b><%=Session("DBAdminDatabase") & Session("DBAdminAuth")%></b></p>
+      <h1><%=langDatabaseSelection%></h1>
+      <p align="center"><%=langEnterPath%></p>
+      <p align="center"><%=langCurrentDatabase%> <b><%=Session("DBAdminDatabase")%></b></p>
       <form id="FORM1" name="FORM1" action="<%=script%>" method="post">
       <table align="center">
         
         <tr>
           <td onmouseover="bgColor='#99CCCC'" onmouseout="bgColor=''" onclick="document.getElementById('db0').checked=true; return true" style="pointer:hand; cursor: hand">
-			<input type="radio" name="db" id=db0 value="0" checked>Other database&nbsp;<input type="text" name="newdb" id="newdb"><input type="button" value="Browse" onclick="javascript:browseDB();" class="button"></td></tr>
-		<tr><td><input type=checkbox name="create" value="1">&nbsp;Create new<font style="font-size:75%">(check if you want to create a blank database with path specified)</font></td></tr>
+			<input type="radio" name="db" id=db0 value="0" checked><%=langOtherDatabase%>&nbsp;<input type="text" name="newdb" id="newdb"><input type="button" value="Browse" onclick="javascript:browseDB();" class="button"></td></tr>
+		<tr><td><input type=checkbox name="create" value="1">&nbsp;<%=langCreateNew%><font style="font-size:75%"><%=langCreateNewAlt%></font></td></tr>
 		
 <%
 	i = 1
@@ -130,7 +131,7 @@ function browseDB(){
 %>
         <tr>
 			<td onmouseover="bgColor='#99CCCC'" onmouseout="bgColor=''" onclick="document.getElementById('db<%=i%>').checked=true; return true" style="pointer:hand; cursor: hand">
-				<input type="radio" name="db" id="db<%=i%>" value="<%=Replace(s, """","\""")%>"><%=s%>&nbsp;&nbsp;<a href="<%=script%>?action=delete&amp;path=<%=Server.URLEncode(s)%>"><img src="images/delete.gif" alt="Remove this path from list" border="0" WIDTH="16" HEIGHT="16"></a>
+				<input type="radio" name="db" id="db<%=i%>" value="<%=Replace(s, """","\""")%>"><%=s%>&nbsp;&nbsp;<a href="<%=script%>?action=delete&amp;path=<%=Server.URLEncode(s)%>"><img src="images/delete.gif" alt="<%=langRemovePath%>" border="0" WIDTH="16" HEIGHT="16"></a>
 			</td>
 		</tr>
 <%
@@ -138,13 +139,15 @@ function browseDB(){
 		end if
 	Next
 %>
-<!--	<tr>
-		<td>Username:&nbsp;<input type="text" name="username" id="password" size="10">&nbsp;&nbsp;
-			Password:&nbsp;<input type="password" name="password" id="password" size="10">
+	<tr><td>&nbsp;</td></tr>
+	<tr>
+		<td><!--Username:&nbsp;<input type="text" name="username" id="password" size="10">&nbsp;&nbsp;-->
+			<%=langDatabasePassword%>&nbsp;<input type="password" name="password" id="password" size="10">
 		</td>
-	</tr>-->
+	</tr>
+	<tr><td>&nbsp;</td></tr>
     <tr>
-		<td align="center"><input type="submit" name="submit" value="Submit" class="button"></td>
+		<td align="center"><input type="submit" name="submit" value="<%=langSubmit%>" class="button"></td>
 	</tr>
 </table>
 </form>
@@ -167,7 +170,7 @@ function browseDB(){
 		else
 			fso.DeleteFile Session("DBAdminDatabase")
 			fso.MoveFile sFileName, Session("DBAdminDatabase")
-			Response.Write "<p align=center>Database compacted and repaired successfully</p>"
+			Response.Write "<p align=center>" & langDatabaseCompacted & "</p>"
 		end if
 		set jro = nothing
 		set fso = nothing
@@ -181,7 +184,7 @@ function browseDB(){
 		if Err then
 			Response.Write "<p class=""Error"" align=center>" & Err.Description & "</p>"
 		else
-			Response.Write "<p align=center>Backup file was created successfully</p>"
+			Response.Write "<p align=center>" & langBackupCreated & "</p>"
 		end if
 		set fso = nothing
 	end if
@@ -194,34 +197,30 @@ function browseDB(){
 		if Err then
 				Response.Write "<p class=""Error"" align=center>" & Err.Description & "</p>"
 		else
-			Response.Write "<p align=center>Database was restored from backup copy</p>"
+			Response.Write "<p align=center>" & langBackupRestored & "</p>"
 		end if
 		set fso = nothing
 	end if
 %>
 
-<H2 align=center>Database options</H2>
+<H2 align=center><%=langDatabaseOptions%></H2>
 <table align=center border=0 cellspacing="1">
-	<tr><th colspan="2" align=center>These options will affect current database</th></tr>
+	<tr><th colspan="2" align=center><%=langAffectCurrent%></th></tr>
 	<tr>
-		<td valign=top bgcolor="#bbbbff"><a href="<%=script%>?action=compact">Compact and Repair database</a></td>
-		<td bgcolor="#bbbbff">Compacts and repaires (if needed) an Access 2000 database. If you perform this
-		action on Access 97 database file, it will be converted to Access 2000.</td>
+		<td valign=top bgcolor="#bbbbff"><a href="<%=script%>?action=compact"><%=langCompactRepair%></a></td>
+		<td bgcolor="#bbbbff"><%=langCompactRepairAlt%></td>
 	</tr>
 	<tr>
-		<td valign=top bgcolor="#bbbbff"><a href="<%=script%>?action=compact&amp;type=97">Compact and Repair Access 97 database</a></td>
-		<td bgcolor="#bbbbff">Compacts and repaires Access 97 database. Use this option if you don't
-		want to upgrade your database to Access 2000</td>
+		<td valign=top bgcolor="#bbbbff"><a href="<%=script%>?action=compact&amp;type=97"><%=langCompactRepair97%></a></td>
+		<td bgcolor="#bbbbff"><%=langCompactRepair97Alt%></td>
 	</tr>
 	<tr>
-		<td valign=top bgcolor="#bbbbff"><a href="<%=script%>?action=backup">Make backup copy of database</a></td>
-		<td bgcolor="#bbbbff">Creates a backup copy of your database with same file name and
-		extention ".bak". Any previous backups will be overwritten</td>
+		<td valign=top bgcolor="#bbbbff"><a href="<%=script%>?action=backup"><%=langMakeBackup%></a></td>
+		<td bgcolor="#bbbbff"><%=langMakeBackupAlt%></td>
 	</tr>
 	<tr>
-		<td valign=top bgcolor="#bbbbff"><a href="<%=script%>?action=restore">Restore from backup</td>
-		<td bgcolor="#bbbbff">If backup file was created before, performing this action will restore 
-		your database from backup copy. The database will be <font color="red" style="color:red">overwritten</font>!</td>
+		<td valign=top bgcolor="#bbbbff"><a href="<%=script%>?action=restore"><%=langRestoreBackup%></td>
+		<td bgcolor="#bbbbff"><%=langRestoreBackupAlt%></td>
 	</tr>
 </table>
 <%end if%>      
@@ -236,7 +235,3 @@ function browseDB(){
 </body>
 </html>
 
-<SCRIPT LANGUAGE=vbscript RUNAT=Server>
-
-
-</SCRIPT>

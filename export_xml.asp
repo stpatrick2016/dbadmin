@@ -1,12 +1,11 @@
 <%@ Language=VBScript %>
-<!--#include file=config.asp -->
+<!--#include file=inc_config.asp -->
 <!--#include file=inc_protect.asp -->
 <!--#include file=inc_functions.asp -->
 <%
 On Error Resume Next
 dim con, rec, s, xml
-set con = Server.CreateObject("ADODB.Connection")
-con.Open strProvider & Session("DBAdminDatabase")
+OpenConnection con
 IsError
 set rec = Server.CreateObject("ADODB.Recordset")
 rec.CursorLocation = adUseClient

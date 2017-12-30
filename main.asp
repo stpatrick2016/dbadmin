@@ -1,9 +1,10 @@
 <%@ Language=VBScript %>
+<!--#include file=inc_config.asp -->
 <HTML>
 <HEAD>
+<meta name=vs_targetSchema content="http://schemas.microsoft.com/intellisense/ie5">
 <META NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
 <LINK href=default.css rel=stylesheet>
-<TITLE>Database Administration</TITLE>
 <SCRIPT LANGUAGE=javascript>
 <!--
 function onLoad(){
@@ -14,8 +15,9 @@ function onLoad(){
 </SCRIPT>
 
 </HEAD>
-<BODY onload="javascript:onLoad();"><!--#include file=config.asp -->
+<BODY onload="javascript:onLoad();">
 <%
+'	Session("DBAdminPassword") = strAdminPassword
 	if Request.Form("password") = strAdminPassword then
 		Session("DBAdminPassword") = Request.Form("password")
 	end if
@@ -28,24 +30,24 @@ function onLoad(){
       <H1>Login</H1>
 <%if Session("DBAdminPassword") <> strAdminPassword then%> 
 	<P align=center>
-	Welcome to StP Database Administrator for web-based remote administration of your MS Access
-	databases.<br>
-	Please enter your administrator password and click Login<br>
-	If this is a first time you installed StP DBAdmin, make sure to change the default 
-	password to your own.
+	<%=langWelcomeNote%>
 	</P>
       <FORM action="<%=Request.ServerVariables("SCRIPT_NAME")%>" method=post>
-      <P align=center>&nbsp;</P>
-      <P align=center>Enter administrator password: <INPUT type=password 
-      name=password id=password></P>
-      <P align=center><INPUT type=submit value=Login name=submit class=button></P>
-      <P align=center></FORM>&nbsp;</P>
+      <table align=center border=0>
+		<tr>
+			<td><%=langEnterPassword%></td>
+			<td><INPUT type=password name=password id=password></td>
+		</tr>
+		<tr><td align=center colspan=2>
+			<INPUT type=submit value="<%=langSubmit%>" name=submit class=button>
+		</td></tr>
+      </FORM>
 <%else%>
 
 <%
 	if Request.Form("change_pass").Count > 0 and Len(Request.Form("newpass1")) > 0 then
 		if Request.Form("newpass1") <> Request.Form("newpass2") then
-			Response.Write "<P class=Error align=center>Passwords mismatch</P>"
+			Response.Write "<P class=Error align=center>" & langPasswordsMismatch & "</P>"
 		else
 			dim fso, f
 			set fso = Server.CreateObject("Scripting.FileSystemObject")
@@ -70,22 +72,20 @@ function onLoad(){
 		end if
 	end if
 %>
-<P align=center>You are logged into Database administration<BR>
-If case you want to change the password, please type it in below
-</P>
+<P align=center><%=langLoggedIn%></P>
 
 <FORM action="<%=Request.ServerVariables("SCRIPT_NAME")%>" method=POST>
 <TABLE align=center border=0>
 <TR>
-	<TD>New password</TD>
+	<TD><%=langNewPassword%></TD>
 	<TD><INPUT type=password name=newpass1></TD>
 </TR>
 <TR>
-	<TD>Re-type new password</TD>
+	<TD><%=langRetypeNewPassword%></TD>
 	<TD><INPUT type=password name=newpass2></TD>
 </TR>
 </TABLE>
-<P align=center><INPUT type=submit name=change_pass value="Change password" class=button></P>
+<P align=center><INPUT type=submit name=change_pass value="<%=langChangePassword%>" class=button></P>
 </FORM>
 
 
