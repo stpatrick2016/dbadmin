@@ -36,7 +36,7 @@ function onFieldTypeChange(newType){
 	set dba = new DBAdmin
 	dba.Connect Session(DBA_cfgSessionDBPathName), Session(DBA_cfgSessionDBPassword)
 	
-	DBA_BeginNewTable strTable & langTableStructure, "", "90%"
+	DBA_BeginNewTable strTable & langTableStructure, "", "90%", ""
 	If not dba.IsOpen then Response.Redirect "database.asp"
 	if dba.HasError then DBA_WriteError dba.LastError
 	
@@ -126,7 +126,7 @@ function onFieldTypeChange(newType){
 
 <!--INDEXES-->
 <%
-	DBA_BeginNewTable strTable & langTableIndexes, "", "90%"
+	DBA_BeginNewTable strTable & langTableIndexes, "", "90%", ""
 %>
 <form action="structure.asp" method="post">
 <table align="center" width="90%" border="0" cellpadding="3" cellspacing="1">
@@ -181,7 +181,7 @@ function onFieldTypeChange(newType){
 <!--GENERATED SQL QUERY-->
 <%
 	call DBA_EndNewTable
-	DBA_BeginNewTable strTable & langCreateTableQuery, langCreateTableQueryAlt, "75%"
+	DBA_BeginNewTable strTable & langCreateTableQuery, langCreateTableQueryAlt, "75%", ""
 %>
 	<div id="divSQL" align="left"><%=HighlightSQL(dba.Tables.Item(strTable).SQL)%></div>
 <%	if InStr(1, Request.ServerVariables("HTTP_USER_AGENT"), "MSIE") > 0 then%>
@@ -219,7 +219,7 @@ function onFieldTypeChange(newType){
 			<td><%=fld.DefaultValue%>&nbsp;</td>
 			<td><%=fld.Description%>&nbsp;</td>
 			<td align="center">
-				<a href="structure.asp?table=<%=Server.URLEncode(strTable)%>&amp;field=<%=Server.URLEncode(fld.Name)%>&amp;action=edit"><img src="images/edit.gif" alt="<%=langEditField%>" border="0" width="16" height="16"></a>&nbsp;
+				<a href="structure.asp?table=<%=Server.URLEncode(strTable)%>&amp;field=<%=Server.URLEncode(fld.Name)%>&amp;action=edit#editForm"><img src="images/edit.gif" alt="<%=langEditField%>" border="0" width="16" height="16"></a>&nbsp;
 				<%if fld.IsPrimaryKey then%>
 					<a href="structure.asp?table=<%=Server.URLEncode(strTable)%>&amp;field=<%=Server.URLEncode(fld.Name)%>&index=<%=Server.URLEncode(sPrimaryIndexName)%>&amp;action=delete_index"><img src="images/un_key.gif" alt="<%=langRemovePK%>" border="0" width="16" height="16"></a>&nbsp;
 				<%else%>
@@ -233,14 +233,15 @@ function onFieldTypeChange(newType){
 <%	
 	Sub WriteFieldEditForm(byref fld)
 		dim isText, isNewField, strNullable, strCompress
+		Response.Write "<a name=""editForm""></a>"
 		if Len(fld.Name) =  0 then 
-			DBA_BeginNewTable strTable & "&nbsp;:&nbsp;" & langAddNewColumn, "", "50%" 
+			DBA_BeginNewTable strTable & "&nbsp;:&nbsp;" & langAddNewColumn, "", "50%" , ""
 			action = "create_field"
 			isNewField = True
 			strNullable = "<input type=""checkbox"" name=""nullable"" value=""-1"">"
 			strCompress = "<input type=""checkbox"" name=""compress"" value=""-1"">"
 		else 
-			DBA_BeginNewTable strTable & "&nbsp;:&nbsp;" & langEditField, "", "50%"
+			DBA_BeginNewTable strTable & "&nbsp;:&nbsp;" & langEditField, "", "50%", ""
 			action = "update_field"
 			isNewField = False
 			strNullable = "<input type=""hidden"" name=""nullable"" value=""" & CInt(fld.IsNullable) & """>" & CStr(fld.IsNullable)

@@ -70,7 +70,7 @@ function onDelete(){
 	end if
 	set dba = new DBAdmin
 	dba.Connect Session(DBA_cfgSessionDBPathName), Session(DBA_cfgSessionDBPassword)
-	DBA_BeginNewTable sName & "&nbsp;" & langRecord, "", ""
+	DBA_BeginNewTable sName & "&nbsp;" & langRecord, "", "", ""
 %>
 <p align=center><%=langAutoNumberNote%></p>
 <p align=center><%=langRecEditNote%></p>

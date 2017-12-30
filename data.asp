@@ -15,7 +15,7 @@
 On Error Resume Next
 Dim Separator : Separator = vbTab
 dim rec, sTableName, fld, abspage, i, pk, sSQL, key, dba, item
-dim pagesize, action, page, PrimaryKeys, sClass
+dim pagesize, action, page, PrimaryKeys, sClass, arrTemp, strFilter
 pk = ""
 PrimaryKeys = ""
 sTableName = Request("table").Item
@@ -24,9 +24,8 @@ action = CStr(Request("action").Item)
 pagesize = 10
 page = 1
 if IsNumeric(Request("pagesize").Item) then pagesize = CInt(Request("pagesize").Item)
-if pagesize < 1 then pagesize = 10
 if IsNumeric(Request("page").Item) then page = CInt(Request("page").Item)
-if pagesize < 1 then pagesize = 10
+if pagesize < 1 then pagesize = StpProfile.GetProfileNumber("settings", "page_size", 10)
 if page < 1 then page = 1
 
 call DBA_WriteNavigation
@@ -34,7 +33,7 @@ call DBA_WriteNavigation
 set dba = new DBAdmin
 dba.Connect Session(DBA_cfgSessionDBPathName), Session(DBA_cfgSessionDBPassword)
 If not dba.IsOpen then Response.Redirect "database.asp"
-DBA_BeginNewTable sTableName & langDataForTable, "", "90%"
+DBA_BeginNewTable sTableName & langDataForTable, "", "90%", ""
 if dba.HasError then DBA_WriteError dba.LastError
 
 'delete record
@@ -82,13 +81,28 @@ if Right(PrimaryKeys, 1) = Separator then PrimaryKeys = Left(PrimaryKeys, Len(Pr
 <%if Len(PrimaryKeys) = 0 then DBA_WriteError langNoPrimaryKey%>
 	<form action="data.asp" method="get">
 		<p align="left">
+			<%=langFilter%>&nbsp;
+			<select name="filter_field">
+				<option value=""></option>
+<%	For Each item In dba.Tables.Item(sTableName).Fields.Items%>
+				<option value="<%=item.Name%>"><%=item.Name%></option>
+<%	Next%>
+			</select>
+			<select name="filter_cmp">
+				<option value="=">=</option>
+				<option value=">">></option>
+				<option value="<"><</option>
+				<option value=">=">>=</option>
+				<option value="<="><=</option>
+				<option value="<>"><></option>
+				<option value="LIKE">LIKE</option>
+			</select>
+			<input type="text" name="filter_criteria" size="10">
+			
+			&nbsp;&nbsp;
 			<%=langPageSize%>&nbsp;
 			<select name="pagesize">
-				<option value="5">5</option>
-				<option value="10">10</option>
-				<option value="15">15</option>
-				<option value="25">25</option>
-				<option value="50">50</option>
+				<%=DBA_GetComboOptions(5, 50, 5, pagesize)%>
 			</select>
 			<input type=hidden name="table" value="<%=sTableName%>">
 			<input type=submit value="<%=langSubmit%>" class="button">
@@ -127,6 +141,8 @@ if Right(PrimaryKeys, 1) = Separator then PrimaryKeys = Left(PrimaryKeys, Len(Pr
 
 <%
 	if rec.State <> adStateClosed then
+		strFilter = BuildFilter()
+		if Len(strFilter) > 0 then call rec.Find(strFilter)
 		do while not rec.EOF and i < rec.PageSize
 			if sClass = "oddrow" then sClass = "evenrow" else sClass = "oddrow"
 %>
@@ -134,18 +150,18 @@ if Right(PrimaryKeys, 1) = Separator then PrimaryKeys = Left(PrimaryKeys, Len(Pr
 	<td valign="top">
 	<%	if Len(PrimaryKeys) > 0 then
 			sSQL = ""
-			for each fld in dba.Tables.Item(sTableName).Fields.Items
-				if fld.IsPrimaryKey then
-					Select Case fld.FieldType 
-						Case adBSTR,adChar,adLongVarChar,adLongVarWChar,adVarChar,adVarWChar,adWChar
-							sSQL = sSQL & "'" & Replace(rec(fld.Name), "'", "''") & "'"
-						Case adDate,adDBDate, adDBTime, adDBTimeStamp,adFileTime
-							sSQL = sSQL & "CDate('" & DBA_FormatDateTime(rec(fld.Name).Value) & "')"
-						Case Else
-							sSQL = sSQL & rec(fld.Name)
-					End Select
-					sSQL = sSQL & Separator
-				end if
+			arrTemp = Split(PrimaryKeys, Separator)
+			for each item in arrTemp
+				set fld = dba.Tables.Item(sTableName).Fields.Item(item)
+				Select Case fld.FieldType 
+					Case adBSTR,adChar,adLongVarChar,adLongVarWChar,adVarChar,adVarWChar,adWChar
+						sSQL = sSQL & "'" & Replace(rec(fld.Name), "'", "''") & "'"
+					Case adDate,adDBDate, adDBTime, adDBTimeStamp,adFileTime
+						sSQL = sSQL & "CDate('" & DBA_FormatDateTime(rec(fld.Name).Value) & "')"
+					Case Else
+						sSQL = sSQL & rec(fld.Name)
+				End Select
+				sSQL = sSQL & Separator
 			Next
 	%>
 		<a href="recedit.asp?action=edit&amp;pk=<%=Server.URLEncode(PrimaryKeys)%>&amp;key=<%=Server.URLEncode(sSQL)%>&amp;table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=page%>&amp;pagesize=<%=pagesize%>"><img src="images/edit.gif" alt="<%=langEditRecord%>" border="0" WIDTH="16" HEIGHT="16"></a>
@@ -206,3 +222,29 @@ function deleteRecord(pk,key){
 //-->
 </script>
 </html>
+
+<%
+	Function BuildFilter
+		dim filter, field, cmp, criteria, fldType
+		filter = ""
+		field = Request.QueryString("filter_field").Item
+		cmp = Request.QueryString("filter_cmp").Item
+		criteria = Request.QueryString("filter_criteria").Item
+		
+		If Len(field) > 0 and Len(criteria) > 0 then
+			fldType = dba.Tables.Item(sTableName).Fields.Item(field).GetSQLTypeName()
+			If fldType = "TEXT" or fldType = "MEMO" Then
+				'remove asterics if only at beginning
+				If Left(criteria, 1) = "*" and Right(criteria, 1) <> "*" Then criteria = Mid(criteria, 2)
+				criteria = "'" & Replace(criteria, "'", "''") & "'"
+			ElseIf fldType = "DATETIME" Then
+				criteria = "#" & criteria & "#"
+			Else
+				If cmp = "LIKE" Then cmp = "="
+			End If
+			filter = field & " " & cmp & " " & criteria
+		End If
+		
+		BuildFilter = filter
+	End Function
+%>

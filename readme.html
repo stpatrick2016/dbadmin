@@ -16,7 +16,7 @@
 <body text=black vLink=blue link=blue bgColor=white 
 MS_POSITIONING="FlowLayout">
 <H1>StP Database Administrator for MS Access 
-version&nbsp;2.0.2 Readme</H1>
+version&nbsp;2.1 Readme</H1>
 <H3>Table of contents</H3>
 <ul>
   <li><a href="#Overview">Overview</a> 
@@ -29,7 +29,7 @@ version&nbsp;2.0.2 Readme</H1>
   <li><a href="#Licensing">Licensing and pricing</a>    
   <li><a href="#Contact">Contact information</a></li></ul>
 <h3><a name="Overview"></a>Overview</h3>
-<P>StP Database Administrator (DBAdmin below)&nbsp;is a 
+<P>StP Database Administrator (DBAdmin later)&nbsp;is a 
 tool that allows you to manage your MS Access databases through your browser, 
 providing various set of functions you can perform with your databases, without 
 having downloading them, changing and uploading again. Most of features needed 
@@ -64,7 +64,8 @@ on-line.</P>
   <li>XML and Excel (text-delimited) data export.
   <li>Browsing for your database, so you do not need to type the path by 
 yourself
-  <li>Checking for a new version in one click.</li></ul>
+  <li>Checking for a new version in one click.
+  <li>And more...</li></ul>
 <H3><a name="Requirements"></a>Requirements</H3>
 <ul>
   <LI>ASP enabled web server (such as IIS or PWS) - 
@@ -81,17 +82,44 @@ yourself
   <li>MSXML parser version 3.x or higher&nbsp;installed on the server - 
 <strong><em>optional</em></strong></li></ul>
 <h3><a name="new"></a>What's new in 
-version 2.0.2</h3>
+version 2.1</h3>
 <p> 
-Only bugs fixes included in this release. Here is the list:</p>
+There are several bug fixes and new features added in 
+this release. Maybe one of most important features is Changing locale of your 
+database. Some of you may were affected by a bug when compacting a database may 
+reset&nbsp;its locale. If this is the case, you have now an option to change it 
+back. Note that the list of locale identifiers is not just languages, but a 
+group of languages. So if you don't see your language in the list, just pick 
+"General" and it will work fine.<br>Another feature that worth to mention is an 
+import from another database. Import works on Structure + Data, but not only 
+data. That means you are able to import tables (views, stored procedures, etc.) 
+with or without data, but not able to import data to existing tables. <br>And 
+yet another "big" change - multi-language support was re-designed. Now you can 
+choose your language from Settings page, without any ASP editing. The only 
+language that is included in this release is English. I have prepared also a 
+Russian language pack, which is available to download in downloads section on 
+the site. If you wish to make your own language pack and make it available to 
+other users, use English file as a template and send it to <a 
+href="mailto:stpatrick@mail.com">stpatrick@mail.com</a>.</p>
+<p>Below is the full list of changes in DBAdmin:</p>
 <ul>
-  <li>Bug fix - Javascript error on Settings page. 
-  <li>Bug fix - Application hangs when trying to view data of a table with no 
-  columns 
-  <li>Bug fix - Not able to open a database if folder has no write permissions. 
-  <li>Bug fix - Unable to edit text fields with double quote (") in the data. 
-  <li>Bug fix&nbsp;- Database can be removed from the saved list only when 
-  another one is opened </li></ul>
+  <li>New - Default page size (records per page) can be set now in Settings 
+  <li>New - Opens databases from DSN 
+  <li>New - Added feature for importing structure and data from another Access 
+  database 
+  <li>New - Jump filter added to the data view and Free-Type Query. You can now 
+  specify one-column filter and jump directly to a record matched your criteria 
+  <li>New - Interface's language can be choosen from Settings page 
+  <li>New - Allows changing&nbsp;Locale (Language)&nbsp;of the database. 
+  <li>Updated - Some more properties of database added 
+  <li>Updated - Improved support for multiple languages. 
+  <li>Bug fix - Editing records with multiple primary keys error 
+  <li>Bug fix - On some hosts there&nbsp;was impossible to set default value of 
+  the column 
+  <li>Bug fix - Compacting and repairing database could reset its locale 
+  language. 
+  <li>Bug fix - If not able to delete a table, was no error reported. 
+  <li>Some minor improvements in the code and usability</li></ul>
 <p>For the full versions history,&nbsp;see <A href="history.htm" >History.htm</A> file.</p>
 <H3><a name="Installation"></a>Installation</H3>
 <P>Below are steps that you should perform to successfully 
@@ -127,8 +155,10 @@ your server and upload the new one as is (after changes described in Installatio
 section).</P>
 <h3>Upgrade from version 2.x</h3>
 <p>Just upload all files to your server, but <strong>keep</strong> your 
-<strong>configuration</strong> file (scripts/inc_config.asp), to save your current 
-settings.</p>
+<strong>configuration</strong> file (scripts/inc_config.asp), to save 
+your current settings. You may notice that all saved paths to databases are gone. 
+Don't worry, you will have just re-create them, since the structure of profile's XML file has been changed 
+slightly.</p>
 <H3><A name=faq></A><a 
 name="FAQ"></a>FAQ</H3>
 <ul>
@@ -181,7 +211,19 @@ name="FAQ"></a>FAQ</H3>
   title="How to change folder permissions on Windows XP" 
   href="http://support.microsoft.com/default.aspx?scid=kb;en-us;308418" 
   target="_blank">http://support.microsoft.com/default.aspx?scid=kb;en-us;308418</a> 
-   (applies also&nbsp;to Windows 2000/NT).<br></li></ul>
+  (applies also&nbsp;to Windows 2000/NT).<br>
+  <li><font color="red"><strong>Why the application (IIS)&nbsp;freezes when trying to browse for 
+  database?<br></strong></font>This can occur if you have Norton Antivirus installed on the 
+  computer where IIS runs with Script Blocking feature enabled (even if Norton 
+  Antivirus is disabled by itself). To read more about this problem, follow this 
+  link:<br><a 
+  href="http://support.microsoft.com/default.aspx?scid=kb;en-us;295375" title="Norton Antivirus and FileSystemObject" target=_blank>http://support.microsoft.com/default.aspx?scid=kb;en-us;295375</a> 
+  .<br>
+  <li><strong><font color="red">After upgrading from version 2.x to version 2.1 I 
+  don't see databases list in "Existing database"</font></strong><br>The 
+  structure of XML configuration file has been changed slightly, you should use 
+  Browse button to add your databases again to the 
+      list.<br></li></ul>
 <h3><a name="Licensing"></a>Licensing and pricing</h3>
 <p>DBAdmin is a free tool for any web-master for personal 
 use only. Commercial use requires you to buy it. E.g. if you have an e-commerce 

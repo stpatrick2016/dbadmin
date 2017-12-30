@@ -13,12 +13,13 @@
 <%	call DBA_WriteNavigation%>
 
 <%
-	dim dba, strQuery, rec, AffectedRecords, pagesize, page, abspage, sClass, i, fld
+	dim dba, strQuery, rec, AffectedRecords, pagesize, page, abspage, sClass, i, fld, strFilter
 	strQuery = CStr(Request("query").Item)
 	if IsNumeric(Request("pagesize").Item) then pagesize = CInt(Request("pagesize").Item) else pagesize = 10
 	if IsNumeric(Request("page").Item) then page = CInt(Request("page").Item) else page = 1
-	if page <= 0 then page = 1
-	if pagesize <= 0 then pagesize = 10
+	if page < 1 then page = 1
+	if pagesize < 1 then pagesize = StpProfile.GetProfileNumber("settings", "page_size", 10)
+	if pagesize < 1 then pagesize = 10
 
 	set dba = new DBAdmin
 	dba.Connect Session(DBA_cfgSessionDBPathName), Session(DBA_cfgSessionDBPassword)
@@ -34,7 +35,7 @@
 <!--BEGIN RESULTS FORM-->
 <%
 	if Len(strQuery) > 0 then
-		DBA_BeginNewTable langFTQResults, "", "90%"
+		DBA_BeginNewTable langFTQResults, "", "90%", ""
 %>
 <%		
 		'first let's write out what was affected
@@ -61,13 +62,28 @@
 <table align="center">
 	<tr><td align="center">
 	<form action="ftquery.asp" method="post">
+			<%=langFilter%>&nbsp;
+			<select name="filter_field">
+				<option value=""></option>
+<%	For Each fld in rec.Fields%>
+				<option value="<%=fld.Name%>"><%=fld.Name%></option>
+<%	Next%>
+			</select>
+			<select name="filter_cmp">
+				<option value="=">=</option>
+				<option value=">">></option>
+				<option value="<"><</option>
+				<option value=">=">>=</option>
+				<option value="<="><=</option>
+				<option value="<>"><></option>
+				<option value="LIKE">LIKE</option>
+			</select>
+			<input type="text" name="filter_criteria" size="10">
+			
+			&nbsp;&nbsp;
 		<%=langPageSize%>&nbsp;
 		<select name="pagesize">
-			<option value="5">5</option>
-			<option value="10">10</option>
-			<option value="15">15</option>
-			<option value="25">25</option>
-			<option value="50">50</option>
+			<%=DBA_GetComboOptions(5, 50, 5, pagesize)%>
 		</select>
 		<input type="hidden" name="query" value="<%=Replace(strQuery, """", "&quot;")%>">
 		<input type="submit" value="<%=langSubmit%>" class="button">
@@ -101,6 +117,8 @@
 		</tr>
 
 <%
+			strFilter = BuildFilter(rec)
+			if Len(strFilter) > 0 then call rec.Find(strFilter)
 			do while not rec.EOF and i < rec.PageSize and rec.State <> adStateClosed
 				if sClass = "oddrow" then sClass = "evenrow" else sClass = "oddrow"
 %>
@@ -147,7 +165,7 @@
 
 <!--BEGIN QUERY FORM-->
 <%	
-	DBA_BeginNewTable langFreeTypeQuery, langFreeTypeQueryAlt, "90%"
+	DBA_BeginNewTable langFreeTypeQuery, langFreeTypeQueryAlt, "90%", ""
 	if dba.HasError then DBA_WriteError Replace(dba.LastError, vbCrLf, "<br>")
 %>
 	<p align="center"><%=langTypeSQL%></p>
@@ -178,3 +196,31 @@
 <!--#include file=scripts/inc_footer.inc-->
 </body>
 </html>
+<%
+	Function BuildFilter(ByRef rc)
+		dim filter, field, cmp, criteria, fldType, fld
+		filter = ""
+		field = Request.Form("filter_field").Item
+		cmp = Request.Form("filter_cmp").Item
+		criteria = Request.Form("filter_criteria").Item
+		
+		If Len(field) > 0 and Len(criteria) > 0 then
+			set fld = new DBAField
+			fld.FieldType = rc(field).Type
+			fldType = fld.GetSQLTypeName()
+			set fld = Nothing
+			If fldType = "TEXT" or fldType = "MEMO" Then
+				'remove asterics if only at beginning
+				If Left(criteria, 1) = "*" and Right(criteria, 1) <> "*" Then criteria = Mid(criteria, 2)
+				criteria = "'" & Replace(criteria, "'", "''") & "'"
+			ElseIf fldType = "DATETIME" Then
+				criteria = "#" & criteria & "#"
+			Else
+				If cmp = "LIKE" Then cmp = "="
+			End If
+			filter = field & " " & cmp & " " & criteria
+		End If
+		
+		BuildFilter = filter
+	End Function
+%>

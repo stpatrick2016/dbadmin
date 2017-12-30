@@ -21,7 +21,7 @@ Class StpPrivateProfile
 			dim fso, xml
 			set fso = Server.CreateObject("Scripting.FileSystemObject")
 			xml = "<?xml version=""1.0"" ?><spp><common /><users>"
-			if Len(Username) > 0 then xml = xml & "<" & Username & " />"
+			if Len(Username) > 0 then xml = xml & "<user name=""" & Username & """ />"
 			xml = xml & "</users></spp>"
 			if not fso.FileExists(XMLFilePath_) then xmlDoc_.loadXML xml
 			set fso = Nothing
@@ -57,7 +57,7 @@ Class StpPrivateProfile
 		set Node = xmlDoc_.selectSingleNode(BuildPath(Section))
 		if TypeName(Node) <> "Nothing" then
 			if Len(Attribute) > 0 then set Node = Node.attributes.getNamedItem(Attribute)
-			GetProfileString = Cstr(Node.text)
+			if TypeName(Node) <> "Nothing" Then GetProfileString = Cstr(Node.text)
 			
 			set Node = Nothing
 		end if		
@@ -121,7 +121,11 @@ Class StpPrivateProfile
 			dim tempPath : tempPath = BuildPath("")
 			tempPath = Left(tempPath, InStrRev(tempPath, "/") - 1)
 			set ParentNode = xmlDoc_.selectSingleNode(tempPath)
-			set ParentNode = ParentNode.appendChild(xmlDoc_.createElement(Username_))
+			set ParentNode = ParentNode.appendChild(xmlDoc_.createElement("user"))
+			set Attr = xmlDoc_.createAttribute("name")
+			Attr.value = Username_
+			call ParentNode.attributes.setNamedItem(Attr)
+			set Attr = Nothing
 		end if
 		
 		ParentPath = BuildPath("")
@@ -164,6 +168,24 @@ Class StpPrivateProfile
 		end if
 	End Sub
 
+	'########################################
+	'# Returns either cookie or Session variable, regarding of settings
+	Public Function GetCookie(key)
+		dim bUseCookies, strTemp, strPassword
+		
+		strTemp = Username_
+		Username_ = ""
+		if Me.GetProfileNumber("settings", "use_cookies", 0) <> 0 then bUseCookies = True else bUseCookies = False
+		Username_ = strTemp
+		
+		if bUseCookies then
+			strPassword = Request.Cookies("DBAdmin")("password")
+			
+		else
+			GetCookie = CStr(Session(key))
+		end if
+	End Function 
+
 '***** Private members **************'
 	Private XMLFilePath_
 	Private Username_
@@ -189,7 +211,7 @@ Class StpPrivateProfile
 	Private Function BuildPath(RelativePath)
 		dim path
 		path = "/spp"
-		if Len(Username_) > 0 then path = path & "/users/" & Username_ else path = path & "/common"
+		if Len(Username_) > 0 then path = path & "/users/user[@name=""" & Username_ & """]" else path = path & "/common"
 		if Len(RelativePath) > 0 then path = path & "/" & RelativePath
 		
 		BuildPath = path

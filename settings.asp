@@ -14,22 +14,29 @@
 <%	call DBA_WriteNavigation%>
 
 <%
-	DBA_BeginNewTable langSettings, "", "90%"
+	DBA_BeginNewTable langSettings, "", "90%", ""
 	
 	if Len(DBA_cfgProfilePath) > 0 then
 		if Request.Form("action") = "update" then 
-			Session(Request.Form("s_user").Item) = Session(DBA_cfgSessionUserName)
-			Session(Request.Form("s_upwd").Item) = Session(DBA_cfgSessionPwdName)
-			Session(Request.Form("s_dbpath").Item) = Session(DBA_cfgSessionDBPathName)
-			Session(Request.Form("s_dbpwd").Item) = Session(DBA_cfgSessionDBPassword)
+		
+			'only administrator allowed to change Session settings 
+			if DBA_cfgAdminUsername = Session(DBA_cfgSessionUserName) then
+				Session(Request.Form("s_user").Item) = Session(DBA_cfgSessionUserName)
+				Session(Request.Form("s_upwd").Item) = Session(DBA_cfgSessionPwdName)
+				Session(Request.Form("s_dbpath").Item) = Session(DBA_cfgSessionDBPathName)
+				Session(Request.Form("s_dbpwd").Item) = Session(DBA_cfgSessionDBPassword)
 
-			DBA_cfgSessionUserName = Request.Form("s_user").Item
-			DBA_cfgSessionPwdName = Request.Form("s_upwd").Item
-			DBA_cfgSessionDBPathName = Request.Form("s_dbpath").Item
-			DBA_cfgSessionDBPassword = Request.Form("s_dbpwd").Item
+				DBA_cfgSessionUserName = Request.Form("s_user").Item
+				DBA_cfgSessionPwdName = Request.Form("s_upwd").Item
+				DBA_cfgSessionDBPathName = Request.Form("s_dbpath").Item
+				DBA_cfgSessionDBPassword = Request.Form("s_dbpwd").Item
+			end if
 			DBA_cfgSaveDBPaths = CBool(Request.Form("save_paths").Item)
 
 			call DBA_SaveProfile
+			call StpProfile.SetValue("settings", "page_size", Request.Form("page_size").Item)
+			call StpProfile.SetValue("settings", "language-file", Request.Form("lang").Item)
+			call StpProfile.Save
 			call DBA_WriteSuccess(langSaveSuccess)
 		end if
 		call DBA_LoadProfile
@@ -68,6 +75,21 @@
 			<option value="-1"><%=langYes%></option>
 			<option value="0" <%if not DBA_cfgSaveDBPaths then Response.Write " selected "%>><%=langNo%></option>
 		</select></td>
+	</tr>
+	<tr>
+		<td><%=langRecordsPerPage%></td>
+		<td><select name="page_size">
+			<%=DBA_GetComboOptions(5, 50, 5, StpProfile.GetProfileNumber("settings", "page_size", 5))%>
+		</select></td>
+	</tr>
+	<tr>
+		<td><%=langLanguage%></td>
+		<td>
+			<select name="lang">
+				<option value="">Default</option>
+				<%=GetAvailableLanguages()%>
+			</select>
+		</td>
 	</tr>
 	<tr><td align="center" colspan="2">
 		<input type="submit" name="submit" value="<%=langSubmit%>" class="button">

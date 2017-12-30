@@ -30,7 +30,7 @@ function onLoad(){
 <h2 align="center"><%=langWelcomeHeader%></h2>
 <p align="center"><%=langVersion & "&nbsp;" & DBA_VERSION%></p>
 
-<%call DBA_BeginNewTable(langWelcome, "", "75%")%>
+<%call DBA_BeginNewTable(langWelcome, "", "75%", "")%>
 
 <p align="center"><%=langWelcomeNote%></p>
 <br>

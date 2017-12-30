@@ -38,7 +38,7 @@ End Sub
 %>
 
 <%'#begins a table with new layout
-Sub DBA_BeginNewTable(Title, Details, Width)
+Sub DBA_BeginNewTable(Title, Details, Width, HelpID)
 	dim TableID, imgID, strID
 	strID = DBA_GenerateID(Title)
 	TableID = "td_" & strID
@@ -77,7 +77,7 @@ Sub DBA_EndNewTable
 		<td width="7" background="images/table_shadow_right.gif"></td>
 	</tr>
 	<tr>
-		<td colspan="3" align="right" bgcolor="#EFF0DD">&uarr;<a href="#top">Top</a>&nbsp;&nbsp;</td>
+		<td colspan="3" align="right" bgcolor="#EFF0DD">&uarr;<a href="#top"><%=langTop%></a>&nbsp;&nbsp;</td>
 		<td width="7" background="images/table_shadow_right.gif"></td>
 	</tr>
 	<tr>
@@ -90,19 +90,27 @@ End Sub
 %>
 
 <%
+'#################################################################################
+'# writes out a message about errors (red)
 Sub DBA_WriteError(s)
 	Response.Write "<p align=""center"" class=""error"">" & s & "</p>"
 End Sub
 
+'#################################################################################
+'# writes out a success message (green)
 Sub DBA_WriteSuccess(s)
 	Response.Write "<p align=""center""><font color=green>" & s & "</font></p>"
 End Sub
 
+'#################################################################################
+'# Formats date and time into SQL formal representation
 Function DBA_FormatDateTime(v)
 	v = CDate(v)
 	DBA_FormatDateTime = Year(v) & "-" & Month(v) & "-" & Day(v) & " " & Hour(v) & ":" & Minute(v) & ":" & Second(v)
 End Function
 
+'#################################################################################
+'# generates ID for given string
 Function DBA_GenerateID(v)
 	if Len(v) > 0 then
 		dim re
@@ -119,53 +127,53 @@ Function DBA_GenerateID(v)
 End Function
 
 
-'loads and saves profile settings
+'#################################################################################
+'# loads profile into global variables
 Sub DBA_LoadProfile
-	dim cfg
-	set cfg = new StpPrivateProfile
+	if IsEmpty(StpProfile) then set StpProfile = new StpPrivateProfile
 	
 	'load common settings first
-	cfg.Load DBA_cfgProfilePath, ""
-	DBA_cfgSessionUserName = cfg.GetProfileString("settings/session", "s_uname", "DBA_AdminUsername")
-	DBA_cfgSessionPwdName = cfg.GetProfileString("settings/session", "s_upwd", "DBA_AdminPassword")
-	DBA_cfgSessionDBPathName = cfg.GetProfileString("settings/session", "s_dbpath", "DBA_DatabasePath")
-	DBA_cfgSessionDBPassword = cfg.GetProfileString("settings/session", "s_dbpwd", "DBA_DatabasePassword")
+	call StpProfile.Load(DBA_cfgProfilePath, "")
+	DBA_cfgSessionUserName = StpProfile.GetProfileString("settings/session", "s_uname", "DBA_AdminUsername")
+	DBA_cfgSessionPwdName = StpProfile.GetProfileString("settings/session", "s_upwd", "DBA_AdminPassword")
+	DBA_cfgSessionDBPathName = StpProfile.GetProfileString("settings/session", "s_dbpath", "DBA_DatabasePath")
+	DBA_cfgSessionDBPassword = StpProfile.GetProfileString("settings/session", "s_dbpwd", "DBA_DatabasePassword")
 	
 	'load user-dependent settings
-	cfg.Load DBA_cfgProfilePath, Session(DBA_cfgSessionUserName)
-	DBA_cfgSaveDBPaths = CBool(cfg.GetProfileNumber("settings", "save_paths", -1))
+	call StpProfile.Load(DBA_cfgProfilePath, Session(DBA_cfgSessionUserName))
+	DBA_cfgSaveDBPaths = CBool(StpProfile.GetProfileNumber("settings", "save_paths", -1))
 	
-	set cfg = Nothing
 End Sub
 
+'#################################################################################
+'# saves profile to the disk
 Sub DBA_SaveProfile
-	dim cfg
-	set cfg = new StpPrivateProfile
 	
-	'save common settings first
-	cfg.Load DBA_cfgProfilePath, ""
-	call cfg.SetValue("settings/session", "s_uname", DBA_cfgSessionUserName)
-	call cfg.SetValue("settings/session", "s_upwd", DBA_cfgSessionPwdName)
-	call cfg.SetValue("settings/session", "s_dbpath", DBA_cfgSessionDBPathName)
-	call cfg.SetValue("settings/session", "s_dbpwd", DBA_cfgSessionDBPassword)
-	call cfg.Save
+	if DBA_cfgAdminUsername = Session(DBA_cfgSessionUserName) then
+		'save common settings first
+		call StpProfile.Load(DBA_cfgProfilePath, "")
+		call StpProfile.SetValue("settings/session", "s_uname", DBA_cfgSessionUserName)
+		call StpProfile.SetValue("settings/session", "s_upwd", DBA_cfgSessionPwdName)
+		call StpProfile.SetValue("settings/session", "s_dbpath", DBA_cfgSessionDBPathName)
+		call StpProfile.SetValue("settings/session", "s_dbpwd", DBA_cfgSessionDBPassword)
+		call StpProfile.Save
+	end if
 	
 	'save user-depending settings
-	cfg.Load DBA_cfgProfilePath, Session(DBA_cfgSessionUserName)
-	call cfg.SetValue("settings", "save_paths", CLng(DBA_cfgSaveDBPaths))
-	call cfg.Save
+	call StpProfile.Load(DBA_cfgProfilePath, Session(DBA_cfgSessionUserName))
+	call StpProfile.SetValue("settings", "save_paths", CLng(DBA_cfgSaveDBPaths))
+	call StpProfile.Save
 	
-	set cfg = Nothing
 End Sub
 
+'#################################################################################
+'# Appends a database path to saved databases list and saves the file
 Sub DBA_AppendDatabase(newPath)
 	if not DBA_cfgSaveDBPaths then Exit Sub
 	
-	dim cfg, arrDatabases, i
-	set cfg = new StpPrivateProfile
+	dim arrDatabases, i
 	
-	cfg.Load DBA_cfgProfilePath, Session(DBA_cfgSessionUserName)
-	arrDatabases = cfg.GetProfileArray("databases", "")
+	arrDatabases = StpProfile.GetProfileArray("databases", "")
 	
 	'check if the database already exist
 	for i=0 to ubound(arrDatabases)
@@ -178,30 +186,25 @@ Sub DBA_AppendDatabase(newPath)
 	if i <> -2 then
 		Redim Preserve arrDatabases(ubound(arrDatabases) + 1)
 		arrDatabases(ubound(arrDatabases)) = newPath
-		call cfg.SetValue("databases", "", arrDatabases)
-		cfg.Save
+		call StpProfile.SetValue("databases", "", arrDatabases)
+		call StpProfile.Save
 	end if
 	
-	set cfg = nothing
 End Sub
 
+'#################################################################################
+'# returns an array of saved databases
 Function DBA_GetDatabases
 	DBA_GetDatabases = Array()
-	dim cfg
-	set cfg = new StpPrivateProfile
-	cfg.Load DBA_cfgProfilePath, Session(DBA_cfgSessionUserName)
-	DBA_GetDatabases = cfg.GetProfileArray("databases", "")
-	
-	set cfg = Nothing
+	DBA_GetDatabases = StpProfile.GetProfileArray("databases", "")
 End Function
 
+'#################################################################################
+'# removes database from the list
 Sub DBA_RemoveDatabase(path)
 	dim cfg, arrDatabases, i, arrNew
 	arrNew = Array()
-	set cfg = new StpPrivateProfile
-	
-	cfg.Load DBA_cfgProfilePath, Session(DBA_cfgSessionUserName)
-	arrDatabases = cfg.GetProfileArray("databases", "")
+	arrDatabases = StpProfile.GetProfileArray("databases", "")
 	
 	'check if the database already exist
 	for i=0 to ubound(arrDatabases)
@@ -211,9 +214,74 @@ Sub DBA_RemoveDatabase(path)
 		end if
 	next
 	
-	call cfg.SetValue("databases", "", arrNew)
-	cfg.Save
-	
-	set cfg = Nothing
+	call StpProfile.SetValue("databases", "", arrNew)
+	StpProfile.Save
 End Sub
+
+'#################################################################################
+'# returns a string with options for combo box for given range and step
+Function DBA_GetComboOptions(intStart, intEnd, intStep, intSelected)
+	dim ret, i
+
+	ret = ""
+	For i=intStart To intEnd Step intStep
+		ret = ret & "<option value=""" & i & """"
+		if i = intSelected then ret = ret & " selected"
+		ret = ret & ">" & i & "</option>" & vbCrLf
+	Next
+	DBA_GetComboOptions = ret
+End Function
+
+'#################################################################################
+'# Loads language
+Sub DBA_LoadLanguage
+	dim le, langFile
+	langFile = StpProfile.GetProfileString("settings", "language-file", "")
+	if Len(langFile) > 0 Then
+		set le = new CMultiLangEngine
+		call le.Load("languages/" & langFile, "lang", False)
+		set le = Nothing
+	End If
+End Sub
+
+'#################################################################################
+'# Returns options of languages found in Languages folder
+Function GetAvailableLanguages
+	dim ret, fso, folder, f, le, selLang
+	set fso = Server.CreateObject("Scripting.FileSystemObject")
+	set folder = fso.GetFolder(Server.MapPath("languages/"))
+	selLang = StpProfile.GetProfileString("settings", "language-file", "")
+	
+	ret = ""
+	if TypeName(folder) <> "Nothing" Then
+		set le = new CMultiLangEngine
+		For each f in folder.Files
+			If lcase(Right(f.Name, 5)) = ".lang" Then
+				call le.Load("languages/" & f.Name, "", True)
+				if Len(le("language")) > 0 Then
+					ret = ret & "<option value=""" & f.Name & """"
+					if f.Name = selLang Then ret = ret & " selected "
+					ret = ret & ">" & le("language") & " (" & f.Name & ")</option>" & vbCrLf
+				End If
+			End If
+		Next
+		set le = Nothing
+		set folder = Nothing
+	End If
+
+	set fso = Nothing
+	GetAvailableLanguages = ret
+End Function
+
+'#################################################################################
+'# Encrypts a given string
+Function DBA_Encrypt(v)
+	DBA_Encrypt = v
+End Function
+
+'#################################################################################
+'# Decrypts a given string
+Function DBA_Decrypt(v)
+	DBA_Decrypt = v
+End Function
 %>

@@ -1,0 +1,3 @@
+This is a languages folder. All language files should be uploaded here, then you will be able to select
+your language via Settings page.
+The folder contains an english language file, which you can use as a template for your own file

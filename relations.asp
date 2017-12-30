@@ -101,7 +101,7 @@ function buildFKName(){
 	dba.Connect Session(DBA_cfgSessionDBPathName), Session(DBA_cfgSessionDBPassword)
 	If not dba.IsOpen then Response.Redirect "database.asp"
 	
-	DBA_BeginNewTable langRelations, langRelationsNote, "90%"
+	DBA_BeginNewTable langRelations, langRelationsNote, "90%", ""
 	if dba.HasError then DBA_WriteError dba.LastError
 	if Request.Form("submit").Count > 0 then 
 		dba.CreateRelation Request.Form("fk_name"), Request.Form("pk_table"), Request.Form("pk_field"), Request.Form("fk_table"), Request.Form("fk_field"), Request.Form("onupdate"), Request.Form("ondelete")
@@ -210,7 +210,7 @@ function buildFKName(){
 
 <%
 	call DBA_EndNewTable
-	DBA_BeginNewTable langCreateRelationship, "", "90%"
+	DBA_BeginNewTable langCreateRelationship, "", "90%", ""
 %>
 <form action="relations.asp" method="post">
 <table align="center" border="0">

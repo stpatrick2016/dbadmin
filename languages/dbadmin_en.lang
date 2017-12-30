@@ -1,0 +1,265 @@
+
+#Header of language file
+#@language=English
+#@short=en
+#@product=Stp Database Administrator
+#@created=2002-8-7
+#@modified=2003-13-2
+#@author=Philip Patrick
+#@email=stpatrick@mail.com
+#@web=http://www.stpworks.com
+#@comment=Core language file. You can use this one as a template to create your own language files
+
+#browse.asp
+OldBrowser=Your browser doesn't support this method. Copy the database path manually
+Browse=Browse for database
+OnlyMDB=Only files with .MDB extention will be shown here
+DriveSelector=Drive selector
+CannotAccessFolder=Cannot access the folder. You probably have no rights to view it. Error: 
+CurrentPath=Current path:
+Removable=Removable
+Fixed=Fixed
+Network=Network
+Unknown=Unknown
+
+#common
+Prev=Prev
+Next=Next
+SortAscending=Sort Ascending
+SortDescending=Sort Descending
+Submit=Submit
+Reset=Restore
+No=No
+Yes=Yes
+CopyToClipboard=Copy to clipboard
+Cancel=Cancel
+TablesList=Tables
+Back=Back
+Top = Top
+
+#data.asp
+DataForTable=&nbsp;:&nbsp;Data
+AddRecord=Add new record
+RefreshTable=Refresh table
+XMLExport=XML Export
+XMLExportAlt=Export table content as XML file
+ExcelExport=Excel Export
+ExcelExportAlt=Export as delimited text file
+NoPrimaryKey=You cannot add/update data in this table. Please set the primary key first
+EditRecord=Edit the record
+DeleteRecord=Delete the record
+BinaryData=Binary data
+SureToDeleteRecord=Are you sure you want to delete record with Primary Key(s)
+PageSize=Page size:
+Filter=Filter:
+
+#database.asp
+DatabaseSelection=Database Select
+DatabaseSelectionAlt=Please select a database to work
+EnterPath=To start working, select a database using Browse button or from the list below. You can also create a new blank database by typing a name of non-existent file and selecting "Create blank" checkbox
+CurrentDatabase=Database:
+CreateNew=Create blank database
+CreateNewAlt=(check if you want to create a blank database with path specified)
+DatabaseCompacted=Database compacted and repaired successfully
+BackupCreated=Backup file was created successfully
+BackupRestored=Database was restored from backup copy
+DatabaseOptions=Database options
+AffectCurrent=These actions will affect the current database
+CompactRepair=Compact and Repair database
+CompactRepairAlt=Compacts and repairs (if needed) an MS Access database.
+Convert2000=Convert to Access 2000
+Convert2000Alt=Converts Access 97 database to Access 2000, then compacts and repairs it.
+MakeBackup=Make backup copy of database
+MakeBackupAlt=Creates a backup copy of your database with same file name and extention '.bak'. Any previous backups will be overwritten
+RestoreBackup=Restore from backup
+RestoreBackupAlt=If backup file was created before, performing this action will restore your database from backup copy. The database will be overwritten!
+DatabasePassword=Database password:
+DatabasePath=Path:
+NewDatabasePassword=Set database password
+NewDatabasePasswordAlt=Set a new database password or leave blank to remove the current one
+NewPasswordSet=Database password has been changed successfully
+RemoveDBPathAlt=Remove database's path from list
+Actions=Actions
+Properties=Properties
+FileSize=File size:
+SizeAfterCompact=Size after compact:
+NewPassword=New password
+RetypeNewPassword=Re-type password
+ChangePassword=Change password
+PasswordsMismatch=Passwords mismatch
+LocaleIdentifier=Locale Identifier:	
+DatabaseType=Database type:
+ImportDatabase = Import from database
+ImportDatabaseAlt = Allows you to import tables, views and stored prodecures from another Access database
+OpenDatabase = Open database
+SelectExistingDatabase = Select existing database
+ChangeLocaleID = Change Locale
+ChangeLocaleIDAlt = Allows changing a language of the database
+NewLocaleID = New locale (language):
+
+#default.asp
+Welcome=Welcome
+WelcomeHeader=Welcome to Stp Database Administrator
+WelcomeNote=Stp Database Administrator allows you to manage your MSAccess databases through the Web, using only your browser, from any place, at any time.
+WelcomeNote2=To start working with your databases, type your administrator password in the text box below and click Enter.
+EnterPassword=Password:
+Version=Version
+SubmitBug=Submit a bug
+
+#export_db.asp
+DatabaseExport=Database Export
+DatabaseExportAlt=Generate SQL script for selected tables, views and/or stored procedures
+DatabaseExportNote=Use Shift and Ctrl to select multiple tables, views and/or stored procedures
+Options=Options
+IncludeRelations=Include relations
+GenerateSQLScript=Generate SQL script
+SQLScriptNote=Generated SQL script for selected objects in database
+Procedures=Procedures
+Views=Views
+
+#export_csv.asp
+PleaseDefineExp=Please define the column and rows delimiters, or use default and click Export
+Tab=Tab
+Space=Space
+Other=Other
+ColumnDelimiter=Column Delimiter
+TextQualifier=Text qualifier
+NoFieldNames=No field names
+
+#ftquery.asp
+FreeTypeQuery=Free-Type Query : Script
+FreeTypeQueryAlt=Free-Type Query allows you to make your own SQL statement and get results from it (if there are any results returned)
+TotalRecords=Total records returned:
+RunIt=Execute
+TypeSQL=Type your SQL statement in a box below. You can run several queries at once, separating each of them with semicolon (;)	
+UseTransaction=Run in one transaction
+IgnoreErrors=Ignore errors
+FTQResults=Free-Type Query : Results
+RecordsAffected=Records affected:
+
+#import_db.asp, new in version 2.1
+ImportDatabaseWelcome=Welcome to database import Wizard! The Wizard will allow you to import tables, views and stored procedures from another Access database. To begin please specify the external database, where you want to import from
+ImportDatabaseNote=Choose external database
+SelectExternalTables=Now you have an option to select external tables, views and/or stored procedures you want to import into your database. If you want to import data as well, make sure to not import many tables with a lot of data at once.
+Import=Import
+ImportSuccess=All selected tables, views and stored procedures were imported successfully
+IncludeData=Including data
+PathToExternalDatabase = Path to external database
+ExternalDBPassword = External database password
+
+#qlist.asp
+EnterQParams=Please enter the parameters of procedure divided by commas. Remember to enclose text parameters in single quotation marks.
+StoredProceduresList=Stored Procedures
+SPName=Name
+SPCode=Code
+SPActions=Actions
+CreateProcedure=Create a new procedure
+UpdateProcedure=Update procedure
+CreateProcedureNote=Note, if you won't add any parameter in your SQL statement, then a new View will be created instead
+ProcedureName=Procedure name:
+SQLStatement=SQL Statement
+Params1stWay=Parameters can be defined in 2 ways. First way, by adding PARAMETERS clause in your SQL statement with all parameters and thier types listed. For example:
+Params2ndWay=The second way, when parameters are determined on-the-fly. If you will add a parameter that is not recognized as a column name or SQL reserved word, it will be threated as parameter.
+DeleteProcedurePrompt=Are you sure you want to delete a stored procedure
+SPExecute=Execute Stored Procedure
+SPEdit=Edit Procedure
+SPDelete=Delete Stored Procedure
+
+#recedit.asp
+Record=record
+AutoNumberNote=Note that AutoNumber fields you cannot edit as they are updated automatically. Also columns of type Binary won't be shown here
+RecEditNote=You can cycle through records using Update+Next/Update+Prev and Add+Next buttons. To add/update the record and return to table, click Add/Update button
+Update=Update
+Add=Add
+RecordUpdated=Record added/updated successfully
+First=First
+Last=Last
+
+#relations.asp
+RelationsNote=Each of relationships described also in more readable form.
+PrimaryIndex=Primary Index
+PrimaryTable=Primary Table
+PrimaryColumn=Primary Column
+ForeignIndex=Foreign Index
+ForeignTable=Foreign Table
+ForeignColumn=Foreign Column
+DeleteRelationship=Delete this relationship
+IfFieldChanged=If field <b><i>$PK_COLUMN_NAME</i></b> has been changed in <b><i>$PK_TABLE_NAME</i></b>, then field <b><i>$FK_COLUMN_NAME</i></b> in <b><i>$FK_TABLE_NAME</i></b> will be 
+IfFieldDeleted=If record with <b><i>$PK_COLUMN_NAME</i></b> has been deleted from <b><i>$PK_TABLE_NAME</i></b>, then all records with same <b><i>$FK_COLUMN_NAME</i></b> in <b><i>$FK_TABLE_NAME</i></b> 
+ChangedAlso=changed also.
+SetToNull=set to null.
+SetToDefault=set to default value.
+WillBeDeleted=will be deleted.
+CreateRelationship=Create new relationship
+ForeignIndexName=Foreign index name
+OnUpdate=On update:&nbsp;
+NoAction=No Action
+OnDelete=On delete:&nbsp;
+Delete=Delete
+Relations=Relationships
+
+#settings.asp
+Settings=Settings
+SettingsNotAvailable=Sorry, the Settings page is not availeble since you haven't specified an XML file path. If you wish to do it now, please open <font color="green">scripts/inc_config.asp</font> file in any text editor, such as Notepad and change the value of <font color="green">DBA_cfgProfilePath</font>
+SessionVariables=Session Variables
+Username=Username
+UserPassword=User's Password
+DBPath=Database path
+DBPassword=Database password
+SaveDBPaths=Save database paths?
+OtherSettings=Other settings
+SaveSuccess=Settings were saved successfully
+RecordsPerPage=Records per page	
+Language = Language
+
+#structure.asp
+TableIndexes=&nbsp;:&nbsp;Indexes
+IndexName=Index Name
+Column=Column
+Unique=Unique
+IndexedUnique=Yes, unique index
+IndxedDuplicates=Yes, allow duplicates
+PrimaryColumnAlt=Primary Key column
+UniqueIndexAlt=The index is unique
+DeleteIndexAlt=Delete the index
+CreateIndex=Create index
+TableStructure=&nbsp:&nbsp;Structure
+Ordinal=Ordinal
+Name=Name
+DataType=Data type
+Nullable=Nullable
+MaxLength=Max. length
+DefaultValue2=Default Value
+Description=Description
+EditField=Edit column
+RemovePK=Remove Primary Key
+SetAsPK=Set as Primary Key
+DeleteField=Delete column
+AddNewColumn=Add new column
+CreateTableQuery=&nbsp;:&nbsp;SQL
+CreateTableQueryAlt=CREATE TABLE SQL script that can be used to re-created this table
+AreYouSureToDelete=Are you sure you want to delete column $name and all indexes to it?
+AllowZeroLength=Allow zero-length
+UnicodeCompress=Compress Unicode
+Indexed=Indexed
+
+#tablelist.asp
+TableName=Table name
+Created=Created
+Modified=Modified
+ViewTableStructureAlt=View table's structure
+ViewTableDataAlt=View table's data
+DeleteTableAlt=Delete the table
+SureToDeleteTable=Are you sure you want to delete table $table_name?
+CreateNewTable=Create new table
+NewTableName=New table name:&nbsp;
+TableNavigateAlt=Cycle through records in table
+
+#vlist.asp
+RunViewAlt=Run view
+DeleteViewAlt=Delete view
+CreateNewView=Create a new view
+ViewName=View name:
+SureToDeleteView=Are you sure you want to delete view $name?
+UpdateView=Update view
+EditView=Edit View

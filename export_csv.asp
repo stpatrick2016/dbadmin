@@ -76,7 +76,7 @@ if Request.Form("action") = "export" then
 <body>
 <%	
 	call DBA_WriteNavigation
-	DBA_BeginNewTable langExcelExportAlt, "", "90%"
+	DBA_BeginNewTable langExcelExportAlt, "", "90%", ""
 %>
 <p align="center"><%=langPleaseDefineExp%></p>
 <form action="export_csv.asp" method="POST">

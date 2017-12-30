@@ -3,7 +3,7 @@
 
 '//////////////////////////////////////////////////////////////////////////////////////////////////
 '// Stp Database Administrator Engine
-'// Engine version: 1.0
+'// Engine version: 1.1
 '// Copyright © 2002-2003 by Philip Patrick. All rights reserved
 '//
 '// Author:		Philip Patrick
@@ -54,7 +54,7 @@ Class DBAdmin
 		Set Relations_	= Server.CreateObject("Scripting.Dictionary")
 		Set Procedures_	= Server.CreateObject("Scripting.Dictionary")
 		
-		EngineVersion_	= "1.0"
+		EngineVersion_	= "1.1"
 		
 		call Reset
 	End Sub
@@ -131,6 +131,14 @@ Class DBAdmin
 			ReclaimedSpace = CLng(JetConnection_.Properties("Jet OLEDB:Compact Reclaimed Space Amount").Value)
 		end if
 	End Property  
+
+	'######################################################## 
+	'# Returns locale identifier of the database
+	Public Property Get LocaleIdentifier
+		If not DBAE_DEBUG then On Error Resume Next
+		
+		If IsOpen then LocaleIdentifier = JetConnection_.Properties("Locale Identifier").Value
+	End Property
 
 	'######################################################## 
 	'#Dictionary object contains all tables in database
@@ -274,6 +282,10 @@ Class DBAdmin
 
 		Connect = True
 		call Reset
+		
+		'check if DSN was passed and retrieve file name
+		if InStr(1, MDBPath, "DSN=", vbTextCompare) = 1 then MDBPath = GetFilenameFromDSN(Mid(MDBPath, 5), Password)
+		
 		DatabasePath_ = CStr(MDBPath)
 		DatabasePassword_ = CStr(Password)
 		
@@ -487,14 +499,14 @@ Class DBAdmin
 	'######################################################## 
 	'# Compacts and repaires a database. Converts Access 97 databases to Access 2000
 	'# If new password not null, then changes/sets a new password to database
-	Public Function CompactDatabase(DoUpgrade, NewPassword)
+	Public Function CompactDatabase(DoUpgrade, NewPassword, NewLocaleID)
 		If not IsOpen then
 			LastError = "Object is not initialized"
 			CompactDatabase = False
 			Exit Function
 		end if
 		
-		dim strTempFile, fso, jro, ver, strCon, strTo
+		dim strTempFile, fso, jro, ver, strCon, strTo, LCID
 		set fso = Server.CreateObject("Scripting.FileSystemObject")
 		
 		strTempFile = DatabasePath_
@@ -503,11 +515,12 @@ Class DBAdmin
 		if not DoUpgrade and IsAccess97 then ver = "4" else ver = "5"
 		
 		'close the database first
+		if Len(NewLocaleID) > 0 Then LCID = NewLocaleID Else LCID = JetConnection_.Properties("Locale Identifier").Value
 		JetConnection_.Close
 
 		strCon = "Provider=Microsoft.Jet.OLEDB.4.0; Data Source=" & DatabasePath_
 		if Len(DatabasePassword_) > 0 then strCon = strCon & ";Jet OLEDB:Database password=" & DatabasePassword_
-		strTo = "Provider=Microsoft.Jet.OLEDB.4.0; Data Source=" & strTempFile & "; Jet OLEDB:Engine Type=" & ver
+		strTo = "Provider=Microsoft.Jet.OLEDB.4.0; Locale Identifier=" & LCID & "; Data Source=" & strTempFile & "; Jet OLEDB:Engine Type=" & ver
 		if Len(DatabasePassword_) > 0 and IsNull(NewPassword) then 
 			strTo = strTo & ";Jet OLEDB:Database password=" & DatabasePassword_
 		elseif not IsNull(NewPassword) and Len(NewPassword) > 0 then
@@ -732,6 +745,34 @@ Class DBAdmin
 	Private JetConnection_
 	Private LastError_
 	Private EngineVersion_
+	
+	Private Function GetFilenameFromDSN(dsnName, pwd)
+		dim dsn, ret, i
+		ret = ""
+		set dsn = Server.CreateObject("ADODB.Connection")
+
+		if not DBAE_DEBUG then On Error Resume Next
+		call dsn.Open("DSN=" & dsnName, "Admin", pwd)
+		if not IsError then
+			ret = dsn.Properties("Current Catalog").Value
+			if Len(ret) > 0 then
+				if Right(ret, 4) <> ".mdb" then ret = ret & ".mdb"
+			else
+				ret = dsn.Properties("Extended Properties").Value
+				i = InStr(1, ret, "DBQ=", vbTextCompare)
+				if i > 0 then
+					ret = Left(ret, i+4)
+					i = InStr(1, ret, ";")
+					ret = Left(ret, i-1)
+				else
+					ret = ""
+				end if
+			end if
+			dsn.Close
+		end if
+		set dsn = Nothing
+		GetFilenameFromDSN = ret
+	End Function
 
 End Class
 ' END CLASS DEFINITION DBAdmin
@@ -937,12 +978,18 @@ Class DBATable
 		fld.Properties("Jet OLEDB:Compressed UNICODE Strings").Value = NewFld.Compressed
 		fld.Properties("Jet OLEDB:Allow Zero Length").Value = NewFld.AllowZeroLength
 		if not IsNull(NewFld.Description) then fld.Properties("Description").Value = NewFld.Description
-		if not IsNull(NewFld.DefaultValue) then fld.Properties("Default").Value = NewFld.DefaultValue
+		
+		'Do not use Default property. It is not always working
+		'if not IsNull(NewFld.DefaultValue) then fld.Properties("Default").Value = NewFld.DefaultValue
 		
 		xCat.Tables(Name_).Columns.Append fld
 		CreateField = not Parent_.IsError
 		set fld = nothing
 		set xCat = nothing
+		
+		if not Parent_.HasError and not IsNull(NewFld.DefaultValue) then
+			call Parent_.JetConnection.Execute("ALTER TABLE [" & Name_ & "] ALTER COLUMN [" & NewFld.Name & "] SET DEFAULT " & NewFld.DefaultValue)
+		end if
 		
 		if not Parent_.HasError and Indexed > 0 then
 			Randomize
@@ -1630,9 +1677,10 @@ Class DBAField
 			end with
 			set field = Nothing
 			set xCat = Nothing
+			Parent_.Parent.IsError
 		end if
 		
-		UpdateBatch = not Parent_.Parent.IsError
+		UpdateBatch = not Parent_.Parent.HasError
 		PendingUpdates_ = False
 		
 		'if error occured, let parent reload fields
@@ -1788,7 +1836,7 @@ Class DBAIndex
 	Public Function IsInitialized()
 		if IsObject(Parent_) and Len(Name_) > 0 and Len(TargetField_) > 0 then IsInitialized = True else IsInitialized = False
 	End Function
- 
+
 
 	'---------------------------
 	'protected and private

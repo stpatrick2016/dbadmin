@@ -4,3 +4,7 @@
 	<i><font size="1">Powered by <a href="http://www.stpworks.com" target="_blank">StpWorks.com</a></font></i>
 </div>
 <!-- END FOOTER -->
+<%
+	'Free configuration object
+	if not IsEmpty(StpProfile) then set StpProfile = Nothing
+%>

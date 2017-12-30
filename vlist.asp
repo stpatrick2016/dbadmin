@@ -27,7 +27,7 @@ function deleteView(name){
 	set dba = new DBAdmin
 	dba.Connect Session(DBA_cfgSessionDBPathName), Session(DBA_cfgSessionDBPassword)
 	
-	DBA_BeginNewTable langViews, "", "90%"
+	DBA_BeginNewTable langViews, "", "90%", ""
 	if dba.HasError then DBA_WriteError dba.LastError
 	Select Case action
 		Case "create"

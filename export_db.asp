@@ -34,7 +34,7 @@
 <%
 	Sub WriteTablesSelect
 		dim item
-		DBA_BeginNewTable langDatabaseExport, langDatabaseExportNote, "90%"
+		DBA_BeginNewTable langDatabaseExport, langDatabaseExportNote, "90%", ""
 %>
 		<form action="export_db.asp" method="post">
 		<table align="left" border="0" cellspacing="1" cellpadding="10">
@@ -103,7 +103,7 @@
 		next
 		
 		
-		DBA_BeginNewTable langDatabaseExport, langSQLScriptNote, "90%"
+		DBA_BeginNewTable langDatabaseExport, langSQLScriptNote, "90%", ""
 %>
 		<table align="left" border="0">
 			<tr>

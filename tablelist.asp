@@ -20,7 +20,7 @@
 	dba.Connect Session(DBA_cfgSessionDBPathName), Session(DBA_cfgSessionDBPassword)
 	action = CStr(Request("action").Item)
 	
-	DBA_BeginNewTable langTablesList, "", "90%"
+	DBA_BeginNewTable langTablesList, "", "90%", ""
 	if dba.HasError then DBA_WriteError dba.LastError
 	Select Case action
 		Case "create"
@@ -28,6 +28,7 @@
 			if dba.HasError then DBA_WriteError dba.LastError
 		Case "delete"
 			dba.DeleteTable Request.QueryString("table").Item
+			if dba.HasError then DBA_WriteError dba.LastError
 	End Select
 %>
 
