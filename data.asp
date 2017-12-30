@@ -126,48 +126,50 @@ if Right(PrimaryKeys, 1) = Separator then PrimaryKeys = Left(PrimaryKeys, Len(Pr
 </tr>
 
 <%
-	do while not rec.EOF and i < rec.PageSize and Err = 0
-		if sClass = "oddrow" then sClass = "evenrow" else sClass = "oddrow"
+	if rec.State <> adStateClosed then
+		do while not rec.EOF and i < rec.PageSize
+			if sClass = "oddrow" then sClass = "evenrow" else sClass = "oddrow"
 %>
 <tr class="<%=sClass%>" onmouseover="style.backgroundColor='#ffdfbf'" onmouseout="style.backgroundColor=''">
 	<td valign="top">
-	<%if Len(PrimaryKeys) > 0 then
-		sSQL = ""
-		for each fld in dba.Tables.Item(sTableName).Fields.Items
-			if fld.IsPrimaryKey then
-				Select Case fld.FieldType 
-					Case adBSTR,adChar,adLongVarChar,adLongVarWChar,adVarChar,adVarWChar,adWChar
-						sSQL = sSQL & "'" & Replace(rec(fld.Name), "'", "''") & "'"
-					Case adDate,adDBDate, adDBTime, adDBTimeStamp,adFileTime
-						sSQL = sSQL & "CDate('" & DBA_FormatDateTime(rec(fld.Name).Value) & "')"
-					Case Else
-						sSQL = sSQL & rec(fld.Name)
-				End Select
-				sSQL = sSQL & Separator
-			end if
-		Next
+	<%	if Len(PrimaryKeys) > 0 then
+			sSQL = ""
+			for each fld in dba.Tables.Item(sTableName).Fields.Items
+				if fld.IsPrimaryKey then
+					Select Case fld.FieldType 
+						Case adBSTR,adChar,adLongVarChar,adLongVarWChar,adVarChar,adVarWChar,adWChar
+							sSQL = sSQL & "'" & Replace(rec(fld.Name), "'", "''") & "'"
+						Case adDate,adDBDate, adDBTime, adDBTimeStamp,adFileTime
+							sSQL = sSQL & "CDate('" & DBA_FormatDateTime(rec(fld.Name).Value) & "')"
+						Case Else
+							sSQL = sSQL & rec(fld.Name)
+					End Select
+					sSQL = sSQL & Separator
+				end if
+			Next
 	%>
 		<a href="recedit.asp?action=edit&amp;pk=<%=Server.URLEncode(PrimaryKeys)%>&amp;key=<%=Server.URLEncode(sSQL)%>&amp;table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=page%>&amp;pagesize=<%=pagesize%>"><img src="images/edit.gif" alt="<%=langEditRecord%>" border="0" WIDTH="16" HEIGHT="16"></a>
 		<a href="javascript:deleteRecord('<%=Server.URLEncode(Replace(PrimaryKeys, "'", "\'"))%>','<%=Server.URLEncode(Replace(sSQL, "'", "\'"))%>')"><img src="images/delete.gif" alt="<%=langDeleteRecord%>" border="0" WIDTH="16" HEIGHT="16"></a>
-	<%end if%>
+	<%	end if%>
 	</td>
-	<%for each fld in rec.Fields%>
+	<%	for each fld in rec.Fields%>
 		<td valign="top" align="center" class="DataTD">
 		<%if fld.Type <> adBinary then%>
-			<%if Len(fld.Value) > 0 then
-				Response.Write Server.HTMLEncode(fld.Value)
+			<%	if Len(fld.Value) > 0 then
+					Response.Write Server.HTMLEncode(fld.Value)
+				else
+					Response.Write "&nbsp;"
+				end if
 			else
-				Response.Write "&nbsp;"
-			end if
-		else
-			Response.Write "&lt;" & langBinaryData & "&gt;"
-		end if%>
+				Response.Write "&lt;" & langBinaryData & "&gt;"
+			end if%>
 		</td>
-	<%next%>
+	<%	next%>
 </tr>
-<%	rec.MoveNext
-	i = i + 1 
-loop%>
+<%		rec.MoveNext
+		i = i + 1 
+		loop
+	end if%>
 
 </table>		
 

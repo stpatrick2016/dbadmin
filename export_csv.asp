@@ -80,7 +80,7 @@ if Request.Form("action") = "export" then
 %>
 <p align="center"><%=langPleaseDefineExp%></p>
 <form action="export_csv.asp" method="POST">
-	<input type="hidden" name="sql" value="<%=Request.QueryString("sql")%>">
+	<input type="hidden" name="sql" value="<%=Replace(Request.QueryString("sql").Item, """", "&quot;")%>">
 	<input type="hidden" name="action" value="export">
 	<table align="center" cellspacing="1" cellpadding="1">
 		<tr>

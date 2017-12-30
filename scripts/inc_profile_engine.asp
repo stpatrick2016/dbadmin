@@ -42,8 +42,9 @@ Class StpPrivateProfile
 		Save = False
 		if Len(XMLFilePath_) = 0 then Exit Function
 		
+		On Error Resume Next
 		xmlDoc_.save(XMLFilePath_)
-		Save = True
+		If Err then Save = False Else Save = True
 	End Function
 	
 	'########################################

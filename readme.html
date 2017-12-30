@@ -16,15 +16,56 @@
 <body text=black vLink=blue link=blue bgColor=white 
 MS_POSITIONING="FlowLayout">
 <H1>StP Database Administrator for MS Access 
-version&nbsp;2.0 Readme</H1>
-<H3>Overview</H3>
+version&nbsp;2.0.2 Readme</H1>
+<H3>Table of contents</H3>
+<ul>
+  <li><a href="#Overview">Overview</a> 
+  <li><a href="#Features">Features</a>
+  <li><a href="#Requirements">Requirements</a> 
+  <li><a href="#new">What's new</a>  
+  <li><a href="#Installation">Installation</a> 
+  <li><a href="#Upgrade">Upgrade from previous version</a>    
+  <li><a href="#FAQ">Frequently Asked Questions</a> (FAQ) 
+  <li><a href="#Licensing">Licensing and pricing</a>    
+  <li><a href="#Contact">Contact information</a></li></ul>
+<h3><a name="Overview"></a>Overview</h3>
 <P>StP Database Administrator (DBAdmin below)&nbsp;is a 
 tool that allows you to manage your MS Access databases through your browser, 
 providing various set of functions you can perform with your databases, without 
 having downloading them, changing and uploading again. Most of features needed 
 for database management are included, you can even create a new blank databases 
 on-line.</P>
-<H3>Requirements</H3>
+<h3><a name="Features"></a>Features:</h3>
+<ul>
+  <li>View tables in your database 
+  <li>Creating/modifying/deleting tables, data in tables, 
+  stored procedures, views and relations (foreign keys)&nbsp;between tables 
+  <li>Cycling through records in table, modifying/adding 
+  data if needed. 
+  <li>Editing extended properties of fields(columns) in 
+  table, like description, default value, etc. 
+  <li>Generates SQL statement for each table with syntax 
+  highlighting. 
+  <li>Creating/modifying/deleting indexes 
+  <li>Executing views and stored procedures
+  <li>Provides human-readable description of each relation 
+  between tables
+  <li>Free-Type Query allows&nbsp;running your own SQL queries (single or 
+  multiple, separated with semicolon).
+  <li>When executing multiple queries at once you have an option to rollback 
+  (using transactions)&nbsp;if one of them fails, or continue regardless any 
+  errors.
+  <li>Compact and repair database
+  <li>Creating back up copy of your database and restoring from backup
+  <li>Exporting your database structure in form of SQL statements.
+  <li>Setting/changing/removing database password.
+  <li>Saves database paths for quick access later (doesn't save database 
+  passwords though).
+  <li>XML and Excel (text-delimited) data export.
+  <li>Browsing for your database, so you do not need to type the path by 
+yourself
+  <li>Checking for a new version in one click.</li></ul>
+<H3><a name="Requirements"></a>Requirements</H3>
 <ul>
   <LI>ASP enabled web server (such as IIS or PWS) - 
   <strong><em>required</em></strong>           
@@ -37,18 +78,22 @@ on-line.</P>
           
   <LI>Write permissions on the web server - 
   <strong><em>optional</em></strong>
-  <li>MSXML parser installed on server - 
+  <li>MSXML parser version 3.x or higher&nbsp;installed on the server - 
 <strong><em>optional</em></strong></li></ul>
-<h3>What's new</h3>
-<p>Several new features were added, as well as the whole 
-tool was re-designed and changed its look. Those new features include:</p>
+<h3><a name="new"></a>What's new in 
+version 2.0.2</h3>
+<p> 
+Only bugs fixes included in this release. Here is the list:</p>
 <ul>
-  <li>Allows editing Views and Stored Procedures 
-  <li>Free-Type Query can execute several SQL statements 
-  (separated by&nbsp;semicolon ";")&nbsp;at once.
-  <li>... and more</li></ul>
+  <li>Bug fix - Javascript error on Settings page. 
+  <li>Bug fix - Application hangs when trying to view data of a table with no 
+  columns 
+  <li>Bug fix - Not able to open a database if folder has no write permissions. 
+  <li>Bug fix - Unable to edit text fields with double quote (") in the data. 
+  <li>Bug fix&nbsp;- Database can be removed from the saved list only when 
+  another one is opened </li></ul>
 <p>For the full versions history,&nbsp;see <A href="history.htm" >History.htm</A> file.</p>
-<H3>Installation</H3>
+<H3><a name="Installation"></a>Installation</H3>
 <P>Below are steps that you should perform to successfully 
 install DBAdmin.</P>
 <ol>
@@ -76,12 +121,17 @@ install DBAdmin.</P>
   subfolders into it. 
   <li> Configuration is done. Open your browser and 
   navigate to DBAdmin main page ("default.asp").</li></ol>
-<H3>Upgrade from previous version</H3>
+<H3><a name="Upgrade"></a> Upgrade from&nbsp;version 1.x</H3>
 <P> You should remove any previous version installed on 
 your server and upload the new one as is (after changes described in Installation 
 section).</P>
-<H3><A name=faq></A>FAQ</H3>
-<UL>
+<h3>Upgrade from version 2.x</h3>
+<p>Just upload all files to your server, but <strong>keep</strong> your 
+<strong>configuration</strong> file (scripts/inc_config.asp), to save your current 
+settings.</p>
+<H3><A name=faq></A><a 
+name="FAQ"></a>FAQ</H3>
+<ul>
   <LI><A name=a1_a2></A><A name=a3></A><font color=red 
   ><b>Cannot create a blank 
   database</b></font><br>Make sure you that the folder in 
@@ -112,13 +162,36 @@ section).</P>
   <LI><A name=a5></A><FONT color=red><STRONG 
   >I can't see Views created with Database Administrator in 
   MS Access.</STRONG></FONT><BR>
-				MS Access doesn't support Views, only Stored Procedures (named Queries in MS 
-				Access) can be created and changed. Stp Database Administrator, which uses ADO, 
-				&nbsp;has full support for both Stored Procedures and Views. But if you want to 
-				be able to see your Views in MS Access later, always create them as Stored 
-				Procedures.
-				<BR></LI></UL>
-		<H3>Contact information</H3>
+				MS Access doesn't support Views, only Stored Procedures 
+  (named Queries in MS Access) can be created and changed. Stp Database 
+  Administrator, which uses ADO, &nbsp;has full support for both Stored 
+  Procedures and Views. But if you want to be able to see your Views in MS 
+  Access later, always create them as Stored Procedures. <br>
+  <li><font color="red"><strong>I got error saying: "Cannot update. Database or 
+  Object is read-only".</strong></font><br>This error usually says that the 
+  folder where you put your database has no write permissions. If you got this 
+  error on your server, you should contact your hosting provider and ask which 
+  folder is designed for MS Access databases and place all your databases there 
+  (as well as DBAdmin configuration file). If the error occurs on your home 
+  computer, you&nbsp;should edit permissions of the folder and add 
+  IUSR_<em>ComputerName</em> (or Internet Guest Account) with write 
+  permissions.<br>
+  <li><strong><font color="red">How to adjust permissions of the 
+  folder?<br></font></strong>Follow the link to Microsoft's Knowledge Base: <a 
+  title="How to change folder permissions on Windows XP" 
+  href="http://support.microsoft.com/default.aspx?scid=kb;en-us;308418" 
+  target="_blank">http://support.microsoft.com/default.aspx?scid=kb;en-us;308418</a> 
+   (applies also&nbsp;to Windows 2000/NT).<br></li></ul>
+<h3><a name="Licensing"></a>Licensing and pricing</h3>
+<p>DBAdmin is a free tool for any web-master for personal 
+use only. Commercial use requires you to buy it. E.g. if you have an e-commerce 
+web site, or you are selling from your site and DBAdmin in any way helps you 
+(customers info stored in database, products, etc.), then you are a commercial 
+user. Commercial license is given per site (or domain if not points to same 
+site), regardless how many users are using it, or how many databases you have. 
+For latest prices, please visit <a href="http://www.stpworks.com/redir.asp?linkid=2" target=_blank>DBAdmin home page</a>. There are several options available but&nbsp;you can contact 
+me if you need a&nbsp;special offer.</p>
+		<H3><a name="Contact"></a>Contact information</H3>
 		<P>If you have any problems, questions, suggestions, feel free to either post in 
 			the <A href="http://www.stpworks.com/redir.asp?linkid=4" title="StpWorks.com Forum" target="_blank">
 				StpWorks.com forum</A> or write directly to my e-mail: <A href="mailto:stpatrick@mail.com?subject=StpDatabase Administrator question">

@@ -34,6 +34,7 @@ function removeDBPath(){
 </head>
 <body>
 <%
+	On Error Resume Next
 	dim dba, action, arrDatabases, i, path, filesize
 	action = CStr(Request("action").Item)
 	set dba = new DBAdmin
@@ -54,6 +55,8 @@ function removeDBPath(){
 
 <!--DATABASE OPTIONS-->
 <%
+if action = "remove_path" then call DBA_RemoveDatabase(Request.QueryString("path").Item)
+
 if Len(Session(DBA_cfgSessionDBPathName)) > 0 then
 	call DBA_BeginNewTable(langDatabaseOptions, "", "75%")
 	
@@ -79,8 +82,6 @@ if Len(Session(DBA_cfgSessionDBPathName)) > 0 then
 			else
 				DBA_WriteError langPasswordsMismatch
 			end if
-		Case "remove_path"
-			call DBA_RemoveDatabase(Request.QueryString("path").Item)
 	End Select
 	
 	if Request.QueryString("action").Count > 0 and dba.HasError then DBA_WriteError dba.LastError

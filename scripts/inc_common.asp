@@ -12,7 +12,7 @@
 '********************************************************
 
 	'DBAdmin Version
-	Const DBA_VERSION = "2.0"
+	Const DBA_VERSION = "2.0.2"
 
 	'Name of administrator	
 	Const DBA_cfgAdminUsername = "admin"

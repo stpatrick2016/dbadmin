@@ -69,7 +69,7 @@
 			<option value="25">25</option>
 			<option value="50">50</option>
 		</select>
-		<input type="hidden" name="query" value="<%=Replace(strQuery, """", "\""")%>">
+		<input type="hidden" name="query" value="<%=Replace(strQuery, """", "&quot;")%>">
 		<input type="submit" value="<%=langSubmit%>" class="button">
 	</form>
 	</td></tr>

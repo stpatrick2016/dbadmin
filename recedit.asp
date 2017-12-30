@@ -245,11 +245,11 @@ function onDelete(){
 		</font></td>
 		<td style="border: 1px solid #c6d9ce" valign="top">
 			<%if fld.Type = 203 or fld.Type = 201 then%>
-			<TEXTAREA name="<%=fld.Name%>" rows=4 cols=40><%if bIsEdit then Response.Write fld.Value%></textarea>
+			<TEXTAREA name="<%=fld.Name%>" rows=4 cols=40><%if bIsEdit then Response.Write Server.HTMLEncode(CStr(fld.Value))%></textarea>
 			<%elseif fld.Properties("ISAUTOINCREMENT") then%>
 			AutoNumber (<%=fld.Value%>)
 			<%else%>
-			<INPUT type=text name="<%=fld.Name%>" value="<%if bIsEdit then Response.Write fld.Value%>">
+			<INPUT type=text name="<%=fld.Name%>" value="<%if bIsEdit then Response.Write Replace(CStr(fld.Value), """", "&quot;")%>">
 			<%end if%>
 		</td>
 	</tr>
