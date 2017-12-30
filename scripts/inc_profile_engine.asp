@@ -14,8 +14,13 @@ Class StpPrivateProfile
 		Load = False
 		if Len(FilePath) = 0 then Exit Function
 		
+		On Error Resume Next
 		XMLFilePath_ = Server.MapPath(FilePath)
 		xmlDoc_.load(XMLFilePath_)
+		If Err Then 
+			LastError = Err.Description
+			Exit Function
+		End If
 		if xmlDoc_.parseError.errorCode <> 0 then 
 			'check if the file exists before creating a new one
 			dim fso, xml
@@ -185,6 +190,21 @@ Class StpPrivateProfile
 			GetCookie = CStr(Session(key))
 		end if
 	End Function 
+	
+	'########################################
+	'# Returns True is a given component is available
+	Public Function ComponentAvailable(Component)
+		Dim ProgID, Obj
+		Select Case ucase(Component)
+			Case "ADOX"		ProgID = "ADOX.Catalog"
+			Case "ADO"		ProgID = "ADODB.Connection"
+			Case "XML3"		ProgID = "MSXML.DOMDocument"
+			Case "XML4"		ProgID = "MSXML.DOMDocument.4"
+			Case Else		ProgID = Component
+		End Select
+		Set Obj = Server.CreateObject(ProgID)
+		If IsEmpty(Obj) or Obj Is Nothing Then ComponentAvailable = False Else ComponentAvailable = True
+	End Function
 
 '***** Private members **************'
 	Private XMLFilePath_
@@ -196,8 +216,19 @@ Class StpPrivateProfile
 		Username_ = ""
 		LastError = ""
 		
-		set xmlDoc_ = Server.CreateObject("Msxml2.DOMDocument")
-		xmlDoc_.async = False
+		On Error Resume Next
+		'lets see if user has set it to his own progID
+		If IsEmpty(DBA_cfgMSXMLProgID) Or Len(DBA_cfgMSXMLProgID) = 0 Then
+			'first try to create MSXML4
+			set xmlDoc_ = Server.CreateObject("Msxml2.DOMDocument.4")
+			'if not available then try to create version 3
+			if xmlDoc_ is Nothing then set xmlDoc_ = Server.CreateObject("Msxml2.DOMDocument")
+			'if not available again - well generic form, last chance
+			if xmlDoc_ is Nothing then set xmlDoc_ = Server.CreateObject("Microsoft.XMLDOM")
+		Else
+			Set xmlDoc_ = Server.CreateObject(DBA_cfgMSXMLProgID)
+		End If
+		if not xmlDoc_ is Nothing then xmlDoc_.async = False
 	End Sub
 
 	Private Sub Class_Terminate
@@ -205,6 +236,8 @@ Class StpPrivateProfile
 	End Sub
 	
 	Private Function IsInitialized
+		On Error Resume Next
+		If TypeName(xmlDoc_) = "Nothing" Then IsInitialized = False
 		if Len(XMLFilePath_) > 0 and xmlDoc_.parseError.errorCode = 0 then IsInitialized = True else IsInitialized = False
 	End Function
 	

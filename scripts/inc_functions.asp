@@ -1,3 +1,7 @@
+<%
+	Dim F_LastTableID : F_LastTableID = 0
+%>
+
 <%'#writes out navigation controls
 Sub DBA_WriteNavigation
 	if Len(Session(DBA_cfgSessionPwdName)) = 0 then
@@ -18,13 +22,13 @@ Sub DBA_WriteNavigation
 <a name="top"></a>
 <table border="0" cellpadding="0" cellspacing="0" width="636" align="center" style="margin-bottom: 20px">
 	<tr>
-		<td align="left" width="106"><a href="default.asp" target="" onmouseout="window.status=window.defaultStatus;return true" onmousemove="window.status='Home';return true"><img alt="Home" border="0" src="images/btn_home.gif" width="106" height="27"></a></td>
-		<td align="left" width="106"><a href="database.asp" target="" onmouseout="window.status=window.defaultStatus;return true" onmousemove="window.status='Databases';return true"><img alt="Databases" border="0" src="images/btn_databases.gif" width="106" height="27"></a></td>
-		<td align="left" width="106"><a href="tablelist.asp" target="" onmouseout="window.status=window.defaultStatus;return true" onmousemove="window.status='Tables';return true"><img alt="Tables" border="0" src="images/btn_tables.gif" width="106" height="27"></a></td>
-		<td align="left" width="106"><a href="qlist.asp" target="" onmouseout="window.status=window.defaultStatus;return true" onmousemove="window.status='Procedures';return true"><img alt="Procedures" border="0" src="images/btn_procedures.gif" width="106" height="27"></a></td>
-		<td align="left" width="106"><a href="vlist.asp" target="" onmouseout="window.status=window.defaultStatus;return true" onmousemove="window.status='Views';return true"><img alt="Views" border="0" src="images/btn_views.gif" width="106" height="27"></a></td>
-		<td align="left" width="106"><a href="relations.asp" target="" onmouseout="window.status=window.defaultStatus;return true" onmousemove="window.status='Relations';return true"><img alt="Relations" border="0" src="images/btn_relations.gif" width="106" height="27"></a></td>
-		<td align="left" width="106"><a href="ftquery.asp" target="" onmouseout="window.status=window.defaultStatus;return true" onmousemove="window.status='Free-Type Query';return true"><img alt="Free-Type Query" border="0" src="images/btn_ftquery.gif" width="106" height="27"></a></td>
+		<td align="left" width="106"><a href="default.asp" target="" onmouseout="window.status=window.defaultStatus;return true" onmousemove="window.status='<%=langCaptionHome%>';return true"><img alt="<%=langCaptionHome%>" border="0" src="images/btn_home.gif" width="106" height="27"></a></td>
+		<td align="left" width="106"><a href="database.asp" target="" onmouseout="window.status=window.defaultStatus;return true" onmousemove="window.status='<%=langCaptionDatabase%>';return true"><img alt="<%=langCaptionDatabase%>" border="0" src="images/btn_databases.gif" width="106" height="27"></a></td>
+		<td align="left" width="106"><a href="tablelist.asp" target="" onmouseout="window.status=window.defaultStatus;return true" onmousemove="window.status='<%=langCaptionTablesList%>';return true"><img alt="<%=langCaptionTablesList%>" border="0" src="images/btn_tables.gif" width="106" height="27"></a></td>
+		<td align="left" width="106"><a href="qlist.asp" target="" onmouseout="window.status=window.defaultStatus;return true" onmousemove="window.status='<%=langStoredProceduresList%>';return true"><img alt="<%=langStoredProceduresList%>" border="0" src="images/btn_procedures.gif" width="106" height="27"></a></td>
+		<td align="left" width="106"><a href="vlist.asp" target="" onmouseout="window.status=window.defaultStatus;return true" onmousemove="window.status='<%=langCaptionViews%>';return true"><img alt="<%=langCaptionViews%>" border="0" src="images/btn_views.gif" width="106" height="27"></a></td>
+		<td align="left" width="106"><a href="relations.asp" target="" onmouseout="window.status=window.defaultStatus;return true" onmousemove="window.status='<%=langRelations%>';return true"><img alt="<%=langRelations%>" border="0" src="images/btn_relations.gif" width="106" height="27"></a></td>
+		<td align="left" width="106"><a href="ftquery.asp" target="" onmouseout="window.status=window.defaultStatus;return true" onmousemove="window.status='<%=langCaptionFreeTypeQuery%>';return true"><img alt="<%=langCaptionFreeTypeQuery%>" border="0" src="images/btn_ftquery.gif" width="106" height="27"></a></td>
     </tr>
 </table>
 <table align="center" border="0">
@@ -40,10 +44,17 @@ End Sub
 <%'#begins a table with new layout
 Sub DBA_BeginNewTable(Title, Details, Width, HelpID)
 	dim TableID, imgID, strID
-	strID = DBA_GenerateID(Title)
+	F_LastTableID = F_LastTableID + 1
+	strID = F_LastTableID
 	TableID = "td_" & strID
 	imgID = "img_" & strID	
 %>
+<script language="javascript" type="text/javascript">
+//update language strings
+var langHide = "<%=langHide%>";
+var langShow = "<%=langShow%>";
+</script>
+
 <table align=center width="<%=Width%>" cellpadding=0 cellspacing=0 class="newtable">
 	<tr>
 		<td background="images/table_title_left.gif" class="title" width="150" colspan="1"><nobr><%=Title%></nobr></td>
@@ -56,7 +67,7 @@ Sub DBA_BeginNewTable(Title, Details, Width, HelpID)
 			<table align="center" width="100%" border="0">
 				<tr>
 					<td valign="top"><%=Details%></td>
-					<td valign="top" align="right"><a href="javascript:newTableToggle('<%=TableID%>', '<%=imgID%>');" onclick="newTableToggle('<%=TableID%>', '<%=imgID%>'); return false;"><img src="images/icon_hide.gif" border="0" width="16" height="16" alt="Hide" id="<%=imgID%>"></a></td>
+					<td valign="top" align="right"><a href="javascript:newTableToggle('<%=TableID%>', '<%=imgID%>');" onclick="newTableToggle('<%=TableID%>', '<%=imgID%>'); return false;"><img src="images/icon_hide.gif" border="0" width="16" height="16" alt="<%=langHide%>" id="<%=imgID%>"></a></td>
 				</tr>
 			</table>
 			
@@ -99,7 +110,7 @@ End Sub
 '#################################################################################
 '# writes out a success message (green)
 Sub DBA_WriteSuccess(s)
-	Response.Write "<p align=""center""><font color=green>" & s & "</font></p>"
+	Response.Write "<p align=""center""><font color=""green"">" & s & "</font></p>"
 End Sub
 
 '#################################################################################
@@ -107,23 +118,6 @@ End Sub
 Function DBA_FormatDateTime(v)
 	v = CDate(v)
 	DBA_FormatDateTime = Year(v) & "-" & Month(v) & "-" & Day(v) & " " & Hour(v) & ":" & Minute(v) & ":" & Second(v)
-End Function
-
-'#################################################################################
-'# generates ID for given string
-Function DBA_GenerateID(v)
-	if Len(v) > 0 then
-		dim re
-		set re = new RegExp
-		re.IgnoreCase = True
-		re.Global = True
-		re.Pattern = "\W"
-		DBA_GenerateID = re.Replace(v, "")
-		set re = Nothing
-	else
-		Randomize
-		DBA_GenerateID = "AutoID_" & Int(Rnd() * 10000)
-	end if
 End Function
 
 

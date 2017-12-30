@@ -36,6 +36,8 @@ Cancel=Cancel
 TablesList=Tables
 Back=Back
 Top = Top
+Show = Show
+Hide = Hide
 
 #data.asp
 DataForTable=&nbsp;:&nbsp;Data
@@ -52,6 +54,7 @@ BinaryData=Binary data
 SureToDeleteRecord=Are you sure you want to delete record with Primary Key(s)
 PageSize=Page size:
 Filter=Filter:
+CaptionData = Table Data
 
 #database.asp
 DatabaseSelection=Database Select
@@ -96,6 +99,8 @@ SelectExistingDatabase = Select existing database
 ChangeLocaleID = Change Locale
 ChangeLocaleIDAlt = Allows changing a language of the database
 NewLocaleID = New locale (language):
+BrowseButton = Browse
+CaptionDatabase = Database
 
 #default.asp
 Welcome=Welcome
@@ -105,6 +110,7 @@ WelcomeNote2=To start working with your databases, type your administrator passw
 EnterPassword=Password:
 Version=Version
 SubmitBug=Submit a bug
+CaptionHome = Home
 
 #export_db.asp
 DatabaseExport=Database Export
@@ -125,6 +131,7 @@ Other=Other
 ColumnDelimiter=Column Delimiter
 TextQualifier=Text qualifier
 NoFieldNames=No field names
+CaptionExportCSV = Excel Export
 
 #ftquery.asp
 FreeTypeQuery=Free-Type Query : Script
@@ -136,6 +143,7 @@ UseTransaction=Run in one transaction
 IgnoreErrors=Ignore errors
 FTQResults=Free-Type Query : Results
 RecordsAffected=Records affected:
+CaptionFreeTypeQuery = Free-Type Query
 
 #import_db.asp, new in version 2.1
 ImportDatabaseWelcome=Welcome to database import Wizard! The Wizard will allow you to import tables, views and stored procedures from another Access database. To begin please specify the external database, where you want to import from
@@ -146,6 +154,7 @@ ImportSuccess=All selected tables, views and stored procedures were imported suc
 IncludeData=Including data
 PathToExternalDatabase = Path to external database
 ExternalDBPassword = External database password
+CaptionImportDB = Database Import
 
 #qlist.asp
 EnterQParams=Please enter the parameters of procedure divided by commas. Remember to enclose text parameters in single quotation marks.
@@ -174,6 +183,7 @@ Add=Add
 RecordUpdated=Record added/updated successfully
 First=First
 Last=Last
+CaptionRecEdit = Record Edit
 
 #relations.asp
 RelationsNote=Each of relationships described also in more readable form.
@@ -242,6 +252,7 @@ AreYouSureToDelete=Are you sure you want to delete column $name and all indexes 
 AllowZeroLength=Allow zero-length
 UnicodeCompress=Compress Unicode
 Indexed=Indexed
+CaptionTableStructure = Table Structure
 
 #tablelist.asp
 TableName=Table name
@@ -254,6 +265,7 @@ SureToDeleteTable=Are you sure you want to delete table $table_name?
 CreateNewTable=Create new table
 NewTableName=New table name:&nbsp;
 TableNavigateAlt=Cycle through records in table
+CaptionTablesList = Tables List
 
 #vlist.asp
 RunViewAlt=Run view
@@ -263,3 +275,4 @@ ViewName=View name:
 SureToDeleteView=Are you sure you want to delete view $name?
 UpdateView=Update view
 EditView=Edit View
+CaptionViews = Views

@@ -5,7 +5,7 @@
 <meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5">
 <meta name="GENERATOR" content="Microsoft Visual Studio 6.0">
 <link href="default.css" rel="stylesheet" type="text/css">
-<title>DBA:Free-Type Query</title>
+<title>DBA:<%=langCaptionFreeTypeQuery%></title>
 <script type="text/javascript" language="javascript" src="scripts/common.js" defer></script>
 </head>
 <body>

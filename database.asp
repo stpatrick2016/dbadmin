@@ -5,7 +5,7 @@
 <meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5">
 <meta NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
 <link href="default.css" rel="stylesheet" type="text/css">
-<title>DBA:Database</title>
+<title>DBA:<%=langCaptionDatabase%></title>
 <script type="text/javascript" language="javascript" src="scripts/common.js" defer></script>
 <script LANGUAGE="javascript" type="text/javascript">
 <!--
@@ -84,8 +84,8 @@ if Len(Session(DBA_cfgSessionDBPathName)) > 0 then
 			end if
 		Case "set_lcid"
 				call dba.CompactDatabase(False, null, Request.Form("lcid").Item)
-				if dba.HasError Then call DBA_WriteError(dba.LastError)
 	End Select
+	if dba.HasError Then call DBA_WriteError(dba.LastError)
 	
 	if Request.QueryString("action").Count > 0 and dba.HasError then DBA_WriteError dba.LastError
 	filesize = dba.Size
@@ -167,7 +167,7 @@ end if
 		<td><%=langDatabasePath%></td>
 		<td>
 			<input type="text" name="path" id="iPath">&nbsp;
-			<input type="button" value="Browse" class="button" onclick="javascript:browseDB();">
+			<input type="button" value="<%=langBrowseButton%>" class="button" onclick="javascript:browseDB();">
 		</td>
 	</tr>
 	<tr>

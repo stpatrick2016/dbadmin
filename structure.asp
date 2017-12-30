@@ -6,7 +6,7 @@
 <meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5">
 <meta NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
 <link href="default.css" rel="stylesheet">
-<title>DBA:Table Structure</title>
+<title>DBA:<%=langCaptionTableStructure%></title>
 <script type="text/javascript" language="javascript" src="scripts/common.js" defer></script>
 <script language="javascript" type="text/javascript">
 //<!--
@@ -29,10 +29,12 @@ function onFieldTypeChange(newType){
 <%	call DBA_WriteNavigation%>
 
 <%
-	On Error Resume Next
+	if not DBAE_DEBUG Then On Error Resume Next
 	dim dba, dic, strTable, item, action, sClass, sPrimaryIndexName, oTable
+	dim ADOXAvail
 	strTable = CStr(Request("table"))
 	action = CStr(Request("action"))
+	ADOXAvail = StpProfile.ComponentAvailable("ADOX")
 	set dba = new DBAdmin
 	dba.Connect Session(DBA_cfgSessionDBPathName), Session(DBA_cfgSessionDBPassword)
 	
@@ -261,7 +263,13 @@ function onFieldTypeChange(newType){
 			</tr>
 			<tr>
 				<td><%=langName%></td>
-				<td><input type="text" name="fname" value="<%=fld.Name%>"></td>
+				<td>
+<%		if ADOXAvail Then%>
+					<input type="text" name="fname" value="<%=fld.Name%>">
+<%		Else%>
+					<input type="hidden" name="fname" value="<%=fld.Name%>"><%=fld.Name%>
+<%		End If%>
+				</td>
 			</tr>
 			<tr>
 				<td><%=langDataType%></td>
@@ -295,6 +303,7 @@ function onFieldTypeChange(newType){
 				<td><%=langDefaultValue2%></td>
 				<td><input type="text" name="default" size="20" value="<%=fld.DefaultValue%>"></td>
 			</tr>
+<%		if ADOXAvail Then%>
 			<tr>
 				<td><%=langDescription%></td>
 				<td><input type="text" name="description" value="<%=fld.Description%>"></td>
@@ -307,6 +316,7 @@ function onFieldTypeChange(newType){
 				<td><%=langUnicodeCompress%></td>
 				<td><%=strCompress%></td>
 			</tr>
+<%		End If%>
 <%		if isNewField then%>
 			<tr>
 				<td><%=langIndexed%></td>

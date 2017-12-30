@@ -42,7 +42,6 @@ Function HighlightSQL(sSQL)
 	HighlightSQL = sSQL
 End Function
 
-
 '/////////////////////////////////////////////////////////
 '// Classes
 Class DBAdmin
@@ -54,7 +53,7 @@ Class DBAdmin
 		Set Relations_	= Server.CreateObject("Scripting.Dictionary")
 		Set Procedures_	= Server.CreateObject("Scripting.Dictionary")
 		
-		EngineVersion_	= "1.1"
+		EngineVersion_	= "1.2"
 		
 		call Reset
 	End Sub
@@ -149,22 +148,40 @@ Class DBAdmin
 			Tables_.RemoveAll
 			if not DBAE_DEBUG then On Error Resume Next
 			set xCat = Server.CreateObject("ADOX.Catalog")
-			set xCat.ActiveConnection = JetConnection_
-			if IsError then Exit Property
-			for each xTable in xCat.Tables
-				if xTable.Type = "TABLE" then 
+			if xCat Is Nothing or IsEmpty(xCat) Then
+				'ADOX is not available, so we'll get tables list using schemas
+				set xCat = JetConnection_.OpenSchema(adSchemaTables, Array(Empty, Empty, Empty, "TABLE"))
+				Do While Not xCat.EOF
 					set tbl = new DBATable
-					with tbl
-						.Name = xTable.Name
-						.DateCreated = xTable.DateCreated
-						.DateModified = xTable.DateModified
-						.Description = ""
+					With tbl
+						.Name = xCat("TABLE_NAME").Value
+						.DateCreated = xCat("DATE_CREATED").Value
+						.DateModified = xCat("DATE_MODIFIED").Value
+						.Description = xCat("DESCRIPTION").Value
 						Set .Parent = Me
-					end with
+					End With
 					Set Tables_.Item(tbl.Name) = tbl
-				end if
-			next
-			
+					xCat.MoveNext
+				Loop
+				call xCat.Close()
+			Else
+				set xCat.ActiveConnection = JetConnection_
+				if IsError then Exit Property
+				for each xTable in xCat.Tables
+					if xTable.Type = "TABLE" then 
+						set tbl = new DBATable
+						with tbl
+							.Name = xTable.Name
+							.DateCreated = xTable.DateCreated
+							.DateModified = xTable.DateModified
+							.Description = ""
+							Set .Parent = Me
+						end with
+						Set Tables_.Item(tbl.Name) = tbl
+					end if
+				next
+				
+			End If
 			set xCat = nothing
 		end if
 		
@@ -180,20 +197,38 @@ Class DBAdmin
 			
 			if not DBAE_DEBUG then On Error Resume Next
 			set xCat = Server.CreateObject("ADOX.Catalog")
-			set xCat.ActiveConnection = JetConnection_
-			If IsError Then Exit Property
-			for each xProc in xCat.Procedures
-				set p = new DBAProcedure
-				with p
-					.Name = xProc.Name
-					.Body = xProc.Command.CommandText
-					.DateCreated = xProc.DateCreated
-					.DateModified = xProc.DateModified
-					.Description = ""
-					Set .Parent = Me
-				end with
-				Set Procedures_.Item(p.Name) = p
-			next
+			if IsEmpty(xCat) or xCat is Nothing Then
+				set xCat = JetConnection_.OpenSchema(adSchemaProcedures)
+				Do While Not xCat.EOF
+					set p = new DBAProcedure
+					With p
+						.Name = xCat("PROCEDURE_NAME").Value
+						.Body = xCat("PROCEDURE_DEFINITION").Value
+						.DateCreated = xCat("DATE_CREATED").Value
+						.DateModified = xCat("DATE_MODIFIED").Value
+						.Description = xCat("DESCRIPTION").Value
+						Set .Parent = Me
+					End With
+					Set Procedures_.Item(p.Name) = p
+					xCat.MoveNext
+				Loop
+				xCat.Close
+			Else
+				set xCat.ActiveConnection = JetConnection_
+				If IsError Then Exit Property
+				for each xProc in xCat.Procedures
+					set p = new DBAProcedure
+					with p
+						.Name = xProc.Name
+						.Body = xProc.Command.CommandText
+						.DateCreated = xProc.DateCreated
+						.DateModified = xProc.DateModified
+						.Description = ""
+						Set .Parent = Me
+					end with
+					Set Procedures_.Item(p.Name) = p
+				next
+			End If
 			
 			set xCat = nothing
 		end if
@@ -210,20 +245,38 @@ Class DBAdmin
 			
 			if not DBAE_DEBUG then On Error Resume Next
 			set xCat = Server.CreateObject("ADOX.Catalog")
-			set xCat.ActiveConnection = JetConnection_
-			If IsError Then Exit Property
-			for each xView in xCat.Views
-				set v = new DBAView
-				with v
-					.Name = xView.Name
-					.Body = xView.Command.CommandText
-					.DateCreated = xView.DateCreated
-					.DateModified = xView.DateModified
-					.Description = ""
-					Set .Parent = Me
-				end with
-				Set Views_.Item(v.Name) = v
-			next
+			if IsEmpty(xCat) or xCat Is Nothing Then
+				set xCat = JetConnection_.OpenSchema(adSchemaViews)
+				Do While Not xCat.EOF
+					set v = new DBAView
+					With v
+						.Name = xCat("TABLE_NAME").Value
+						.Body = xCat("VIEW_DEFINITION").Value
+						.DateCreated = xCat("DATE_CREATED").Value
+						.DateModified = xCat("DATE_MODIFIED").Value
+						.Description = xCat("DESCRIPTION").Value
+						Set .Parent = Me
+					End With
+					Set Views_.Item(v.Name) = v
+					xCat.MoveNext
+				Loop
+				xCat.Close
+			Else
+				set xCat.ActiveConnection = JetConnection_
+				If IsError Then Exit Property
+				for each xView in xCat.Views
+					set v = new DBAView
+					with v
+						.Name = xView.Name
+						.Body = xView.Command.CommandText
+						.DateCreated = xView.DateCreated
+						.DateModified = xView.DateModified
+						.Description = ""
+						Set .Parent = Me
+					end with
+					Set Views_.Item(v.Name) = v
+				next
+			End If
 			
 			set xCat = Nothing
 		end if
@@ -309,20 +362,20 @@ Class DBAdmin
 	Public Function CreateDatabase(Path)
 		dim catalog
 		
-		set catalog = Server.CreateObject("ADOX.Catalog")
-		if Right(Path, 4) <> ".mdb" then Path = Path & ".mdb"
-		
 		if not DBAE_DEBUG then On Error Resume Next
-		catalog.Create "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & Path
-		
-		set catalog = nothing
-		
-		if not IsError then 
-			Connect Path, ""
-			CreateDatabase = True
-		else
-			CreateDatabase = False
-		end if
+		set catalog = Server.CreateObject("ADOX.Catalog")
+		if IsEmpty(catalog) or catalog Is Nothing Then
+			LastError = "ADOX is not available. Database couldn't be created"
+		Else
+			if Right(Path, 4) <> ".mdb" then Path = Path & ".mdb"
+			
+			call catalog.Create("Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & Path)
+			
+			set catalog = nothing
+			
+			if not IsError then call Connect(Path, "")
+		End If
+		CreateDatabase = not HasError
 	End Function
 
 	'######################################################## 
@@ -376,17 +429,23 @@ Class DBAdmin
 		dim xCat, cmd
 		if not DBAE_DEBUG then On Error Resume Next
 		set xCat = Server.CreateObject("ADOX.Catalog")
-		set xCat.ActiveConnection = JetConnection_
-		set cmd = Server.CreateObject("ADODB.Command")
-		cmd.CommandText = Body
-		call xCat.Procedures.Append(Name, cmd)
-		
+		If IsEmpty(xCat) or xCat Is Nothing Then
+			Err.Clear
+			cmd = "CREATE PROCEDURE [" & Name & "] AS " & Body
+			call JetConnection_.Execute(cmd, adExecuteNoRecords)
+		Else
+			set xCat.ActiveConnection = JetConnection_
+			set cmd = Server.CreateObject("ADODB.Command")
+			cmd.CommandText = Body
+			call xCat.Procedures.Append(Name, cmd)
+			
+			set cmd = Nothing
+			set xCat = Nothing
+		End If
 		CreateProcedure = not IsError
 		if not HasError then
 			Procedures_.Item(".uninitialized") = null
 		end if
-		set cmd = Nothing
-		set xCat = Nothing
 	End Function
 
 	'######################################################## 
@@ -417,17 +476,23 @@ Class DBAdmin
 		dim xCat, cmd
 		if not DBAE_DEBUG then On Error Resume Next
 		set xCat = Server.CreateObject("ADOX.Catalog")
-		set xCat.ActiveConnection = JetConnection_
-		set cmd = Server.CreateObject("ADODB.Command")
-		cmd.CommandText = Body
-		call xCat.Views.Append(Name, cmd)
-		
+		If IsEmpty(xCat) or xCat Is Nothing Then
+			Err.Clear
+			cmd = "CREATE PROCEDURE [" & Name & "] AS " & Body
+			call JetConnection_.Execute(cmd, adExecuteNoRecords)
+		Else
+			set xCat.ActiveConnection = JetConnection_
+			set cmd = Server.CreateObject("ADODB.Command")
+			cmd.CommandText = Body
+			call xCat.Views.Append(Name, cmd)
+			
+			set cmd = Nothing
+			set xCat = Nothing
+		End If
 		CreateView = not IsError
 		if not HasError then
 			Views_.Item(".uninitialized") = null
 		end if
-		set cmd = Nothing
-		set xCat = Nothing
 	End Function
 
 	'######################################################## 
@@ -833,27 +898,40 @@ Class DBATable
 		if not IsInitialized then Exit Property
 		
 		if Fields_.Exists(".uninitialized") then
-			dim rec, f, xCat
+			dim rec, f, xCat, bNoADOX
 			Fields_.RemoveAll
 			
 			if not DBAE_DEBUG then On Error Resume Next
 			set rec = Parent_.JetConnection.OpenSchema(adSchemaColumns, Array(empty,empty, Name_))
 			set xCat = Server.CreateObject("ADOX.Catalog")
-			set xCat.ActiveConnection = Parent_.JetConnection
+			if (IsEmpty(xCat) or xCat Is Nothing) Then
+				Err.Clear
+				set xCat = Parent_.JetConnection.Execute(Name_)
+				bNoADOX = True
+			else
+				set xCat.ActiveConnection = Parent_.JetConnection
+				bNoADOX = False
+			End If
 			If Parent_.IsError then exit Property
 			do while not rec.EOF
 				set f = new DBAField
 				with f
 					.Name = rec("COLUMN_NAME").Value
-					.FieldType = xCat.Tables(Name_).Columns(.Name).Type'rec("DATA_TYPE").Value
+					if bNoADOX Then .FieldType = rec("DATA_TYPE").Value else .FieldType = xCat.Tables(Name_).Columns(.Name).Type
 					.MaxLength = rec("CHARACTER_MAXIMUM_LENGTH").Value
 					.DefaultValue = rec("COLUMN_DEFAULT").Value
 					.IsNullable = rec("IS_NULLABLE").Value
 					.Ordinal = rec("ORDINAL_POSITION").Value
 					.Description = rec("DESCRIPTION").Value
-					.IsAutonumber = xCat.Tables(Name_).Columns(.Name).Properties("Autoincrement").Value
-					.Compressed = xCat.Tables(Name_).Columns(.Name).Properties("Jet OLEDB:Compressed UNICODE Strings").Value
-					.AllowZeroLength = xCat.Tables(Name_).Columns(.Name).Properties("Jet OLEDB:Allow Zero Length").Value
+					if bNoADOX Then
+						.IsAutonumber = xCat(.Name).Properties("ISAUTOINCREMENT").Value
+						.Compressed = False
+						.AllowZeroLength = False
+					Else
+						.IsAutonumber = xCat.Tables(Name_).Columns(.Name).Properties("Autoincrement").Value
+						.Compressed = xCat.Tables(Name_).Columns(.Name).Properties("Jet OLEDB:Compressed UNICODE Strings").Value
+						.AllowZeroLength = xCat.Tables(Name_).Columns(.Name).Properties("Jet OLEDB:Allow Zero Length").Value
+					End If
 					Set .Parent = Me
 				end with
 				Set Fields_.Item(f.Name) = f
@@ -861,6 +939,7 @@ Class DBATable
 				rec.MoveNext
 			loop
 			rec.Close
+			if bNoADOX Then xCat.Close
 			set rec = nothing
 			set xCat = Nothing
 		end if
@@ -965,27 +1044,34 @@ Class DBATable
 		CreateField = False
 		if not DBAE_DEBUG then On Error Resume Next
 		
-		dim xCat, fld, isUnique
+		dim xCat, fld, isUnique, sSQL
 		set xCat = Server.CreateObject("ADOX.Catalog")
-		set xCat.ActiveConnection = Parent_.JetConnection
-		set fld = Server.CreateObject("ADOX.Column")
-		set fld.ParentCatalog = xCat
-		fld.Name = NewFld.Name
-		if NewFld.MaxLength > 0 then fld.DefinedSize = NewFld.MaxLength
-		fld.Type = NewFld.FieldType
-		fld.Properties("Nullable").Value = NewFld.IsNullable
-		if NewFld.IsAutonumber then fld.Properties("Autoincrement").Value = True
-		fld.Properties("Jet OLEDB:Compressed UNICODE Strings").Value = NewFld.Compressed
-		fld.Properties("Jet OLEDB:Allow Zero Length").Value = NewFld.AllowZeroLength
-		if not IsNull(NewFld.Description) then fld.Properties("Description").Value = NewFld.Description
-		
-		'Do not use Default property. It is not always working
-		'if not IsNull(NewFld.DefaultValue) then fld.Properties("Default").Value = NewFld.DefaultValue
-		
-		xCat.Tables(Name_).Columns.Append fld
-		CreateField = not Parent_.IsError
-		set fld = nothing
-		set xCat = nothing
+		If IsEmpty(xCat) or xCat Is Nothing Then
+			'ADOX is not available, then let's create the field with pure SQL
+			sSQL = "ALTER TABLE [" & Name_ & "] ADD COLUMN " & NewFld.SQL
+			call Parent_.JetConnection.Execute(sSQL, adExecuteNoRecords)
+		Else
+			'whoala! ADOX with us, easy work :)
+			set xCat.ActiveConnection = Parent_.JetConnection
+			set fld = Server.CreateObject("ADOX.Column")
+			set fld.ParentCatalog = xCat
+			fld.Name = NewFld.Name
+			if NewFld.MaxLength > 0 then fld.DefinedSize = NewFld.MaxLength
+			fld.Type = NewFld.FieldType
+			fld.Properties("Nullable").Value = NewFld.IsNullable
+			if NewFld.IsAutonumber then fld.Properties("Autoincrement").Value = True
+			fld.Properties("Jet OLEDB:Compressed UNICODE Strings").Value = NewFld.Compressed
+			fld.Properties("Jet OLEDB:Allow Zero Length").Value = NewFld.AllowZeroLength
+			if not IsNull(NewFld.Description) then fld.Properties("Description").Value = NewFld.Description
+			
+			'Do not use Default property. It is not always working
+			'if not IsNull(NewFld.DefaultValue) then fld.Properties("Default").Value = NewFld.DefaultValue
+			
+			xCat.Tables(Name_).Columns.Append fld
+			CreateField = not Parent_.IsError
+			set fld = nothing
+			set xCat = nothing
+		End If
 		
 		if not Parent_.HasError and not IsNull(NewFld.DefaultValue) then
 			call Parent_.JetConnection.Execute("ALTER TABLE [" & Name_ & "] ALTER COLUMN [" & NewFld.Name & "] SET DEFAULT " & NewFld.DefaultValue)
@@ -1178,21 +1264,38 @@ Class DBAView
 	Public Property Let Body(v)
 		if IsInitialized and Body_ <> v then
 			dim xCatalog, Command
-			set xCatalog = Server.CreateObject("ADOX.Catalog")
-			set Command = Server.CreateObject("ADODB.Command")
 			if not DBAE_DEBUG then On Error Resume Next
-			set xCatalog.ActiveConnection = Parent_.JetConnection
-			with Command
-				.ActiveConnection = Parent_.JetConnection
-				.CommandText = CStr(v)
-				.CommandType = adCmdText
-			end with
-			
-			set xCatalog.Views(Name_).Command = Command
-			if not Parent_.IsError then Body_ = CStr(v)
-			
-			set Command = Nothing
-			set xCatalog = Nothing
+			set xCatalog = Server.CreateObject("ADOX.Catalog")
+			If IsEmpty(xCatalog) or xCatalog Is Nothing Then
+				'when ADOX is not available. Just re-create the view
+				dim con, sSQL
+				sSQL = "DROP VIEW [" & Name_ & "]"
+				set con = Parent_.JetConnection
+				con.BeginTrans
+				call con.Execute(sSQL, adExecuteNoRecords)
+				call Parent_.IsError
+				Body_ = CStr(v)
+				con.Execute SQL, adExecuteNoRecords
+				if Parent_.IsError then
+					con.RollbackTrans
+				else
+					con.CommitTrans
+				end if
+			Else
+				set Command = Server.CreateObject("ADODB.Command")
+				set xCatalog.ActiveConnection = Parent_.JetConnection
+				with Command
+					.ActiveConnection = Parent_.JetConnection
+					.CommandText = CStr(v)
+					.CommandType = adCmdText
+				end with
+				
+				set xCatalog.Views(Name_).Command = Command
+				if not Parent_.IsError then Body_ = CStr(v)
+				
+				set Command = Nothing
+				set xCatalog = Nothing
+			End If
 		end if
 		Body_ = CStr(v)
 	End Property    
@@ -1306,21 +1409,38 @@ Class DBAProcedure
 	Public Property Let Body(v)
 		if IsInitialized and Body_ <> v then
 			dim xCatalog, Command
-			set xCatalog = Server.CreateObject("ADOX.Catalog")
-			set Command = Server.CreateObject("ADODB.Command")
 			if not DBAE_DEBUG then On Error Resume Next
-			set xCatalog.ActiveConnection = Parent_.JetConnection
-			with Command
-				.ActiveConnection = Parent_.JetConnection
-				.CommandText = CStr(v)
-				.CommandType = adCmdText
-			end with
-			
-			set xCatalog.Procedures(Name_).Command = Command
-			if not Parent_.IsError then Body_ = Command.CommandText
-			
-			set Command = Nothing
-			set xCatalog = Nothing
+			set xCatalog = Server.CreateObject("ADOX.Catalog")
+			If IsEmpty(xCatalog) or xCatalog Is Nothing Then
+				'when ADOX is not available. Just re-create the view
+				dim con, sSQL
+				sSQL = "DROP PROCEDURE [" & Name_ & "]"
+				set con = Parent_.JetConnection
+				con.BeginTrans
+				call con.Execute(sSQL, adExecuteNoRecords)
+				call Parent_.IsError
+				Body_ = CStr(v)
+				con.Execute SQL, adExecuteNoRecords
+				if Parent_.IsError then
+					con.RollbackTrans
+				else
+					con.CommitTrans
+				end if
+			Else
+				set Command = Server.CreateObject("ADODB.Command")
+				set xCatalog.ActiveConnection = Parent_.JetConnection
+				with Command
+					.ActiveConnection = Parent_.JetConnection
+					.CommandText = CStr(v)
+					.CommandType = adCmdText
+				end with
+				
+				set xCatalog.Procedures(Name_).Command = Command
+				if not Parent_.IsError then Body_ = Command.CommandText
+				
+				set Command = Nothing
+				set xCatalog = Nothing
+			End If
 		end if
 		Body_ = CStr(v)
 	End Property    
@@ -1427,9 +1547,14 @@ Class DBAField
 			'change the name of the column
 			dim xCat
 			set xCat = Server.CreateObject("ADOX.Catalog")
-			set xCat.ActiveConnection = Parent_.Parent.JetConnection
-			xCat.Tables(Parent_.Name).Columns(Name_).Name = CStr(v)
-			set xCat = Nothing
+			If IsEmpty(xCat) or xCat Is Nothing Then
+				Parent_.Parent.LastError = "ADOX is not available. Couldn't change column's name"
+				v = Name_
+			Else
+				set xCat.ActiveConnection = Parent_.Parent.JetConnection
+				xCat.Tables(Parent_.Name).Columns(Name_).Name = CStr(v)
+				set xCat = Nothing
+			End If
 		end if
 		Name_ = CStr(v)
 	End Property    
@@ -1666,18 +1791,20 @@ Class DBAField
 		if not Parent_.Parent.IsError then
 			'set other field properties
 			set xCat = Server.CreateObject("ADOX.Catalog")
-			set xCat.ActiveConnection = Parent_.Parent.JetConnection
-			set field = xCat.Tables(Parent_.Name).Columns(Name_)
-			with field
-				if sSQLType = "TEXT" or sSQLType = "MEMO" then
-					.Properties("Jet OLEDB:Allow Zero Length").Value = AllowZeroLength_
-				end if
-				if not IsNull(DefaultValue_) then .Properties("Default").Value = DefaultValue_
-				if not IsNull(Description_) then .Properties("Description").Value = Description_
-			end with
-			set field = Nothing
-			set xCat = Nothing
-			Parent_.Parent.IsError
+			if not IsEmpty(xCat) and not xCat Is Nothing Then
+				set xCat.ActiveConnection = Parent_.Parent.JetConnection
+				set field = xCat.Tables(Parent_.Name).Columns(Name_)
+				with field
+					if sSQLType = "TEXT" or sSQLType = "MEMO" then
+						.Properties("Jet OLEDB:Allow Zero Length").Value = AllowZeroLength_
+					end if
+					if not IsNull(DefaultValue_) then .Properties("Default").Value = DefaultValue_
+					if not IsNull(Description_) then .Properties("Description").Value = Description_
+				end with
+				set field = Nothing
+				set xCat = Nothing
+				Parent_.Parent.IsError
+			End If
 		end if
 		
 		UpdateBatch = not Parent_.Parent.HasError

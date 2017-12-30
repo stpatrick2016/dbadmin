@@ -5,7 +5,7 @@
 <meta name=vs_targetSchema content="http://schemas.microsoft.com/intellisense/ie5">
 <meta NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
 <link rel="stylesheet" href="default.css" type="text/css">
-<title>Browse for database</title>
+<title><%=langBrowse%></title>
 <script LANGUAGE="javascript">
 <!--
 function pickFile(s){

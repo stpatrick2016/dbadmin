@@ -16,7 +16,7 @@
 <body text=black vLink=blue link=blue bgColor=white 
 MS_POSITIONING="FlowLayout">
 <H1>StP Database Administrator for MS Access 
-version&nbsp;2.1 Readme</H1>
+version&nbsp;2.1.1 Readme</H1>
 <H3>Table of contents</H3>
 <ul>
   <li><a href="#Overview">Overview</a> 
@@ -82,44 +82,25 @@ yourself
   <li>MSXML parser version 3.x or higher&nbsp;installed on the server - 
 <strong><em>optional</em></strong></li></ul>
 <h3><a name="new"></a>What's new in 
-version 2.1</h3>
+version 2.1.1</h3>
 <p> 
-There are several bug fixes and new features added in 
-this release. Maybe one of most important features is Changing locale of your 
-database. Some of you may were affected by a bug when compacting a database may 
-reset&nbsp;its locale. If this is the case, you have now an option to change it 
-back. Note that the list of locale identifiers is not just languages, but a 
-group of languages. So if you don't see your language in the list, just pick 
-"General" and it will work fine.<br>Another feature that worth to mention is an 
-import from another database. Import works on Structure + Data, but not only 
-data. That means you are able to import tables (views, stored procedures, etc.) 
-with or without data, but not able to import data to existing tables. <br>And 
-yet another "big" change - multi-language support was re-designed. Now you can 
-choose your language from Settings page, without any ASP editing. The only 
-language that is included in this release is English. I have prepared also a 
-Russian language pack, which is available to download in downloads section on 
-the site. If you wish to make your own language pack and make it available to 
-other users, use English file as a template and send it to <a 
-href="mailto:stpatrick@mail.com">stpatrick@mail.com</a>.</p>
+This version includes all bug fixes that have been 
+discovered by users and myself.&nbsp;The "big change" was done with ADOX 
+library, which wasn't available on some hosts.&nbsp;In case when ADOX is not 
+available, pure SQL script and database schemas are used, though 
+some&nbsp;features will not be available, due to limitations of those 
+methods.<br>This version incorporates the MSXML4 bug fix (when only version 4 of 
+MSXML was installed on the server) as well as some more strings were added to 
+translation. If you will none of those bugs listed below are applied to you, you 
+can safely skip this version and stay with the previous one.</p>
 <p>Below is the full list of changes in DBAdmin:</p>
 <ul>
-  <li>New - Default page size (records per page) can be set now in Settings 
-  <li>New - Opens databases from DSN 
-  <li>New - Added feature for importing structure and data from another Access 
-  database 
-  <li>New - Jump filter added to the data view and Free-Type Query. You can now 
-  specify one-column filter and jump directly to a record matched your criteria 
-  <li>New - Interface's language can be choosen from Settings page 
-  <li>New - Allows changing&nbsp;Locale (Language)&nbsp;of the database. 
-  <li>Updated - Some more properties of database added 
-  <li>Updated - Improved support for multiple languages. 
-  <li>Bug fix - Editing records with multiple primary keys error 
-  <li>Bug fix - On some hosts there&nbsp;was impossible to set default value of 
-  the column 
-  <li>Bug fix - Compacting and repairing database could reset its locale 
-  language. 
-  <li>Bug fix - If not able to delete a table, was no error reported. 
-  <li>Some minor improvements in the code and usability</li></ul>
+  <li>Bug fix&nbsp;- DBAdmin works properly when ADOX is not available. Note, 
+  that not all the features are supported with pure SQL 
+  <li>Bug fix&nbsp;- MSXML version now choosen automatically, version 4 is 
+  preferred (checked first) 
+  <li>Bug fix&nbsp;- Error on hosts where MSXML object is unavailable 
+  <li>Bug fix - Some strings were left without translation available.</li></ul>
 <p>For the full versions history,&nbsp;see <A href="history.htm" >History.htm</A> file.</p>
 <H3><a name="Installation"></a>Installation</H3>
 <P>Below are steps that you should perform to successfully 
@@ -143,7 +124,7 @@ install DBAdmin.</P>
   color="green">DBA_cfgProfilePath</font>         
     in the same file,&nbsp;and set it to a virtual path to XML 
   file. Note that the folder where this&nbsp;file will reside MUST be 
-  created and has write access. 
+  created and have write access. 
   <li>Now save configuration file, create some directory on 
   your Web server (for example&nbsp;"dbadmin") and upload all files, including 
   subfolders into it. 
@@ -155,10 +136,14 @@ your server and upload the new one as is (after changes described in Installatio
 section).</P>
 <h3>Upgrade from version 2.x</h3>
 <p>Just upload all files to your server, but <strong>keep</strong> your 
-<strong>configuration</strong> file (scripts/inc_config.asp), to save 
-your current settings. You may notice that all saved paths to databases are gone. 
-Don't worry, you will have just re-create them, since the structure of profile's XML file has been changed 
-slightly.</p>
+<strong>configuration</strong> file (scripts/inc_config.asp), to 
+save your current settings. You may notice that all saved paths to databases are 
+gone. Don't worry, you will have just re-create them, since the structure of 
+profile's XML file has been changed slightly.<br>Starting from version 2.1.1, 
+DBAdmin allows you using different versions of&nbsp;MSXML components. By default 
+it will auto-detect the installed component, prefering MSXML 4, but you can explictly tell it which component to use, 
+by editing "scripts/inc_config.asp" file and adding a new constant named "DBA_cfgMSXMLProgID". Refer to "scripts/inc_config.asp" file included with this 
+installation.</p>
 <H3><A name=faq></A><a 
 name="FAQ"></a>FAQ</H3>
 <ul>
@@ -219,7 +204,7 @@ name="FAQ"></a>FAQ</H3>
   link:<br><a 
   href="http://support.microsoft.com/default.aspx?scid=kb;en-us;295375" title="Norton Antivirus and FileSystemObject" target=_blank>http://support.microsoft.com/default.aspx?scid=kb;en-us;295375</a> 
   .<br>
-  <li><strong><font color="red">After upgrading from version 2.x to version 2.1 I 
+  <li><strong><font color="red">After upgrading from version 2.0.x to version 2.1 I 
   don't see databases list in "Existing database"</font></strong><br>The 
   structure of XML configuration file has been changed slightly, you should use 
   Browse button to add your databases again to the 
@@ -233,6 +218,17 @@ user. Commercial license is given per site (or domain if not points to same
 site), regardless how many users are using it, or how many databases you have. 
 For latest prices, please visit <a href="http://www.stpworks.com/redir.asp?linkid=2" target=_blank>DBAdmin home page</a>. There are several options available but&nbsp;you can contact 
 me if you need a&nbsp;special offer.</p>
+<h3>Links</h3>
+<ul>
+  <li><a href="http://www.stpworks.com/redir.asp?linkid=2" target=_blank>DBAdmin Home 
+  page</a>
+  <li><a href="http://www.stpworks.com/" target=_blank>StpWorks Web 
+  site</a>
+  <li><a 
+  href="http://www.stpworks.com/redir.asp?linkid=7" target=_blank>Online translation 
+  tool</a>
+  <li><a href="http://www.stpworks.com/redir.asp?linkid=4" target=_blank>StpWorks.com 
+  forum</a></li></ul>
 		<H3><a name="Contact"></a>Contact information</H3>
 		<P>If you have any problems, questions, suggestions, feel free to either post in 
 			the <A href="http://www.stpworks.com/redir.asp?linkid=4" title="StpWorks.com Forum" target="_blank">

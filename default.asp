@@ -9,7 +9,7 @@
 %>
 <html>
 <head>
-<title>DBA:Home</title>
+<title>DBA:<%=langCaptionHome%></title>
 <meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5">
 <meta name="GENERATOR" content="Microsoft Visual Studio 6.0">
 <link href="default.css" rel="stylesheet" type="text/css">

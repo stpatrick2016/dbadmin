@@ -27,6 +27,8 @@
 	Dim langTablesList  : langTablesList = "Tables"
 	Dim langBack  : langBack = "Back"		'new in version 2.1
 	Dim langTop : langTop = "Top"	'new in version 2.1
+	Dim langShow : langShow = "Show"	'new in version 2.2
+	Dim langHide : langHide = "Hide"	'new in version 2.2
 	
 	'data.asp
 	Dim langDataForTable  : langDataForTable = "&nbsp;:&nbsp;Data"
@@ -43,6 +45,7 @@
 	Dim langSureToDeleteRecord  : langSureToDeleteRecord = "Are you sure you want to delete record with Primary Key(s)"
 	Dim langPageSize  : langPageSize = "Page size:"
 	Dim langFilter  : langFilter = "Filter:"
+	Dim langCaptionData : langCaptionData = "Table Data"
 
 	'database.asp
 	Dim langDatabaseSelection  : langDatabaseSelection = "Database Select"
@@ -85,6 +88,8 @@
 	Dim langChangeLocaleID : langChangeLocaleID = "Change Locale"
 	Dim langChangeLocaleIDAlt : langChangeLocaleIDAlt = "Allows changing a language of the database"
 	Dim langNewLocaleID : langNewLocaleID = "New locale (language):"
+	Dim langBrowseButton : langBrowseButton = "Browse"
+	Dim langCaptionDatabase : langCaptionDatabase = "Databases"
 	
 	'default.asp
 	Dim langWelcome  : langWelcome = "Welcome"
@@ -94,6 +99,7 @@
 	Dim langEnterPassword  : langEnterPassword = "Password:"
 	Dim langVersion  : langVersion = "Version"
 	Dim langSubmitBug  : langSubmitBug = "Submit a bug"
+	Dim langCaptionHome : langCaptionHome = "Home"
 	
 	'export_db.asp
 	Dim langDatabaseExport  : langDatabaseExport = "Database Export"
@@ -114,6 +120,7 @@
 	Dim langColumnDelimiter  : langColumnDelimiter = "Column Delimiter"
 	Dim langTextQualifier  : langTextQualifier = "Text qualifier"
 	Dim langNoFieldNames  : langNoFieldNames = "No field names"
+	Dim langCaptionExportCSV : langCaptionExportCSV = "Excel Export"
 	
 	'ftquery.asp
 	Dim langFreeTypeQuery  : langFreeTypeQuery = "Free-Type Query : Script"
@@ -125,6 +132,7 @@
 	Dim langIgnoreErrors  : langIgnoreErrors = "Ignore errors"				'new in version 2.0
 	Dim langFTQResults  : langFTQResults = "Free-Type Query : Results"
 	Dim langRecordsAffected  : langRecordsAffected = "Records affected:"
+	Dim langCaptionFreeTypeQuery : langCaptionFreeTypeQuery = "Free-Type Query"
 	
 	'import_db.asp, new in version 2.1
 	Dim langImportDatabase  : langImportDatabase = "Import from database"
@@ -137,6 +145,7 @@
 	Dim langIncludeData  : langIncludeData = "Including data"
 	Dim langPathToExternalDatabase : langPathToExternalDatabase = "Path to external database"
 	Dim langExternalDBPassword : langExternalDBPassword = "External database password"
+	Dim langCaptionImportDB : langCaptionImportDB = "Database Import"
 	
 	'qlist.asp
 	Dim langEnterQParams  : langEnterQParams = "Please enter the parameters of procedure divided by commas. Remember to enclose text parameters in single quotation marks."
@@ -165,6 +174,7 @@
 	Dim langRecordUpdated  : langRecordUpdated = "Record added/updated successfully"
 	Dim langFirst  : langFirst = "First"
 	Dim langLast  : langLast = "Last"
+	Dim langCaptionRecEdit : langCaptionRecEdit = "Record Edit"
 	
 	'relations.asp
 	Dim langRelationsNote  : langRelationsNote = "Each of relationships described also in more readable form."
@@ -233,6 +243,7 @@
 	Dim langAllowZeroLength  : langAllowZeroLength = "Allow zero-length"
 	Dim langUnicodeCompress  : langUnicodeCompress = "Compress Unicode"
 	Dim langIndexed  : langIndexed = "Indexed"
+	Dim langCaptionTableStructure : langCaptionTableStructure = "Table Structure"
 	
 	'tablelist.asp
 	Dim langTableName  : langTableName = "Table name"
@@ -245,6 +256,7 @@
 	Dim langCreateNewTable  : langCreateNewTable = "Create new table"
 	Dim langNewTableName  : langNewTableName = "New table name:&nbsp;"
 	Dim langTableNavigateAlt  : langTableNavigateAlt = "Cycle through records in table"
+	Dim langCaptionTablesList : langCaptionTablesList = "Tables List"
 	
 	'vlist.asp
 	Dim langRunViewAlt  : langRunViewAlt = "Run view"
@@ -254,4 +266,5 @@
 	Dim langSureToDeleteView  : langSureToDeleteView = "Are you sure you want to delete view $name?"
 	Dim langUpdateView  : langUpdateView = "Update view"
 	Dim langEditView  : langEditView = "Edit View"
+	Dim langCaptionViews : langCaptionViews = "Views"
 %>

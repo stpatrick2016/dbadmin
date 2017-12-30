@@ -54,6 +54,7 @@ if Request.Form("action") = "export" then
 		next
 		if Len(s) > 0 then s = Left(s, Len(s)-1) & DlmRow
 		Response.Write s
+		Response.Flush
 		
 		rec.MoveNext
 	loop
@@ -70,7 +71,7 @@ if Request.Form("action") = "export" then
 <meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5">
 <meta name="GENERATOR" content="Microsoft Visual Studio 6.0">
 <link href="default.css" rel="stylesheet" type="text/css">
-<title>DBA:Excel Export</title>
+<title>DBA:<%=langCaptionExportCSV%></title>
 <script type="text/javascript" language="javascript" src="scripts/common.js" defer></script>
 </head>
 <body>

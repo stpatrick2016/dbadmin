@@ -6,7 +6,7 @@
 <meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5">
 <meta NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
 <link href="default.css" rel="stylesheet" type="text/css">
-<title>DBA:Tables list</title>
+<title>DBA:<%=langCaptionTablesList%></title>
 <script type="text/javascript" language="javascript" src="scripts/common.js" defer></script>
 </head>
 <body>
@@ -14,8 +14,8 @@
 <%	call DBA_WriteNavigation%>
 
 <%
-	On Error Resume Next
-	dim dba, key, sClass, dic, action
+	if not DBAE_DEBUG Then On Error Resume Next
+	dim dba, sClass, action, tbl
 	set dba = new DBAdmin
 	dba.Connect Session(DBA_cfgSessionDBPathName), Session(DBA_cfgSessionDBPassword)
 	action = CStr(Request("action").Item)
@@ -39,19 +39,19 @@
 		<th><%=langModified%></th>
 		<th><%=langActions%></th>
 	</tr>
-<%	set dic = dba.Tables
-	for each key in dic.Keys
+<%	
+	for each tbl in dba.Tables.Items
 		if sClass = "oddrow" then sClass = "evenrow" else sClass = "oddrow"
 %>
 	<tr class="<%=sClass%>" onmouseover="style.backgroundColor='#ffdfbf'" onmouseout="style.backgroundColor=''">
-		<td><%=dic.Item(key).Name%></td>
-		<td align="right"><%=dic.Item(key).DateCreated%></td>
-		<td align="right"><%=dic.Item(key).DateModified%></td>
+		<td><%=tbl.Name%></td>
+		<td align="right"><%=tbl.DateCreated%></td>
+		<td align="right"><%=tbl.DateModified%></td>
 		<td align="right">
-			<a href="structure.asp?table=<%=Server.URLEncode(dic.Item(key).Name)%>"><img src="images/structure.gif" alt="<%=langViewTableStructureAlt%>" border="0" width="16" height="16"></a>
-			&nbsp;<a href="data.asp?table=<%=Server.URLEncode(dic.Item(key).Name)%>"><img src="images/table.gif" alt="<%=langViewTableDataAlt%>" border="0" width="16" height="16"></a>
-			&nbsp;<a href="recedit.asp?action=edit&amp;table=<%=Server.URLEncode(dic.Item(key).Name)%>"><img src="images/cycle.gif" alt="<%=langTableNavigateAlt%>" border="0" width="16" height="16"></a>
-			&nbsp;<a href="tablelist.asp?action=delete&amp;table=<%=Server.URLEncode(dic.Item(key).Name)%>" onclick="return confirm('<%=Replace(langSureToDeleteTable, "$table_name", dic.Item(key).Name)%>?');"><img src="images/delete.gif" alt="<%=langDeleteTableAlt%>" border="0" width="16" height="16"></a>
+			<a href="structure.asp?table=<%=Server.URLEncode(tbl.Name)%>"><img src="images/structure.gif" alt="<%=langViewTableStructureAlt%>" border="0" width="16" height="16"></a>
+			&nbsp;<a href="data.asp?table=<%=Server.URLEncode(tbl.Name)%>"><img src="images/table.gif" alt="<%=langViewTableDataAlt%>" border="0" width="16" height="16"></a>
+			&nbsp;<a href="recedit.asp?action=edit&amp;table=<%=Server.URLEncode(tbl.Name)%>"><img src="images/cycle.gif" alt="<%=langTableNavigateAlt%>" border="0" width="16" height="16"></a>
+			&nbsp;<a href="tablelist.asp?action=delete&amp;table=<%=Server.URLEncode(tbl.Name)%>" onclick="return confirm('<%=Replace(langSureToDeleteTable, "$table_name", tbl.Name)%>?');"><img src="images/delete.gif" alt="<%=langDeleteTableAlt%>" border="0" width="16" height="16"></a>
 		</td>
 	</tr>
 <%	next%>

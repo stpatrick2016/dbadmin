@@ -1,11 +1,18 @@
 window.onerror = function(){;};
+var imageCache = new Image();
+imageCache.src = "images/icon_show.gif";
+
+//language defined strings
+//var langShow = "Show";
+//var langHide = "Hide"
+
 function newTableToggle(idTD, idImg){
 	var td = document.getElementById(idTD);
 	var img = document.getElementById(idImg);
 	if(td != null && img != null){
 		var isHidden = td.style.display == "none" ? true : false;
 		img.src = isHidden ? "images/icon_hide.gif" : "images/icon_show.gif";
-		img.alt = isHidden ? "Hide" : "Show";
+		img.alt = isHidden ? langHide : langShow;
 		td.style.display = isHidden ? "" : "none";
 	}
 }

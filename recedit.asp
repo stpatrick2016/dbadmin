@@ -6,7 +6,7 @@
 <meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5">
 <meta NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
 <link href="default.css" rel="stylesheet" type="text/css">
-<title>DBA:Record Edit</title>
+<title>DBA:<%=langCaptionRecEdit%></title>
 <%
 	Const TableNameKey = "BBC017D1-0A13-4a9d-9A53-52A0CC6A7540"
 	Const PKNameKey = "57AFDC29-37C8-48e1-96BE-12D7B79C1825"

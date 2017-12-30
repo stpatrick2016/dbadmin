@@ -6,7 +6,7 @@
 <meta name=vs_targetSchema content="http://schemas.microsoft.com/intellisense/ie5">
 <meta NAME="GENERATOR" Content="Microsoft Visual Studio 6.0">
 <link href="default.css" rel="stylesheet">
-<title>DBA:Procedures</title>
+<title>DBA:<%=langProcedures%></title>
 <script type="text/javascript" language="javascript" src="scripts/common.js" defer></script>
 <script language="javascript" type="text/javascript">
 <!--

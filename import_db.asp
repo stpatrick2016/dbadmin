@@ -3,7 +3,7 @@
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
-<title>DBA:Database Import</title>
+<title>DBA:<%=langCaptionImportDB%></title>
 <meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5">
 <meta name="GENERATOR" content="Microsoft Visual Studio.NET 7.0">
 <link href="default.css" rel="stylesheet" type="text/css">

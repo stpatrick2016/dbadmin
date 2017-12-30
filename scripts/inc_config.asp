@@ -15,6 +15,10 @@
 	'Leave it blank if you don't want to use Settings feature
 	Const	DBA_cfgProfilePath = "dbadmin.xml"
 	
+	'MSXML ProgID. Leave it blank to auto-select, or place the real ProgID
+	'If you set it to ProgID, no further check for availability will be done
+	Const	DBA_cfgMSXMLProgID = ""
+	
 	
 	'#####################################
 	'# All dynamic options. Can be set from Settings page as well (if you have specified DBA_cfgProfilePath)
