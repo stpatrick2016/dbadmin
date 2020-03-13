@@ -10,7 +10,9 @@
 <script type="text/javascript" language="javascript" src="scripts/common.js" defer></script>
 <script type="text/javascript" language="javascript">
 function deleteView(name){
-	if(confirm('<%=Replace(langSureToDeleteView, "'", "\'")%>'))
+	var text = '<%=Replace(langSureToDeleteView, "'", "\'")%>';
+	text = text.replace('$name', name);
+	if(confirm(text))
 		window.location.href = "vlist.asp?action=delete&name=" + escape(name);
 }
 </script>

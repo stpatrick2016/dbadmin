@@ -15,7 +15,7 @@ Class StpPrivateProfile
 		if Len(FilePath) = 0 then Exit Function
 		
 		On Error Resume Next
-		XMLFilePath_ = Server.MapPath(FilePath)
+		if Mid(FilePath, 2, 1) = ":" Then XMLFilePath_ = FilePath Else XMLFilePath_ = Server.MapPath(FilePath)
 		xmlDoc_.load(XMLFilePath_)
 		If Err Then 
 			LastError = Err.Description
@@ -173,6 +173,24 @@ Class StpPrivateProfile
 		end if
 	End Sub
 
+	'########################################
+	'# Removes given node
+	Public Function RemoveNode(XPath)
+		if not IsInitialized then Exit Function
+
+		dim Node, Parent
+		XPath = BuildPath(XPath)
+		Set Node = xmlDoc_.selectSingleNode(XPath)
+		If not Node is Nothing Then
+			Set Parent = Node.parentNode
+			call Parent.removeChild(Node)
+		End If
+		
+		Set Parent = Nothing
+		Set Node = Nothing
+		RemoveNode = True
+	End Function
+	
 	'########################################
 	'# Returns either cookie or Session variable, regarding of settings
 	Public Function GetCookie(key)

@@ -43,11 +43,11 @@ function onDelete(){
 <%
 	call DBA_WriteNavigation
 
-	On Error Resume Next
+	if not DBAE_DEBUG Then On Error Resume Next
 	dim rec, sSQL, sTable, pk, key, fld, bIsEdit, sName, i
 	dim action, strRedirect, oIndexes, page, varBookmark
 	dim bHasPrev, bHasNext, bGoNext, bDoUpdate
-	dim dba, PrimaryKeys, DefaultValue
+	dim dba, PrimaryKeys, DefaultValue, item
 	
 	sTable = Request("table").Item
 	pk = Split(Request("pk"), Separator)
@@ -119,7 +119,13 @@ function onDelete(){
 				if not fld.Properties("ISAUTOINCREMENT") and Len(fld.Name) > 0 then
 					if Len(Request.Form(fld.Name)) = 0 then
 						if bIsEdit then 
-							if fld.Type = adWChar or fld.Type = adVarWChar or fld.Type = adLongVarWChar then fld.Value = "" else fld.Value = null
+							if fld.Type = adWChar or fld.Type = adVarWChar or fld.Type = adLongVarWChar then
+								fld.Value = "" 
+							elseif fld.Type = adBoolean Then 
+								fld.Value = False
+							else 
+								fld.Value = null
+							End If
 						end if
 					elseif fld.Type = adDate then 
 						fld.Value = CDate(Request.Form(fld.Name)) 
@@ -202,8 +208,12 @@ function onDelete(){
 		end if
 	end if
 	set rec = dba.Tables.Item(sTable).GetRawData(4, "[" & sTable & "]", True)
-	if Len(sSQL) > 0 then rec.Filter = sSQL
-	if action = "edit" and Len(sSQL) = 0 then key = GetPKValues(pk, rec, True)
+	if Len(Request.QueryString("filter_criteria").Item) > 0 Then
+		rec.Find BuildFilter()
+	Else
+		if Len(sSQL) > 0 then rec.Filter = sSQL
+		if action = "edit" and Len(sSQL) = 0 then key = GetPKValues(pk, rec, True)
+	End If
 	varBookmark = rec.Bookmark
 	rec.Filter = ""
 	rec.Bookmark = varBookmark
@@ -230,7 +240,8 @@ function onDelete(){
 <input type="hidden" name="<%=NextPos%>" id="<%=NextPos%>" value="">
 <table border=0 align="center">
 
-<%	for each fld in rec.Fields
+<%	i = 0
+	for each fld in rec.Fields
 		if fld.Type <> adBinary and fld.Type <> adVarBinary and fld.Type <> adLongVarBinary then
 			if dba.Tables.Item(sTable).Fields.Item(fld.Name).HasDefault then
 				DefaultValue = dba.Tables.Item(sTable).Fields.Item(fld.Name).DefaultValue
@@ -244,17 +255,39 @@ function onDelete(){
 			<%if Len(DefaultValue) > 0 then Response.Write "<br>Default:&nbsp;" & DefaultValue%>
 		</font></td>
 		<td style="border: 1px solid #c6d9ce" valign="top">
-			<%if fld.Type = 203 or fld.Type = 201 then%>
-			<TEXTAREA name="<%=fld.Name%>" rows=4 cols=40><%if bIsEdit then Response.Write Server.HTMLEncode(CStr(fld.Value))%></textarea>
-			<%elseif fld.Properties("ISAUTOINCREMENT") then%>
-			AutoNumber (<%=fld.Value%>)
-			<%else%>
-			<INPUT type=text name="<%=fld.Name%>" value="<%if bIsEdit then Response.Write Replace(CStr(fld.Value), """", "&quot;")%>">
-			<%end if%>
+<%
+			'>>>>>> FORM FOR ALL FIELDS <<<<<<'
+			if fld.Type = 203 or fld.Type = 201 then
+				Response.Write "<textarea id=""fld" & i & """ name=""" & fld.Name & """ rows=""4"" cols=""40"">"
+				if bIsEdit then Response.Write Server.HTMLEncode(CStr(fld.Value))
+				Response.Write "</textarea>" & vbCrLf
+				if Len(DBA_addTextEditor) > 0 then Response.Write "<input type=""button"" onclick=""javascript:DBA_popupWindow('" & DBA_cfgAddonsFolder & "/" & DBA_addTextEditor & "?fld" & i & "', 'editor', 535, 360)"" class=""button"" value=" & langEdit & ">"
+			ElseIf fld.Type = 11 Then
+				'this is a boolean value
+				Response.Write "<input type=""checkbox"" name=""" & fld.Name & """ value=""1"""
+				If bIsEdit and fld.Value = True Then Response.Write " checked "
+				Response.Write ">" & vbCrLf
+			ElseIf fld.Properties("ISAUTOINCREMENT") then
+				Response.Write "AutoNumber (" & fld.Value & ")"
+			Else
+				Response.Write "<input type=""text"" id=""fld" & i & """ name=""" & fld.Name & """ value="""
+				if bIsEdit then Response.Write Replace(CStr(fld.Value), """", "&quot;")
+				Response.Write """>" & vbCrLf
+				If Len(dba.Tables.Item(sTable).Fields.Item(fld.Name).LookupTable) > 0 Then
+					Response.Write	"<input type=""button"" onclick=""javascript:DBA_popupWindow('lookup.asp?id=fld" & i & "&table=" &_
+									Server.URLEncode(dba.Tables.Item(sTable).Fields.Item(fld.Name).LookupTable) &_
+									"&field=" & Server.URLEncode(dba.Tables.Item(sTable).Fields.Item(fld.Name).LookupField) &_
+									"', 'lookup', 640, 400);"" class=""button"" value=""" & langLookup & """>"
+				ElseIf Len(DBA_addTextEditor) > 0 and GetTypeName(fld.Type) = "Text" then 
+					Response.Write "<input type=""button"" onclick=""javascript:DBA_popupWindow('" & DBA_cfgAddonsFolder & "/" & DBA_addTextEditor & "?fld" & i & "', 'editor', 550, 360)"" class=""button"" value=" & langEdit & ">"
+				End If
+			End If
+%>
 		</td>
 	</tr>
 		<%end if%>
-<%	Next%>
+<%		i = i + 1
+	Next%>
 
 </table>
 <table align=center>
@@ -350,5 +383,29 @@ Function GetPKValues (ByRef pk, ByRef rec, bAsArray)
 	else
 		GetPKValues = key
 	end if
+End Function
+
+Function BuildFilter
+	dim filter, field, cmp, criteria, fldType
+	filter = ""
+	field = Request.QueryString("filter_field").Item
+	cmp = Request.QueryString("filter_cmp").Item
+	criteria = Request.QueryString("filter_criteria").Item
+	
+	If Len(field) > 0 and Len(criteria) > 0 then
+		fldType = dba.Tables.Item(sTable).Fields.Item(field).GetSQLTypeName()
+		If fldType = "TEXT" or fldType = "MEMO" Then
+			'remove asterics if only at beginning
+			If Left(criteria, 1) = "*" and Right(criteria, 1) <> "*" Then criteria = Mid(criteria, 2)
+			criteria = "'" & Replace(criteria, "'", "''") & "'"
+		ElseIf fldType = "DATETIME" Then
+			criteria = "#" & criteria & "#"
+		Else
+			If cmp = "LIKE" Then cmp = "="
+		End If
+		filter = field & " " & cmp & " " & criteria
+	End If
+	
+	BuildFilter = filter
 End Function
 </script>

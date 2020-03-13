@@ -1,0 +1,148 @@
+select 
+{
+font:8pt verdana,arial,sans-serif;
+background:lavender
+}
+
+.Gen
+{
+position: relative
+}
+
+table
+{
+position: relative
+}
+
+.heading 
+{
+color:navy;background:lightgrey
+}
+
+.Composition
+{
+position: relative;
+background-color: #ffffff
+}
+
+.yToolbar
+{
+position: relative;
+background-color: buttonface; 
+border-bottom: buttonshadow solid 1px; 
+border-left: buttonhighlight solid 1px; 
+border-right: buttonshadow solid 1px; 
+border-top:  buttonhighlight solid 1px; 
+height: 27px; 
+top:0;
+left:0;
+}
+
+.Btn
+{
+position: absolute;
+background-color: buttonface; 
+border-bottom: buttonface solid 1px; 
+border-left: buttonface solid 1px; 
+border-right: buttonface solid 1px; 
+border-top:  buttonface solid 1px; 
+top: 1px;
+height: 23px; 
+width: 23px;
+}
+
+.Ico
+{
+position: absolute;
+width: 22;
+height: 22;
+left: -1;
+top: -1
+}
+
+.TBSep
+{
+position: absolute; 
+border-left: buttonshadow solid 1px; 
+border-right: buttonhighlight solid 1px; 
+font-size: 0px; 
+top: 1px;
+height: 22px; 
+width: 1px; 
+}
+
+.TBGen
+{
+position: absolute;
+height: 22px; 
+top:2;
+font:8pt verdana,arial,sans-serif
+}
+
+.TBHandle
+{
+position: absolute;
+background-color: buttonface; 
+border-left: buttonhighlight solid 1px; 
+border-right: buttonshadow solid 1px;
+border-top: buttonhighlight solid 1px; 
+font-size: 1px;
+top: 1px; 
+height: 22px; 
+width: 3px;
+}
+
+.BtnMouseOverUp
+{
+position: absolute;
+background-color: buttonface; 
+border-bottom: buttonshadow solid 1px; 
+border-left: buttonhighlight solid 1px; 
+border-right: buttonshadow solid 1px; 
+border-top:  buttonhighlight solid 1px; 
+top: 1px;
+height: 23px; 
+width: 24px;
+}
+
+.BtnMouseOverDown
+{
+position:absolute;
+background-color: buttonface; 
+border-bottom: buttonhighlight solid 1px; 
+border-left: buttonshadow solid 1px; 
+border-right: buttonhighlight solid 1px; 
+border-top:  buttonshadow solid 1px; 
+top: 1px;
+height: 23px; 
+width: 24px;
+}
+
+.BtnDown
+{
+position: absolute;
+background-color: gainsboro; 
+border-bottom: buttonhighlight solid 1px; 
+border-left: buttonshadow solid 1px; 
+border-right: buttonhighlight solid 1px; 
+border-top:  buttonshadow solid 1px; 
+top: 1px;
+height: 23px; 
+width: 24px;
+}
+
+.IcoDown
+{
+position: absolute;
+left: 0px;
+top: 0px;
+height: 23px; 
+width: 24px;
+}
+
+.IcoDownPressed
+{
+position: absolute;
+left: 1px;
+top: 1px;
+}

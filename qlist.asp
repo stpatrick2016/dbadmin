@@ -16,7 +16,8 @@ function runSP(sp){
 		window.location.reload("ftquery.asp?query=" + escape("EXECUTE [" + sp + "] " + params));
 }
 function deleteSP(name){
-	if(confirm('<%=Replace(langDeleteProcedurePrompt, "'", "\'")%>'))
+	var text = '<%=Replace(langDeleteProcedurePrompt, "'", "\'")%> ' + name + '?';
+	if(confirm(text))
 		window.location.href = "qlist.asp?action=delete&name=" + escape(name);
 }
 //-->

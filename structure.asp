@@ -234,6 +234,7 @@ function onFieldTypeChange(newType){
 
 <%	
 	Sub WriteFieldEditForm(byref fld)
+		On Error Resume Next
 		dim isText, isNewField, strNullable, strCompress
 		Response.Write "<a name=""editForm""></a>"
 		if Len(fld.Name) =  0 then 
@@ -301,7 +302,7 @@ function onFieldTypeChange(newType){
 			</tr>
 			<tr>
 				<td><%=langDefaultValue2%></td>
-				<td><input type="text" name="default" size="20" value="<%=fld.DefaultValue%>"></td>
+				<td><input type="text" name="default" size="20" value="<%=Server.HTMLEncode(fld.DefaultValue)%>" id="Text1"></td>
 			</tr>
 <%		if ADOXAvail Then%>
 			<tr>

@@ -19,5 +19,3 @@ Dutch:		Mike van Vendeloo(http://www.xs4all.nl/~mikievv)
 Norwegian:	Tommy Skaue
 German:		Andreas Muller(ngg24@hotmail.com)
 Italian:	Davide Vogliotti(http://www.spacefarm.net)
-Turkish:	Bektas Aykut ATALAY (bektasaykut@gmail.com)
-Chinese (S):	George J. Sun (http://www.kspoint.cn, kidsshk3@gmail.com)

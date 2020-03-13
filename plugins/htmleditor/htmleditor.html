@@ -1,0 +1,273 @@
+
+<html>
+
+<head>
+<meta NAME="GENERATOR" Content="Microsoft FrontPage 4.0">
+<meta HTTP-EQUIV="Content-Type" content="text/html; charset=windows-1252">
+<meta HTTP-EQUIV="Cache-control" content="no-cache">
+<title>:: WYSWYG BROWSER BASED HTML EDITOR ::</title>
+<script LANGUAGE="Javascript" SRC="compose.js"></script>
+
+<script language="Javascript">
+<!-- 
+if (top.location != self.location) {
+top.location = self.location.href
+}
+//--> 
+</script>
+
+<script language="JavaScript">
+<!--
+// No rightclick script
+/*var message="Please,contact us at htmleditor@celebrasoft.com !\nALL RIGHTS RESERVED"; 
+
+// Don't edit below!
+function click(e) {
+if (document.all) {
+if (event.button == 2) {
+alert(message);
+return false;
+}
+}
+if (document.layers) {
+if (e.which == 3) {
+alert(message);
+return false;
+}
+}
+}
+if (document.layers) {
+document.captureEvents(Event.MOUSEDOWN);
+}
+document.onmousedown=click;*/
+// --> 
+</script>
+
+
+
+<SCRIPT language = "Javascript">
+<!--
+
+var bLoad=false
+var pureText=true
+var bodyTag="<BODY MONOSPACE STYLE=\"font:10pt arial,sans-serif\">"
+var bTextMode=false
+
+public_description=new Editor
+
+function Editor() {
+  this.put_html=SetHtml;
+  this.get_html=GetHtml;
+  this.put_text=SetText;
+  this.get_text=GetText;
+  this.CompFocus=GetCompFocus;
+}
+
+function GetCompFocus() {
+  Composition.focus();
+}
+
+function GetText() {
+  return Composition.document.body.innerText;
+}
+
+function SetText(text) {
+  text = text.replace(/\n/g, "<br>")
+  Composition.document.body.innerHTML=text;
+}
+
+function GetHtml() {
+  if (bTextMode) 
+    return Composition.document.body.innerText;
+  else {
+    cleanHtml();
+    cleanHtml();
+    return Composition.document.body.innerHTML;
+  }
+}
+
+function SetHtml(sVal) {
+  if (bTextMode) Composition.document.body.innerText=sVal;
+  else Composition.document.body.innerHTML=sVal;
+}
+
+function saveform(form) {
+	var id = location.href.substr(location.href.indexOf('?')+1);
+	var obj = window.opener.document.getElementById(id);
+	if (bTextMode)
+		obj.value = document.frames.Composition.document.body.innerText;
+	else
+		obj.value = document.frames.Composition.document.body.innerHTML;
+	window.close();
+}
+
+function initEditor() {
+ Composition.document.designMode="On"
+ Composition.document.open()
+ Composition.document.write("<HTML><BODY></BODY></HTML>")
+ Composition.document.close()
+}
+
+function preview(loc, name, width, height) {
+        var _params = "width="+width+",height="+height+",resizable=no,scrollbars=no,status=no";
+
+        // CENTER ON BROWSERS WHICH SUPPORT JSCRIPT 1.2
+        if (browsertype >= 4) {
+                 _left = ( (screen.width-width) >>1 );
+                 _top = ( (screen.height-height) >>1 );
+        } else {
+                 _left = ( (800-width) >>1 );
+                 _top = ( (600-height) >>1 );
+        }
+
+        if (IE) _params += ",top=" + _top + ",left=" + _left;
+        else if (NS) _params += ",screenX=" + _left + ",screenY=" + _top;
+
+        newWin = window.open(loc, name, _params);
+        if ( newWin!=null && !(IE && browsertype<5) )
+                newWin.focus(); // MSIE4 DOESN'T FOCUS WINDOWS
+}
+
+function loadcontent()
+{
+	var id = location.href.substr(location.href.indexOf('?')+1);
+	SetHtml(window.opener.document.getElementById(id).value);
+}
+// -->
+</script>
+<link REL="stylesheet" TYPE="text/css" HREF="specialstyles.css?12">
+</head>
+
+<body onload="loadcontent()" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<script>
+window.onerror = null;
+</script>
+<table border="0" width="50%" cellpadding="2" cellspacing="0" align="center">	
+	<tr align="left"> 
+		<td> 
+			<div class="yToolbar" ID="ParaToolbar"> 
+				<div class="TBHandle"></div>
+				<select id="ParagraphStyle" class="TBGen" title="Paragraph Format" language="javascript" onChange="format('formatBlock',this[this.selectedIndex].value);this.selectedIndex=0" name="select">
+					<option class="heading" selected>Paragraph 
+					<option value="Normal">Normal 
+					<option value="Heading 1">Heading 1 &lt;H1&gt; 
+					<option value="Heading 2">Heading 2 &lt;H2&gt; 
+					<option value="Heading 3">Heading 3 &lt;H3&gt; 
+					<option value="Heading 4">Heading 4 &lt;H4&gt; 
+					<option value="Heading 5">Heading 5 &lt;H5&gt; 
+					<option value="Heading 6">Heading 6 &lt;H6&gt; 
+					<option value="Address">Address &lt;ADDR&gt; 
+					<option value="Formatted">Formatted &lt;PRE&gt; 
+					<option style="color: darkred" value="removeFormat">Remove Formatting 
+				</select>
+				<select ID="FontName" class="TBGen" TITLE="Font Name" LANGUAGE="javascript" onchange="format('fontname',this[this.selectedIndex].value);this.selectedIndex=0">
+					<option class="heading" selected>Font 
+					<option value="Arial">Arial 
+					<option value="Arial Black">Arial Black 
+					<option value="Arial Narrow">Arial Narrow 
+					<option value="Comic Sans MS">Comic Sans MS 
+					<option value="Courier New">Courier New 
+					<option value="System">System 
+					<option value="Times New Roman">Times New Roman 
+					<option value="Verdana">Verdana 
+					<option value="Wingdings">Wingdings 
+				</select>
+				<select ID="FontSize" class="TBGen" TITLE="Font Size" LANGUAGE="javascript" onchange="format('fontsize',this[this.selectedIndex].value);this.selectedIndex=0">
+					<option class="heading" selected>Size 
+					<option value="1">1 
+					<option value="2">2 
+					<option value="3">3 
+					<option value="4">4 
+					<option value="5">5 
+					<option value="6">6 
+					<option value="7">7 
+				</select>
+				<div class="TBSep"></div>
+				<div ID="EditMode" class="TBGen"  style="width:150" TITLE="Editing Mode"> 
+					<input type=checkbox name="switchMode" LANGUAGE="javascript" onclick="setMode(switchMode.checked)"> View HTML source 
+				</div>
+			</div>
+			<div class="yToolbar" ID="FormatToolbar"> 
+				<div class="TBHandle"></div>
+				<div class="Btn" TITLE="Cut" LANGUAGE="javascript" onclick="format('cut')"> 
+				  <img class="Ico" src="cut.gif" width="22" height="22"> 
+				</div>
+				<div class="Btn" TITLE="Copy" LANGUAGE="javascript" onclick="format('copy')"> 
+				  <img class="Ico" src="copy.gif" width="22" height="22"> 
+				</div>
+				<div class="Btn" TITLE="Paste" LANGUAGE="javascript" onclick="format('paste')"> 
+				  <img class="Ico" src="paste.gif" width="22" height="22"> 
+				</div>
+				<div class="TBSep"></div>
+				<div class="Btn" TITLE="Bold" LANGUAGE="javascript" onclick="format('bold');"> 
+				  <img class="Ico" src="bold.gif" width="22" height="22"> 
+				</div>
+				<div class="Btn" TITLE="Italic" LANGUAGE="javascript" onclick="format('italic')"> 
+				  <img class="Ico" src="italic.gif" width="22" height="22"> 
+				</div>
+				<div class="Btn" TITLE="Underline" LANGUAGE="javascript" onclick="format('underline')"> 
+				  <img class="Ico" src="under.gif" width="22" height="22"> 
+				</div>
+				<div class="TBSep"></div>
+				<div class="Btn" TITLE="Foreground Color" LANGUAGE="javascript" onclick="foreColor()"> 
+				  <img class="Ico" src="tpaint.gif" width="22" height="22"> 
+				</div>
+				<div class="Btn" TITLE="Background Color" LANGUAGE="javascript" onclick="backColor()"> 
+				  <img class="Ico" src="parea.gif" width="22" height="22"> 
+				</div>
+				<div class="TBSep"></div>
+				<div class="Btn" TITLE="Align Left" NAME="Justify" LANGUAGE="javascript" onclick="format('justifyleft')"> 
+				  <img class="Ico" src="aleft.gif" width="22" height="22"> 
+				</div>
+				<div class="Btn" TITLE="Center" NAME="Justify" LANGUAGE="javascript" onclick="format('justifycenter')"> 
+				  <img class="Ico" src="center.gif" width="22" height="22"> 
+				</div>
+				<div class="Btn" TITLE="Align Right" NAME="Justify" LANGUAGE="javascript" onclick="format('justifyright')"> 
+				  <img class="Ico" src="aright.gif" width="22" height="22"> 
+				</div>
+				<div class="TBSep"></div>
+				<div class="Btn" TITLE="Numbered List" LANGUAGE="javascript" onclick="format('insertorderedlist')"> 
+				  <img class="Ico" src="nlist.gif" width="22" height="22"> 
+				</div>
+				<div class="Btn" TITLE="Bulletted List" LANGUAGE="javascript" onclick="format('insertunorderedlist')"> 
+				  <img class="Ico" src="blist.gif" width="22" height="22"> 
+				</div>
+				<div class="TBSep"></div>
+				<div class="Btn" TITLE="Decrease Indent" LANGUAGE="javascript" onclick="format('outdent')"> 
+				  <img class="Ico" src="ileft.gif" width="22" height="22"> 
+				</div>
+				<div class="Btn" TITLE="Increase Indent" LANGUAGE="javascript" onclick="format('indent')"> 
+				  <img class="Ico" src="iright.gif" width="22" height="22" > 
+				</div>
+				<div class="TBSep"></div>
+				<div class="Btn" TITLE="Create Hyperlink" LANGUAGE="javascript" onclick="createLink()"> 
+				  <img class="Ico" src="wlink.gif" width="22" height="22"> 
+				</div>
+				<div class="TBSep"></div>
+				<div class="Btn" TITLE="Create Hyperlink" LANGUAGE="javascript" onclick="addImage()"> 
+				  <img class="Ico" src="image.gif" width="22" height="22"> 
+				</div>
+			</div>
+			<IFRAME class="Composition" width="100%" ID="Composition"  height="250"> 
+			</IFRAME>
+		</td>
+	</tr>
+	<!--End Deditor --> 
+	<tr>
+		<td width="100%" align="center">
+			<input type="button" value="Update" class="button" onclick="javascript:saveform()">
+			<input type="button" value="Close" class="button" onclick="javascript:window.close()">
+		</td>
+	</tr>
+</table>
+<SCRIPT>
+<!--
+//Composition.document.open();
+//Composition.document.write(bodyTag);
+//Composition.document.close();
+//Composition.document.designMode="On";
+initEditor();
+// -->
+</SCRIPT>
+</body>
+</html>

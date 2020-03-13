@@ -3,7 +3,7 @@
 
 '//////////////////////////////////////////////////////////////////////////////////////////////////
 '// Stp Database Administrator Engine
-'// Engine version: 1.1
+'// Engine version: 1.3.1
 '// Copyright © 2002-2003 by Philip Patrick. All rights reserved
 '//
 '// Author:		Philip Patrick
@@ -13,6 +13,7 @@
 '//		Set of classes and functions for managing Access database on the Web
 
 Const DBAE_JET_PROVIDER		= "Provider=Microsoft.Jet.OLEDB.4.0;Data Source="
+Const DBAE_ENGINE_VERSION	= "1.3.1"
 Const DBAE_DEBUG			= False
 
 
@@ -53,7 +54,8 @@ Class DBAdmin
 		Set Relations_	= Server.CreateObject("Scripting.Dictionary")
 		Set Procedures_	= Server.CreateObject("Scripting.Dictionary")
 		
-		EngineVersion_	= "1.2"
+		EngineVersion_	= DBAE_ENGINE_VERSION
+		UseADOX_		= True
 		
 		call Reset
 	End Sub
@@ -103,6 +105,16 @@ Class DBAdmin
 	End Property  
 
 	'######################################################## 
+	'#Use ADOX or force to use only SQL?
+	Public Property Let UseADOX(v)
+		UseADOX_ = CBool(v)
+	End Property
+	
+	Public Property Get UseADOX
+		UseADOX = UseADOX_
+	End Property
+
+	'######################################################## 
 	'#Returns a size of database file in bytes
 	Public Property Get Size
 		Size = 0
@@ -144,23 +156,28 @@ Class DBAdmin
 	Public Property Get Tables
 		if Tables_.Exists(".uninitialized") then
 			'first time. Let's get tables names
-			dim tbl, xTable, xCat
+			dim tbl, xTable, xCat, tableType
 			Tables_.RemoveAll
 			if not DBAE_DEBUG then On Error Resume Next
 			set xCat = Server.CreateObject("ADOX.Catalog")
-			if xCat Is Nothing or IsEmpty(xCat) Then
+			if xCat Is Nothing or IsEmpty(xCat) or not UseADOX Then
 				'ADOX is not available, so we'll get tables list using schemas
-				set xCat = JetConnection_.OpenSchema(adSchemaTables, Array(Empty, Empty, Empty, "TABLE"))
+				set xCat = JetConnection_.OpenSchema(adSchemaTables, Array(Empty, Empty, Empty, Empty))
 				Do While Not xCat.EOF
-					set tbl = new DBATable
-					With tbl
-						.Name = xCat("TABLE_NAME").Value
-						.DateCreated = xCat("DATE_CREATED").Value
-						.DateModified = xCat("DATE_MODIFIED").Value
-						.Description = xCat("DESCRIPTION").Value
-						Set .Parent = Me
-					End With
-					Set Tables_.Item(tbl.Name) = tbl
+					tableType = xCat("TABLE_TYPE").Value
+					If tableType = "SYSTEM TABLE" or tableType = "TABLE" or tableType = "ACCESS TABLE" or tableType = "LINK" _
+						or tableType = "PASS-THROUGH" Then
+						set tbl = new DBATable
+						With tbl
+							.Name =			xCat("TABLE_NAME").Value
+							.DateCreated =	xCat("DATE_CREATED").Value
+							.DateModified = xCat("DATE_MODIFIED").Value
+							.Description =	xCat("DESCRIPTION").Value
+							.TableType =	xCat("TABLE_TYPE").Value
+							Set .Parent = Me
+						End With
+						Set Tables_.Item(tbl.Name) = tbl
+					End If
 					xCat.MoveNext
 				Loop
 				call xCat.Close()
@@ -168,13 +185,16 @@ Class DBAdmin
 				set xCat.ActiveConnection = JetConnection_
 				if IsError then Exit Property
 				for each xTable in xCat.Tables
-					if xTable.Type = "TABLE" then 
+					tableType = xTable.Type
+					If tableType = "SYSTEM TABLE" or tableType = "TABLE" or tableType = "ACCESS TABLE" or tableType = "LINK" _
+						or tableType = "PASS-THROUGH" Then
 						set tbl = new DBATable
 						with tbl
 							.Name = xTable.Name
 							.DateCreated = xTable.DateCreated
 							.DateModified = xTable.DateModified
 							.Description = ""
+							.TableType = xTable.Type
 							Set .Parent = Me
 						end with
 						Set Tables_.Item(tbl.Name) = tbl
@@ -197,7 +217,7 @@ Class DBAdmin
 			
 			if not DBAE_DEBUG then On Error Resume Next
 			set xCat = Server.CreateObject("ADOX.Catalog")
-			if IsEmpty(xCat) or xCat is Nothing Then
+			if IsEmpty(xCat) or xCat is Nothing or not UseADOX Then
 				set xCat = JetConnection_.OpenSchema(adSchemaProcedures)
 				Do While Not xCat.EOF
 					set p = new DBAProcedure
@@ -245,7 +265,7 @@ Class DBAdmin
 			
 			if not DBAE_DEBUG then On Error Resume Next
 			set xCat = Server.CreateObject("ADOX.Catalog")
-			if IsEmpty(xCat) or xCat Is Nothing Then
+			if IsEmpty(xCat) or xCat Is Nothing or not UseADOX Then
 				set xCat = JetConnection_.OpenSchema(adSchemaViews)
 				Do While Not xCat.EOF
 					set v = new DBAView
@@ -337,7 +357,8 @@ Class DBAdmin
 		call Reset
 		
 		'check if DSN was passed and retrieve file name
-		if InStr(1, MDBPath, "DSN=", vbTextCompare) = 1 then MDBPath = GetFilenameFromDSN(Mid(MDBPath, 5), Password)
+		if InStr(1, MDBPath, "DSN=", vbTextCompare) = 1 Then MDBPath = Mid(MDBPath, 5)
+		If InStr(1, MDBPath, ":") <> 2 and InStr(1, MDBPath, "\\") <> 1 Then MDBPath = GetFilenameFromDSN(MDBPath, Password)
 		
 		DatabasePath_ = CStr(MDBPath)
 		DatabasePassword_ = CStr(Password)
@@ -345,6 +366,8 @@ Class DBAdmin
 		strCon = DBAE_JET_PROVIDER & DatabasePath_
 		if Len(DatabasePassword_) > 0 then strCon = strCon & ";Jet OLEDB:Database password=" & DatabasePassword_
 		Set JetConnection_ = Server.CreateObject("ADODB.Connection")
+		JetConnection_.CursorLocation = adUseServer
+		JetConnection_.IsolationLevel = adXactReadUncommitted
 		
 		if not DBAE_DEBUG then On Error Resume Next
 		JetConnection_.Open strCon
@@ -399,6 +422,40 @@ Class DBAdmin
 	End Function
 
 	'######################################################## 
+	'# Creates a linked table in existing database
+	Public Function CreateLinkedTable(ExternalDBPath, DBpwd, ExternalTable, AliasName)
+		If not IsOpen Then
+			LastError = "Object is not initialized"
+			CreateLinkedTable = False
+			Exit Function
+		End If
+		
+		If not DBAE_DEBUG Then On Error Resume Next
+		dim xcat, xtbl
+		If Len(AliasName) = 0 Then AliasName = ExternalTable
+		Set xcat = Server.CreateObject("ADOX.Catalog")
+		if not xcat Is Nothing Then
+			Set xcat.ActiveConnection = JetConnection_
+			Set xtbl = Server.CreateObject("ADOX.Table")
+			With xtbl
+				.Name = AliasName
+				Set xtbl.ParentCatalog = xcat
+				.Properties("Jet OLEDB:Create Link").Value = -1
+				If Len(DBpwd) > 0 Then xtbl.Properties("Jet OLEDB:Link Provider String").Value = "MS Access;Pwd=" & DBpwd
+				.Properties("Jet OLEDB:Link Datasource").Value = ExternalDBPath
+				.Properties("Jet OLEDB:Remote Table Name").Value = ExternalTable
+			End With
+			xcat.Tables.Append xtbl
+
+			CreateLinkedTable = not IsError
+			
+			Set xtbl = Nothing
+			Set xcat = Nothing
+			
+		End If
+	End Function
+
+	'######################################################## 
 	'# Deletes an existing table in database
 	Public Function DeleteTable(Name)
 		If not IsOpen then
@@ -429,7 +486,7 @@ Class DBAdmin
 		dim xCat, cmd
 		if not DBAE_DEBUG then On Error Resume Next
 		set xCat = Server.CreateObject("ADOX.Catalog")
-		If IsEmpty(xCat) or xCat Is Nothing Then
+		If IsEmpty(xCat) or xCat Is Nothing or not UseADOX Then
 			Err.Clear
 			cmd = "CREATE PROCEDURE [" & Name & "] AS " & Body
 			call JetConnection_.Execute(cmd, adExecuteNoRecords)
@@ -476,7 +533,7 @@ Class DBAdmin
 		dim xCat, cmd
 		if not DBAE_DEBUG then On Error Resume Next
 		set xCat = Server.CreateObject("ADOX.Catalog")
-		If IsEmpty(xCat) or xCat Is Nothing Then
+		If IsEmpty(xCat) or xCat Is Nothing or not UseADOX Then
 			Err.Clear
 			cmd = "CREATE PROCEDURE [" & Name & "] AS " & Body
 			call JetConnection_.Execute(cmd, adExecuteNoRecords)
@@ -705,6 +762,7 @@ Class DBAdmin
 		DatabasePath_		= ""
 		LastError_			= ""
 		DatabasePassword_	= ""
+		UseADOX_			= True
 		
 		if IsObject(JetConnection_) Then
 			On Error Resume Next
@@ -797,6 +855,29 @@ Class DBAdmin
 		set RunScript = rec
 	End Function
 	
+	'######################################################## 
+	'# Function that manages transactions. Have to start a transaction
+	'# on the main Connection object, not on its descendands
+	Public Sub BeginTransaction()
+		If IsOpen() Then call JetConnection_.BeginTrans()
+	End Sub
+
+	Public Sub CommitTransaction()
+		If IsOpen() Then call JetConnection_.CommitTrans()
+	End Sub
+	
+	Public Sub RollbackTransaction()
+		If IsOpen() Then call JetConnection_.RollbackTrans()
+	End Sub
+	
+	'######################################################## 
+	'# Just executes a single SQL statement on a connection
+	'# This was made to keep transactions working
+	Public Function Execute(strSQL)
+		if IsOpen() Then call JetConnection_.Execute(strSQL, adExecuteNoRecords)
+		Execute = True
+	End Function
+	
 	'---------------------------
 	'protected and private
 
@@ -810,6 +891,7 @@ Class DBAdmin
 	Private JetConnection_
 	Private LastError_
 	Private EngineVersion_
+	Private UseADOX_
 	
 	Private Function GetFilenameFromDSN(dsnName, pwd)
 		dim dsn, ret, i
@@ -859,6 +941,7 @@ Class DBATable
 		Description_	= ""
 		DateCreated_	= null
 		DateModified_	= null
+		TableType_		= "TABLE"
 		Set Parent_		= Nothing
 	End Sub
 	
@@ -885,12 +968,51 @@ Class DBATable
 	'######################################################## 
 	'# Name of the table
 	Public Property Let Name(v)
-		if Len(Name_) = 0 then Name_ = CStr(v)
+		if Len(Name_) = 0 then 
+			'first time initializing, just assign
+			Name_ = CStr(v)
+		ElseIf Len(CStr(v)) > 0 and CStr(v) <> Name_ and Parent_.AllowAction("s") Then
+			'we are trying to rename the table
+			dim xcat
+			set xcat = Server.CreateObject("ADOX.Catalog")
+			if not xcat Is Nothing Then
+				xcat.ActiveConnection = Parent_.JetConnection
+				xcat.Tables(Name_).Name = v
+				if not Parent_.IsError Then Name_ = CStr(v)
+				set xcat = Nothing
+			Else
+				Parent_.LastError = "ADOX is not available. Operation cancelled"
+			End If
+		End If
 	End Property    
 	
 	Public Property Get Name
 		Name = Name_
 	End Property  
+	
+	Public Property Get TableType
+		TableType = TableType_
+	End Property
+	
+	Public Property Let TableType(v)
+		TableType_ = v
+	End Property
+	
+	Public Property Get IsSystem
+		if TableType = "SYSTEM TABLE" or TableType = "ACCESS TABLE" Then
+			IsSystem = True
+		Else
+			IsSystem = False
+		End If
+	End Property
+	
+	Public Property Get IsLinked
+		If TableType = "LINK" or TableType = "ALIAS" or TableType = "PASS-THROUGH" Then 
+			IsLinked = True
+		Else
+			IsLinked = False
+		End If
+	End Property
 
 	'######################################################## 
 	'# Fields collection
@@ -904,7 +1026,7 @@ Class DBATable
 			if not DBAE_DEBUG then On Error Resume Next
 			set rec = Parent_.JetConnection.OpenSchema(adSchemaColumns, Array(empty,empty, Name_))
 			set xCat = Server.CreateObject("ADOX.Catalog")
-			if (IsEmpty(xCat) or xCat Is Nothing) Then
+			if (IsEmpty(xCat) or xCat Is Nothing or not Parent_.UseADOX) Then
 				Err.Clear
 				set xCat = Parent_.JetConnection.Execute(Name_)
 				bNoADOX = True
@@ -1046,10 +1168,10 @@ Class DBATable
 		
 		dim xCat, fld, isUnique, sSQL
 		set xCat = Server.CreateObject("ADOX.Catalog")
-		If IsEmpty(xCat) or xCat Is Nothing Then
+		If IsEmpty(xCat) or xCat Is Nothing or not Parent_.UseADOX Then
 			'ADOX is not available, then let's create the field with pure SQL
 			sSQL = "ALTER TABLE [" & Name_ & "] ADD COLUMN " & NewFld.SQL
-			call Parent_.JetConnection.Execute(sSQL, adExecuteNoRecords)
+			call Parent_.Execute(sSQL)
 		Else
 			'whoala! ADOX with us, easy work :)
 			set xCat.ActiveConnection = Parent_.JetConnection
@@ -1069,12 +1191,13 @@ Class DBATable
 			
 			xCat.Tables(Name_).Columns.Append fld
 			CreateField = not Parent_.IsError
+			
 			set fld = nothing
 			set xCat = nothing
 		End If
 		
 		if not Parent_.HasError and not IsNull(NewFld.DefaultValue) then
-			call Parent_.JetConnection.Execute("ALTER TABLE [" & Name_ & "] ALTER COLUMN [" & NewFld.Name & "] SET DEFAULT " & NewFld.DefaultValue)
+			call Parent_.Execute("ALTER TABLE [" & Name_ & "] ALTER COLUMN [" & NewFld.Name & "] SET DEFAULT " & NewFld.DefaultValue)
 		end if
 		
 		if not Parent_.HasError and Indexed > 0 then
@@ -1097,7 +1220,7 @@ Class DBATable
 		
 		'delete the field itself now
 		sSQL = "ALTER TABLE [" & Name_ & "] DROP COLUMN [" & FieldName & "]"
-		Parent_.JetConnection.Execute sSQL, adExecuteNoRecords
+		call Parent_.Execute(sSQL)
 		DeleteField = not Parent_.IsError
 		if not Parent_.HasError and Fields_.Exists(FieldName) then Fields_.Remove FieldName
 	End Function
@@ -1119,15 +1242,15 @@ Class DBATable
 			next
 			If Len(str) > 0 then 
 				sSQL = "DROP INDEX [" & strPIndex & "] ON [" & Name_ & "]"
-				Parent_.JetConnection.Execute sSQL, adExecuteNoRecords
+				call Parent_.Execute(sSQL)
 			end if
 			sSQL = "CREATE INDEX [" & IndexName & "] ON [" & Name_ & "](" & str & "[" & TargetField & "]) WITH PRIMARY"
-			Parent_.JetConnection.Execute sSQL, adExecuteNoRecords
+			call Parent_.Execute(sSQL)
 		else
 			sSQL = "CREATE "
 			if IsUnique then sSQL = sSQL & "UNIQUE "
 			sSQL = sSQL & "INDEX [" & IndexName & "] ON [" & Name_ & "]([" & TargetField & "])"
-			Parent_.JetConnection.Execute sSQL, adExecuteNoRecords
+			call Parent_.Execute(sSQL)
 		end if
 		CreateIndex = not Parent_.IsError
 		if not Parent_.HasError then
@@ -1151,13 +1274,13 @@ Class DBATable
 				next
 			end if
 			sSQL = "DROP INDEX [" & IndexName & "] ON [" & Name_ & "]"
-			Parent_.JetConnection.Execute sSQL, adExecuteNoRecords
+			call Parent_.Execute(sSQL)
 			if not Parent_.IsError then
 				if Len(str) > 0 then
 					're-create all primary keys
 					str = Left(str, Len(str) - 1)
 					sSQL = "CREATE INDEX [" & IndexName & "] ON [" & Name_ & "](" & str & ") WITH PRIMARY"
-					Parent_.JetConnection.Execute sSQL, adExecuteNoRecords
+					call Parent_.Execute(sSQL)
 					DeleteIndex = not Parent_.IsError
 				end if
 				If not Parent_.HasError then Indexes_.Remove IndexName & "." & FieldName
@@ -1193,6 +1316,7 @@ Class DBATable
 	Private Indexes_
 	Private Fields_
 	Private Name_
+	Private TableType_
 	Private Description_
 	Private DateCreated_
 	Private DateModified_
@@ -1240,16 +1364,16 @@ Class DBAView
 			dim con, sSQL
 			sSQL = "DROP VIEW [" & Name_ & "]"
 			set con = Parent_.JetConnection
-			con.BeginTrans
+			Parent_.BeginTransaction
 			if not DBAE_DEBUG then On Error Resume Next
-			con.Execute sSQL, adExecuteNoRecords
+			Parent_.Execute sSQL
 			call Parent_.IsError
 			Name_ = CStr(v)
-			con.Execute SQL, adExecuteNoRecords
+			Parent_.Execute SQL
 			if Parent_.IsError then
-				con.RollbackTrans
+				Parent_.RollbackTransaction
 			else
-				con.CommitTrans
+				Parent_.CommitTransaction
 			end if
 		end if
 		Name_ = CStr(v)
@@ -1266,7 +1390,7 @@ Class DBAView
 			dim xCatalog, Command
 			if not DBAE_DEBUG then On Error Resume Next
 			set xCatalog = Server.CreateObject("ADOX.Catalog")
-			If IsEmpty(xCatalog) or xCatalog Is Nothing Then
+			If IsEmpty(xCatalog) or xCatalog Is Nothing or not Parent_.UseADOX Then
 				'when ADOX is not available. Just re-create the view
 				dim con, sSQL
 				sSQL = "DROP VIEW [" & Name_ & "]"
@@ -1411,7 +1535,7 @@ Class DBAProcedure
 			dim xCatalog, Command
 			if not DBAE_DEBUG then On Error Resume Next
 			set xCatalog = Server.CreateObject("ADOX.Catalog")
-			If IsEmpty(xCatalog) or xCatalog Is Nothing Then
+			If IsEmpty(xCatalog) or xCatalog Is Nothing or not Parent_.UseADOX Then
 				'when ADOX is not available. Just re-create the view
 				dim con, sSQL
 				sSQL = "DROP PROCEDURE [" & Name_ & "]"
@@ -1746,7 +1870,7 @@ Class DBAField
 		Case 130	if MaxLength_ = 0 then GetSQLTypeName = "MEMO" else GetSQLTypeName = "TEXT"
 		Case 202	GetSQLTypeName = "TEXT"
 		Case 203	GetSQLTypeName = "MEMO"
-		Case Else	GetSQLTypeName = ""
+		Case Else	if DBAE_DEBUG Then GetSQLTypeName = FieldType_ Else GetSQLTypeName = ""
 		End Select
 	End Function
  
@@ -1754,21 +1878,21 @@ Class DBAField
 	'# Returns human-readable name of the type, as it is in Access	
 	Function GetTypeName
 		Select Case FieldType_
-		Case 3		if IsAutonumber then GetTypeName = "AutoNumber" else GetTypeName = "Long Integer"
-		Case 7		GetTypeName = "Date/Time"
-		Case 11		GetTypeName = "Boolean"
-		Case 6		GetTypeName = "Currency"
-		Case 128	GetTypeName = "Binary"
-		Case 17		GetTypeName = "Byte"
-		Case 131	GetTypeName = "Decimal"
-		Case 5		GetTypeName = "Double"
-		Case 2		GetTypeName = "Integer"
-		Case 4		GetTypeName = "Single"
-		Case 72		GetTypeName = "Replication ID"
-		Case 130	if MaxLength_ = 0 then GetTypeName = "Memo" else GetTypeName = "Text"
-		Case 202	GetTypeName = "Text"
-		Case 203	GetTypeName = "Memo"
-		Case Else	GetTypeName = ""
+		Case 3			if IsAutonumber then GetTypeName = "AutoNumber" else GetTypeName = "Long Integer"
+		Case 7			GetTypeName = "Date/Time"
+		Case 11			GetTypeName = "Boolean"
+		Case 6			GetTypeName = "Currency"
+		Case 128,204	GetTypeName = "Binary"
+		Case 17			GetTypeName = "Byte"
+		Case 131		GetTypeName = "Decimal"
+		Case 5			GetTypeName = "Double"
+		Case 2			GetTypeName = "Integer"
+		Case 4			GetTypeName = "Single"
+		Case 72			GetTypeName = "Replication ID"
+		Case 130		if MaxLength_ = 0 then GetTypeName = "Memo" else GetTypeName = "Text"
+		Case 202		GetTypeName = "Text"
+		Case 203		GetTypeName = "Memo"
+		Case Else		if DBAE_DEBUG Then GetTypeName = FieldType_ Else GetTypeName = ""
 		End Select
 	End Function
 	
@@ -1787,7 +1911,7 @@ Class DBAField
 		sSQL = "ALTER TABLE [" & Parent_.Name & "] ALTER COLUMN [" & Name_ & "] " & sSQLType
 		if sSQLType = "TEXT" then sSQL = sSQL & "(" & MaxLength_ & ")"
 		if not IsNullable then sSQL = sSQL & " NOT NULL"
-		Parent_.Parent.JetConnection.Execute sSQL, adExecuteNoRecords
+		call Parent_.Parent.Execute(sSQL)
 		if not Parent_.Parent.IsError then
 			'set other field properties
 			set xCat = Server.CreateObject("ADOX.Catalog")
@@ -1813,6 +1937,44 @@ Class DBAField
 		'if error occured, let parent reload fields
 		if Parent_.Parent.HasError then Parent_.Fields.Item(".uninitialized") = null
 	End Function
+	
+	'######################################################## 
+	'# Cancels any updates pending
+	Public Sub CancelUpdates
+		PendingUpdates_ = False
+	End Sub
+	
+	'######################################################## 
+	'# Returns a related table name or empty string if no related table
+	Public Property Get LookupTable
+		if IsEmpty(LookupTable_) and not Parent_ Is Nothing Then
+			dim rec
+			LookupTable_ = ""
+			LookupField_ = ""
+			set rec = Parent_.Parent.JetConnection.OpenSchema(adSchemaForeignKeys, Array(Empty,Empty,Empty,Empty,Empty,Parent_.Name))
+			do while not rec.EOF
+				if rec("FK_COLUMN_NAME").Value = Name_ Then
+					LookupTable_ = rec("PK_TABLE_NAME").Value
+					LookupField_ = rec("PK_COLUMN_NAME").Value
+					Exit Do
+				End If
+				call rec.MoveNext()
+			loop
+			call rec.Close()
+			
+			set rec = Nothing
+		End If
+		LookupTable = LookupTable_
+	End Property
+	
+	'######################################################## 
+	'# Returns a related column name or empty string if no related column
+	Public Property Get LookupField
+		'fetch if needed
+		LookupTable
+		LookupField = LookupField_
+	End Property
+	
 
 	'---------------------------
 	'protected and private
@@ -1830,6 +1992,8 @@ Class DBAField
 	Private PendingUpdates_
 	Private AllowZeroLength_
 	Private Compressed_
+	Private LookupTable_
+	Private LookupField_
 
 
 	' Constructor
@@ -1847,6 +2011,8 @@ Class DBAField
 		PendingUpdates_	= False
 		AllowZeroLength_= Empty
 		Compressed_		= Empty
+		LookupTable_	= Empty
+		LookupField_	= Empty
 	End Sub
 
 	' Destructor

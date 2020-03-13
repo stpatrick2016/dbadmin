@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<spp>
+    <common>
+        <settings>
+            <session s_uname="DBA_AdminUsername" s_upwd="DBA_AdminPassword" s_dbpath="DBA_DatabasePath" s_dbpwd="DBA_DatabasePassword" s_timeout="0"/>
+        </settings>
+    </common>
+    <users>
+        <user name="admin">
+            <settings save_paths="-1" page_size="5" language-file="dbadmin_en.lang" sys_tables="0"/>
+            <databases>
+            </databases>
+        </user>
+    </users>
+</spp>

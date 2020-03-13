@@ -38,6 +38,7 @@ Back=Back
 Top = Top
 Show = Show
 Hide = Hide
+Close = Close
 
 #data.asp
 DataForTable=&nbsp;:&nbsp;Data
@@ -111,6 +112,7 @@ EnterPassword=Password:
 Version=Version
 SubmitBug=Submit a bug
 CaptionHome = Home
+LogOff = Logg off
 
 #export_db.asp
 DatabaseExport=Database Export
@@ -155,6 +157,17 @@ IncludeData=Including data
 PathToExternalDatabase = Path to external database
 ExternalDBPassword = External database password
 CaptionImportDB = Database Import
+	
+#linked.asp, new in version 2.3
+CaptionLinkedTable = Link table Wizard
+LinkedDatabaseSelect = Please specify the database from which you want to link a table
+TableToLink = Table to link
+AliasName = Link as (leave blank for the same name)
+	
+#lookup.asp, new in version 2.3
+Lookup = Lookup
+LookupAlt = Select a value to insert
+NoLookupValues = No related values available
 
 #qlist.asp
 EnterQParams=Please enter the parameters of procedure divided by commas. Remember to enclose text parameters in single quotation marks.
@@ -184,6 +197,7 @@ RecordUpdated=Record added/updated successfully
 First=First
 Last=Last
 CaptionRecEdit = Record Edit
+Edit = Edit
 
 #relations.asp
 RelationsNote=Each of relationships described also in more readable form.
@@ -221,6 +235,7 @@ OtherSettings=Other settings
 SaveSuccess=Settings were saved successfully
 RecordsPerPage=Records per page	
 Language = Language
+ShowSysTables = Show system tables
 
 #structure.asp
 TableIndexes=&nbsp;:&nbsp;Indexes
@@ -266,6 +281,8 @@ CreateNewTable=Create new table
 NewTableName=New table name:&nbsp;
 TableNavigateAlt=Cycle through records in table
 CaptionTablesList = Tables List
+RenameTableAlt = Rename table
+AddLinkedTable = Add linked table
 
 #vlist.asp
 RunViewAlt=Run view

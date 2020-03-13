@@ -4,7 +4,7 @@
 
 <%'#writes out navigation controls
 Sub DBA_WriteNavigation
-	if Len(Session(DBA_cfgSessionPwdName)) = 0 then
+	if Len(Session(DBA_cfgSessionPwdName)) = 0 and DBA_IsSecurityEnabled() then
 %>
 <!-- TABLE BEFORE LOGIN -->
 <a name="top"></a>
@@ -132,6 +132,7 @@ Sub DBA_LoadProfile
 	DBA_cfgSessionPwdName = StpProfile.GetProfileString("settings/session", "s_upwd", "DBA_AdminPassword")
 	DBA_cfgSessionDBPathName = StpProfile.GetProfileString("settings/session", "s_dbpath", "DBA_DatabasePath")
 	DBA_cfgSessionDBPassword = StpProfile.GetProfileString("settings/session", "s_dbpwd", "DBA_DatabasePassword")
+	DBA_cfgSessionTimeout = StpProfile.GetProfileNumber("settings/session", "s_timeout", 0)
 	
 	'load user-dependent settings
 	call StpProfile.Load(DBA_cfgProfilePath, Session(DBA_cfgSessionUserName))
@@ -150,6 +151,7 @@ Sub DBA_SaveProfile
 		call StpProfile.SetValue("settings/session", "s_upwd", DBA_cfgSessionPwdName)
 		call StpProfile.SetValue("settings/session", "s_dbpath", DBA_cfgSessionDBPathName)
 		call StpProfile.SetValue("settings/session", "s_dbpwd", DBA_cfgSessionDBPassword)
+		call StpProfile.SetValue("settings/session", "s_timeout", DBA_cfgSessionTimeout)
 		call StpProfile.Save
 	end if
 	
@@ -196,19 +198,7 @@ End Function
 '#################################################################################
 '# removes database from the list
 Sub DBA_RemoveDatabase(path)
-	dim cfg, arrDatabases, i, arrNew
-	arrNew = Array()
-	arrDatabases = StpProfile.GetProfileArray("databases", "")
-	
-	'check if the database already exist
-	for i=0 to ubound(arrDatabases)
-		if arrDatabases(i) <> path then
-			Redim Preserve arrNew(ubound(arrNew) + 1)
-			arrNew(ubound(arrNew)) = arrDatabases(i)
-		end if
-	next
-	
-	call StpProfile.SetValue("databases", "", arrNew)
+	call StpProfile.RemoveNode("databases/item[.='" & Replace(path, "\", "\\") & "']")
 	StpProfile.Save
 End Sub
 
@@ -268,14 +258,51 @@ Function GetAvailableLanguages
 End Function
 
 '#################################################################################
-'# Encrypts a given string
-Function DBA_Encrypt(v)
-	DBA_Encrypt = v
+'# returns an integer value if it can be converted to integer or 0
+Function VBParseInt(value)
+	if Len(value) > 0 and IsNumeric(value) then
+		VBParseInt = CLng(value)
+	else
+		VBParseInt = 0
+	end if
 End Function
 
-'#################################################################################
-'# Decrypts a given string
-Function DBA_Decrypt(v)
-	DBA_Decrypt = v
+Function getPagingControl(intCount, intPage, intPageSize, strAdditional)
+	dim intPages, strRetVal, i, script, filter
+	script = Request.ServerVariables("SCRIPT_NAME")
+	filter = Request("filter").Item
+	if intPageSize = 0 then intPageSize = 10
+	intPages = intCount \ intPageSize
+	if (intCount Mod intPageSize) > 0 then intPages = intPages + 1
+	strRetVal = "<sc" & "ript type=""text/javascript"" language=""javascript"">" & vbCrLf &_
+				"function pagingChangePage(page){" & vbCrLf &_
+				"location.href='" & script & "?page='+page+'&pagesize=" & pagesize &_
+				"&filter=" & Server.URLEncode(filter) & strAdditional & "';" & vbCrLf &_
+				"}</sc" & "ript>" & vbCrLf &_
+				"<select name=""page"" onchange=""javascript:pagingChangePage(this.options[this.selectedIndex].value)"">"
+	
+	for i=1 to intPages
+		strRetVal = strRetVal & "<option value=""" & i & """"
+		if intPage = i then strRetVal = strRetVal & " selected"
+		strRetVal = strRetVal & ">" & i & "</option>" & vbCrLf
+
+
+
+	next
+	strRetVal = strRetVal & "</select>"
+	if Len(strRetVal) > 0 then 
+		if intPage > 1 then strRetVal = "<a href=""" & script & "?page=" & intPage -1 &_
+										"&amp;pagesize=" & intPageSize &_
+										"&amp;filter=" & Server.URLEncode(filter) & strAdditional &_
+										""">&laquo;&nbsp;<small>" & langPrev & "</small></a>&nbsp;" & strRetVal
+		if intPage < intPages then strRetVal =	strRetVal &_
+												"&nbsp;<a href=""" & script & "?page=" & intPage + 1 &_
+												"&amp;pagesize=" & intPageSize &_
+												"&amp;filter=" & Server.URLEncode(filter) & strAdditional &_
+												"""><small>" & langNext & "</small>&nbsp;&raquo;</a>"
+		strRetVal = "<p align=""left"">" & strRetVal & "</p>"
+	end if
+	getPagingControl = strRetVal
 End Function
+
 %>

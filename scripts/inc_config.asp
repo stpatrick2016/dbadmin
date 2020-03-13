@@ -19,6 +19,12 @@
 	'If you set it to ProgID, no further check for availability will be done
 	Const	DBA_cfgMSXMLProgID = ""
 	
+	'By setting the next constant to True you can disable security in DBAdmin.
+	'This can be useful if you place DBAdmin in secure folder, which by itself
+	'requires a user logon. 
+	'To enable security again, you can either set it to False or just delete
+	Const	DBA_cfgNoSecurity = False
+	
 	
 	'#####################################
 	'# All dynamic options. Can be set from Settings page as well (if you have specified DBA_cfgProfilePath)

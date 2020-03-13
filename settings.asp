@@ -25,17 +25,20 @@
 				Session(Request.Form("s_upwd").Item) = Session(DBA_cfgSessionPwdName)
 				Session(Request.Form("s_dbpath").Item) = Session(DBA_cfgSessionDBPathName)
 				Session(Request.Form("s_dbpwd").Item) = Session(DBA_cfgSessionDBPassword)
-
 				DBA_cfgSessionUserName = Request.Form("s_user").Item
 				DBA_cfgSessionPwdName = Request.Form("s_upwd").Item
 				DBA_cfgSessionDBPathName = Request.Form("s_dbpath").Item
 				DBA_cfgSessionDBPassword = Request.Form("s_dbpwd").Item
+				DBA_cfgSessionTimeout = VBParseInt(Request.Form("s_timeout").Item)
+
+				if DBA_cfgSessionTimeout <> 0 Then Session.Timeout = DBA_cfgSessionTimeout
 			end if
 			DBA_cfgSaveDBPaths = CBool(Request.Form("save_paths").Item)
 
 			call DBA_SaveProfile
 			call StpProfile.SetValue("settings", "page_size", Request.Form("page_size").Item)
 			call StpProfile.SetValue("settings", "language-file", Request.Form("lang").Item)
+			call StpProfile.SetValue("settings", "sys_tables", Request.Form("sys_tables").Item)
 			call StpProfile.Save
 			call DBA_WriteSuccess(langSaveSuccess)
 		end if
@@ -46,8 +49,22 @@
 <input type="hidden" name="action" value="update">
 <table align="center" border="0">
 <%	if Session(DBA_cfgSessionUserName) = DBA_cfgAdminUsername then%>
+
+	<!--SESSION VARIABLES-->
 	<tr>
 		<th colspan="2"><%=langSessionVariables%></th>
+	</tr>
+	<tr>
+		<td><%=langSessionTimeout%></td>
+		<td>
+			<select name="s_timeout">
+				<option value="0"><%=langDefault%></option>
+				<%=DBA_GetComboOptions(1, 9, 1, DBA_cfgSessionTimeout)%>
+				<%=DBA_GetComboOptions(10, 29, 5, DBA_cfgSessionTimeout)%>
+				<%=DBA_GetComboOptions(30, 720, 30, DBA_cfgSessionTimeout)%>
+				<option value="1440" <%if DBA_cfgSessionTimeout = 1440 Then Response.Write " selected "%>><%=langMaxTimeout%></option>
+			</select>
+		</td>
 	</tr>
 	<tr>
 		<td><%=langUsername%></td>
@@ -66,6 +83,8 @@
 		<td><input type="text" name="s_dbpwd" value="<%=DBA_cfgSessionDBPassword%>"</td>
 	</tr>
 <%	end if%>
+	
+	<!--USER SETTINGS-->
 	<tr>
 		<th colspan="2"><%=langOtherSettings%></th>
 	</tr>
@@ -81,6 +100,15 @@
 		<td><select name="page_size">
 			<%=DBA_GetComboOptions(5, 50, 5, StpProfile.GetProfileNumber("settings", "page_size", 5))%>
 		</select></td>
+	</tr>
+	<tr>
+		<td><%=langShowSysTables%></td>
+		<td>
+			<select name="sys_tables" id="Select1">
+				<option value="0"><%=langNo%></option>
+				<option value="-1" <%if StpProfile.GetProfileNumber("settings", "sys_tables", 0) = -1 Then Response.Write " selected "%>><%=langYes%></option>
+			</select>
+		</td>
 	</tr>
 	<tr>
 		<td><%=langLanguage%></td>

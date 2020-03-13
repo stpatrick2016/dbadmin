@@ -29,6 +29,7 @@
 	Dim langTop : langTop = "Top"	'new in version 2.1
 	Dim langShow : langShow = "Show"	'new in version 2.2
 	Dim langHide : langHide = "Hide"	'new in version 2.2
+	Dim langClose : langClose = "Close"
 	
 	'data.asp
 	Dim langDataForTable  : langDataForTable = "&nbsp;:&nbsp;Data"
@@ -100,6 +101,7 @@
 	Dim langVersion  : langVersion = "Version"
 	Dim langSubmitBug  : langSubmitBug = "Submit a bug"
 	Dim langCaptionHome : langCaptionHome = "Home"
+	Dim langLogOff : langLogOff = "Log Off"	'new in version 2.2
 	
 	'export_db.asp
 	Dim langDatabaseExport  : langDatabaseExport = "Database Export"
@@ -147,6 +149,17 @@
 	Dim langExternalDBPassword : langExternalDBPassword = "External database password"
 	Dim langCaptionImportDB : langCaptionImportDB = "Database Import"
 	
+	'linked.asp, new in version 2.3
+	Dim langCaptionLinkedTable : langCaptionLinkedTable = "Link table Wizard"
+	Dim langLinkedDatabaseSelect : langLinkedDatabaseSelect = "Please specify the database from which you want to link a table"
+	Dim langTableToLink : langTableToLink = "Table to link"
+	Dim langAliasName : langAliasName = "Link as (leave blank for the same name)"
+	
+	'lookup.asp, new in version 2.3
+	Dim langLookup : langLookup = "Lookup"
+	Dim langLookupAlt : langLookupAlt = "Select a value to insert"
+	Dim langNoLookupValues : langNoLookupValues = "No related values available"
+	
 	'qlist.asp
 	Dim langEnterQParams  : langEnterQParams = "Please enter the parameters of procedure divided by commas. Remember to enclose text parameters in single quotation marks."
 	Dim langStoredProceduresList  : langStoredProceduresList = "Stored Procedures"
@@ -175,6 +188,7 @@
 	Dim langFirst  : langFirst = "First"
 	Dim langLast  : langLast = "Last"
 	Dim langCaptionRecEdit : langCaptionRecEdit = "Record Edit"
+	Dim langEdit : langEdit = "Edit"
 	
 	'relations.asp
 	Dim langRelationsNote  : langRelationsNote = "Each of relationships described also in more readable form."
@@ -212,6 +226,10 @@
 	Dim langSaveSuccess  : langSaveSuccess = "Settings were saved successfully"
 	Dim langRecordsPerPage  : langRecordsPerPage = "Records per page"	'new in version 2.1
 	Dim langLanguage : langLanguage = "Language"	'new in version 2.1
+	Dim langSessionTimeout : langSessionTimeout = "Session timeout (min.)"		'new in version 2.2
+	Dim langMaxTimeout : langMaxTimeout = "Max timeout (24 hrs.)"	'new in version 2.2
+	Dim langDefault : langDefault = "Default"	'new in version 2.2
+	Dim langShowSysTables : langShowSysTables = "Show system tables" 'new in version 2.2
 	
 	'structure.asp
 	Dim langTableIndexes  : langTableIndexes = "&nbsp;:&nbsp;Indexes"
@@ -257,6 +275,8 @@
 	Dim langNewTableName  : langNewTableName = "New table name:&nbsp;"
 	Dim langTableNavigateAlt  : langTableNavigateAlt = "Cycle through records in table"
 	Dim langCaptionTablesList : langCaptionTablesList = "Tables List"
+	Dim langRenameTableAlt : langRenameTableAlt = "Rename table"
+	Dim langAddLinkedTable : langAddLinkedTable = "Add linked table"
 	
 	'vlist.asp
 	Dim langRunViewAlt  : langRunViewAlt = "Run view"

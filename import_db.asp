@@ -21,6 +21,7 @@
 <%
 	dim dba, action
 	
+	if not DBAE_DEBUG Then On Error Resume Next
 	action = lcase(Request("action").Item)
 	set dba = new DBAdmin
 	call dba.Connect(Session(DBA_cfgSessionDBPathName), Session(DBA_cfgSessionDBPassword))
@@ -138,7 +139,7 @@
 <%
 	Sub DoImport
 		dim extPath, extPwd, extDba, tbl, key, strErrors, fld, tblNew
-		Dim strTables, bWithData, strAutoNumber, recOld, recNew, i, UseTransaction, IgnoreErrors
+		Dim strTables, bWithData, recOld, recNew, i, UseTransaction, IgnoreErrors
 		extPath = Request.Form("e_path").Item
 		extPwd = Request.Form("e_pwd").Item
 		strErrors = ""
@@ -149,7 +150,10 @@
 		set extDba = new DBAdmin
 		call extDba.Connect(Request.Form("e_path").Item, Request.Form("e_pwd").Item)
 		
-		If UseTransaction Then call dba.JetConnection.BeginTrans()
+		If UseTransaction Then 
+			call dba.BeginTransaction()
+			dba.UseADOX = False
+		End If
 		
 		'start importing tables
 		For Each key In Request.Form("table")
@@ -161,9 +165,7 @@
 			else
 				set tblNew = dba.Tables.Item(tbl.Name)
 				if TypeName(tblNew) <> "Nothing" Then
-					strAutoNumber = ""
 					For each fld in tbl.Fields.Items
-						If fld.IsAutoNumber then strAutoNumber = fld.Name
 						call tblNew.CreateField(fld, False)
 						If dba.HasError Then strErrors = strErrors & dba.LastError
 					Next
@@ -265,10 +267,11 @@
 		set extDba = Nothing
 		
 		If UseTransaction and (IgnoreErrors or Len(strErrors) = 0) Then
-			call dba.JetConnection.CommitTrans()
+			call dba.CommitTransaction()
 		ElseIf UseTransaction Then
-			call dba.JetConnection.RollbackTrans()
+			call dba.RollbackTransaction()
 		End If
+		dba.UseADOX = True
 		
 		'finished importing now.. Let's see errors
 		call DBA_BeginNewTable(langImportDatabase, "", "90%", "")

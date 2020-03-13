@@ -13,10 +13,13 @@
 '********************************************************
 
 	'DBAdmin Version
-	Const DBA_VERSION = "2.1.1"
+	Const DBA_VERSION = "2.3"
 
 	'Name of administrator	
 	Const DBA_cfgAdminUsername = "admin"
+	
+	'Session timeout. 0 is default
+	Dim DBA_cfgSessionTimeout : DBA_cfgSessionTimeout = 0
 
 	'Configuration object. Loaded in LoadProfile and freed in inc_footer.inc
 	Dim StpProfile
@@ -24,4 +27,11 @@
 	'load profile and language
 	call DBA_LoadProfile()
 	call DBA_LoadLanguage()
+	
+	'/-----------------------------------------------------------
+	'| Addons are under design, they will go here for now
+	'| Later I will think how to incorporate addons and plugins
+	'\-----------------------------------------------------------
+	Dim DBA_cfgAddonsFolder : DBA_cfgAddonsFolder = "plugins"
+	Dim DBA_addTextEditor : DBA_addTextEditor = "htmleditor/htmleditor.html"
 %>

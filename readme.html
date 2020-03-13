@@ -16,7 +16,7 @@
 <body text=black vLink=blue link=blue bgColor=white 
 MS_POSITIONING="FlowLayout">
 <H1>StP Database Administrator for MS Access 
-version&nbsp;2.1.1 Readme</H1>
+version&nbsp;2.3 Readme</H1>
 <H3>Table of contents</H3>
 <ul>
   <li><a href="#Overview">Overview</a> 
@@ -82,25 +82,63 @@ yourself
   <li>MSXML parser version 3.x or higher&nbsp;installed on the server - 
 <strong><em>optional</em></strong></li></ul>
 <h3><a name="new"></a>What's new in 
-version 2.1.1</h3>
+version 2.3</h3>
 <p> 
-This version includes all bug fixes that have been 
-discovered by users and myself.&nbsp;The "big change" was done with ADOX 
-library, which wasn't available on some hosts.&nbsp;In case when ADOX is not 
-available, pure SQL script and database schemas are used, though 
-some&nbsp;features will not be available, due to limitations of those 
-methods.<br>This version incorporates the MSXML4 bug fix (when only version 4 of 
-MSXML was installed on the server) as well as some more strings were added to 
-translation. If you will none of those bugs listed below are applied to you, you 
-can safely skip this version and stay with the previous one.</p>
+There are several new features added that worth to 
+mention. One of them is <strong>table rename</strong>. Note it is only available 
+on hosts where ADOX is available. Most hosting providers have it installed, so 
+should not be a problem.<br>Another feature (suggested by Ron) - <strong>support 
+for linked tables</strong>. It requires ADOX as well. To use it, look for link 
+just below "Create Table" button, on tables list page. If ADOX is not installed 
+you will not see this link. Note, linked tables get broken when you move your 
+database(s) to another place, so you will have to re-create them again.<br>And 
+another one - <strong>system tables</strong> (suggested by Ron too). To be 
+able to view system tables, you have to grant read permissions to them using MS 
+Access itself. Here is a quick guide how to do it:</p>
+<ol>
+  <li>Open your database in MS Access. Go to Tools-&gt;Options, switch to View 
+  tab (opened by default) and check "System Object". Hit OK.</li>
+  <li>Now you will see some more tables (all starts with "MSys"). Click on one 
+  of them and go to Tools-&gt;Security-&gt;User and Group Permissions. Make sure 
+  "Read data" and "Read design" are both checked, then hit OK. Repeat this step 
+  on each system table.</li></ol>
+<p>Now you can enable (or disable later) viewing system tables in DBAdmin. Look 
+in Settings page, you will see it there. By default, system tables are not 
+shown.</p>
+<p>And yet another feature - <strong>HTML editor</strong> for Text and Memo 
+fields. Note that the editor itself is not written by me, I took a one from 
+internet. So on the recedit.asp page, you will see a button "Edit" near all Text 
+and Memo columns. Click on it and you'll get the editor.<br><strong>Lookup for 
+value</strong>. Though you still able to enter whatever data you want in related 
+columns, a new "Lookup"&nbsp;button will appear near them, which will allow you 
+to pick values from another, related table and column.</p>
 <p>Below is the full list of changes in DBAdmin:</p>
 <ul>
-  <li>Bug fix&nbsp;- DBAdmin works properly when ADOX is not available. Note, 
-  that not all the features are supported with pure SQL 
-  <li>Bug fix&nbsp;- MSXML version now choosen automatically, version 4 is 
-  preferred (checked first) 
-  <li>Bug fix&nbsp;- Error on hosts where MSXML object is unavailable 
-  <li>Bug fix - Some strings were left without translation available.</li></ul>
+  <li>New - Optional security. You can disable the internal security, which may 
+  be useful if you have installed DBAdmin in&nbsp;a secure folder. 
+  <li>New - Session timeout can be configured from Settings page now. Maximum is 
+  24 hours, which is a limitation of IIS. 
+  <li>New - Allows renaming tables (note, that table creation/modified dates 
+  will be changed) 
+  <li>New - Allows viewing of System tables. Read FAQ on the site if you have 
+  troubles with this feature (suggested by Ron) 
+  <li>New - Added support for Linked tables (suggested by Ron). 
+  <li>New - Boolean values in record edit form are now represented with 
+  checkboxes 
+  <li>New - Added lookup feature for columns that related to other tables 
+  <li>New - Built-in HTML editor for Text and Memo fields. 
+  <li>New - Log-off button&nbsp;added 
+  <li>Update - Find/Filter in table data view has finally replaced with true 
+  filter 
+  <li>Update - Paging is now made easier (replaced to combo box) 
+  <li>Bug fix - Unable (or error) to sort by columns that has a multi-word or 
+  registered words (submitted by Kevin Bates) 
+  <li>Bug fix - Sometimes Default value&nbsp;got corrupted on the table's 
+  structure form 
+  <li>Bug fix - When tryingt to delete a View or Stored Procedure, its name is 
+  not displayed on message box prompt 
+  <li>Bug fix - Javascript error when you try to delete a table (submitted by 
+  Dominique Boyer)</li></ul>
 <p>For the full versions history,&nbsp;see <A href="history.htm" >History.htm</A> file.</p>
 <H3><a name="Installation"></a>Installation</H3>
 <P>Below are steps that you should perform to successfully 
@@ -137,8 +175,9 @@ section).</P>
 <h3>Upgrade from version 2.x</h3>
 <p>Just upload all files to your server, but <strong>keep</strong> your 
 <strong>configuration</strong> file (scripts/inc_config.asp), to 
-save your current settings. You may notice that all saved paths to databases are 
-gone. Don't worry, you will have just re-create them, since the structure of 
+save your current settings. You may 
+notice that all saved paths to databases are gone(related only when upgrading from version 
+2.0.x). Don't worry, you will have just re-create them, since the structure of 
 profile's XML file has been changed slightly.<br>Starting from version 2.1.1, 
 DBAdmin allows you using different versions of&nbsp;MSXML components. By default 
 it will auto-detect the installed component, prefering MSXML 4, but you can explictly tell it which component to use, 
@@ -204,17 +243,21 @@ name="FAQ"></a>FAQ</H3>
   link:<br><a 
   href="http://support.microsoft.com/default.aspx?scid=kb;en-us;295375" title="Norton Antivirus and FileSystemObject" target=_blank>http://support.microsoft.com/default.aspx?scid=kb;en-us;295375</a> 
   .<br>
-  <li><strong><font color="red">After upgrading from version 2.0.x to version 2.1 I 
+  <li><strong><font color="red"> After upgrading from version 2.0.x to&nbsp;higher I 
   don't see databases list in "Existing database"</font></strong><br>The 
   structure of XML configuration file has been changed slightly, you should use 
   Browse button to add your databases again to the 
-      list.<br></li></ul>
+      list.<br>
+  <li><font color="#ff0000"><strong>How to open a database from 
+  DSN?</strong></font><br>Type in the text box (where the database path should 
+  go) the name of DSN. If you are getting an error like "Path couldn't be 
+  found", add "DSN=" just before your DSN name, like:<br>DSN=MyDB<br></li></ul>
 <h3><a name="Licensing"></a>Licensing and pricing</h3>
-<p>DBAdmin is a free tool for any web-master for personal 
-use only. Commercial use requires you to buy it. E.g. if you have an e-commerce 
-web site, or you are selling from your site and DBAdmin in any way helps you 
-(customers info stored in database, products, etc.), then you are a commercial 
-user. Commercial license is given per site (or domain if not points to same 
+<p> DBAdmin is a free tool for any web-master for 
+personal use only. Commercial use requires you to buy it. E.g. if you have an 
+e-commerce web site, or you are selling from your site and DBAdmin in any way helps 
+you (customers info stored in database, products, etc.), then you are a 
+commercial user. Commercial license is given per site (or domain if&nbsp;doesn't points to same 
 site), regardless how many users are using it, or how many databases you have. 
 For latest prices, please visit <a href="http://www.stpworks.com/redir.asp?linkid=2" target=_blank>DBAdmin home page</a>. There are several options available but&nbsp;you can contact 
 me if you need a&nbsp;special offer.</p>

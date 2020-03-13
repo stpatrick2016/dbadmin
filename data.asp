@@ -64,9 +64,11 @@ if rec.PageCount > 0 then rec.AbsolutePage = page
 abspage = rec.AbsolutePage
 
 'retrieve string with primary keys names
-for each item in dba.Tables.Item(sTableName).Indexes.Items
-	if item.IsPrimary then PrimaryKeys = PrimaryKeys & item.TargetField & Separator
-next
+If dba.Tables.Exists(sTableName) Then
+	for each item in dba.Tables.Item(sTableName).Indexes.Items
+		if item.IsPrimary then PrimaryKeys = PrimaryKeys & item.TargetField & Separator
+	next
+End If
 if Right(PrimaryKeys, 1) = Separator then PrimaryKeys = Left(PrimaryKeys, Len(PrimaryKeys)-1)
 %>
 <div style="border: 1px #006699 solid; padding-left: 15px">
@@ -109,23 +111,7 @@ if Right(PrimaryKeys, 1) = Separator then PrimaryKeys = Left(PrimaryKeys, Len(Pr
 		</p>
 	</form>
 </div>
-	<p align="left">
-	<%if abspage > 1 then%>
-		<a href="data.asp?table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=(abspage - 1)%>&amp;pagesize=<%=pagesize%>&order=<%=Server.URLEncode(Request.QueryString("order"))%>"><font size="1">&laquo;&nbsp;<%=langPrev%></font></a>
-	<%end if%>
-	<%for i=1 to rec.PageCount
-		if i = abspage then%>
-			<font size="2">[<%=i%>]</font>&nbsp;
-	<%	else%>
-			<font size="1">&nbsp;[<a href="data.asp?table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=i%>&amp;pagesize=<%=pagesize%>&order=<%=Server.URLEncode(Request.QueryString("order"))%>"><%=i%></a>]&nbsp;</font>
-	<%	end if
-	Next
-	if abspage < rec.PageCount and abspage > 0 then%>
-		<a href="data.asp?table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=(abspage + 1)%>&amp;pagesize=<%=pagesize%>&order=<%=Server.URLEncode(Request.QueryString("order"))%>"><font size="1"><%=langNext%>&nbsp;&raquo;</font></a>
-	<%end if
-	i = 0
-	%>
-	</p>
+<%=getPagingControl(rec.RecordCount, abspage, pagesize, "&amp;table=" & Server.URLEncode(sTableName) & "&amp;order=" & Server.URLEncode(Request.QueryString("order")))%>
 <table align="center" border="1" class="DataTable">
 <tr>
 	<th>*</th>
@@ -134,7 +120,7 @@ if Right(PrimaryKeys, 1) = Separator then PrimaryKeys = Left(PrimaryKeys, Len(Pr
 		<%if dba.Tables.Item(sTableName).Fields.Item(fld.Name).IsPrimaryKey then%>
 			<img src="images/key.gif" border="0" WIDTH="16" HEIGHT="16">
 		<%end if%>
-		<A href="data.asp?table=<%=Server.URLEncode(sTableName)%>&order=<%=Server.URLEncode(fld.Name & " ASC")%>" title="<%=langSortAscending%>"><font color=white><%=fld.Name%></font></A>&nbsp;<A href="data.asp?table=<%=Server.URLEncode(sTableName)%>&order=<%=Server.URLEncode(fld.Name & " DESC")%>" title="<%=langSortDescending%>"><font color=white>&darr;</font></A>
+		<A href="data.asp?table=<%=Server.URLEncode(sTableName)%>&order=<%=Server.URLEncode("[" & fld.Name & "] ASC")%>" title="<%=langSortAscending%>"><font color=white><%=fld.Name%></font></A>&nbsp;<A href="data.asp?table=<%=Server.URLEncode(sTableName)%>&order=<%=Server.URLEncode("[" & fld.Name & "] DESC")%>" title="<%=langSortDescending%>"><font color=white>&darr;</font></A>
 	</th>
 <%next%>
 </tr>
@@ -142,7 +128,7 @@ if Right(PrimaryKeys, 1) = Separator then PrimaryKeys = Left(PrimaryKeys, Len(Pr
 <%
 	if rec.State <> adStateClosed then
 		strFilter = BuildFilter()
-		if Len(strFilter) > 0 then call rec.Find(strFilter)
+		if Len(strFilter) > 0 then rec.Filter = strFilter
 		do while not rec.EOF and i < rec.PageSize
 			if sClass = "oddrow" then sClass = "evenrow" else sClass = "oddrow"
 %>
@@ -170,7 +156,7 @@ if Right(PrimaryKeys, 1) = Separator then PrimaryKeys = Left(PrimaryKeys, Len(Pr
 	</td>
 	<%	for each fld in rec.Fields%>
 		<td valign="top" align="center" class="DataTD">
-		<%if fld.Type <> adBinary then%>
+		<%	if fld.Type <> adBinary and fld.Type <> adVarBinary then%>
 			<%	if Len(fld.Value) > 0 then
 					Response.Write Server.HTMLEncode(fld.Value)
 				else
@@ -189,21 +175,7 @@ if Right(PrimaryKeys, 1) = Separator then PrimaryKeys = Left(PrimaryKeys, Len(Pr
 
 </table>		
 
-	<p align="left">
-	<%if abspage > 1 then%>
-		<a href="data.asp?table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=(abspage - 1)%>&amp;pagesize=<%=pagesize%>&order=<%=Server.URLEncode(Request.QueryString("order"))%>"><font size="1">&laquo;&nbsp;<%=langPrev%></font></a>
-	<%end if%>
-	<%for i=1 to rec.PageCount
-		if i = abspage then%>
-			<font size="2">[<%=i%>]</font>&nbsp;
-	<%	else%>
-			<font size="1">&nbsp;[<a href="data.asp?table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=i%>&amp;pagesize=<%=pagesize%>&order=<%=Server.URLEncode(Request.QueryString("order"))%>"><%=i%></a>]&nbsp;</font>
-	<%	end if
-	Next
-	if abspage < rec.PageCount and abspage > 0 then%>
-		<a href="data.asp?table=<%=Server.URLEncode(sTableName)%>&amp;page=<%=(abspage + 1)%>&amp;pagesize=<%=pagesize%>&order=<%=Server.URLEncode(Request.QueryString("order"))%>"><font size="1"><%=langNext%>&nbsp;&raquo;</font></a>
-	<%end if%>
-	</p>
+<%=getPagingControl(rec.RecordCount, abspage, pagesize, "&amp;table=" & Server.URLEncode(sTableName) & "&amp;order=" & Server.URLEncode(Request.QueryString("order")))%>
 
 <%
 rec.Close

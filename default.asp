@@ -1,10 +1,17 @@
 <%@ Language=VBScript %>
 <!--#include file=scripts/inc_common.asp-->
 <%
-	if Request.Form("password") = DBA_cfgAdminPassword then
+	If Request.QueryString("action") = "logoff" Then 
+		Session.Contents.Remove(DBA_cfgSessionPwdName)
+		Session.Contents.Remove(DBA_cfgSessionUserName)
+		Session.Contents.Remove(DBA_cfgSessionDBPathName)
+		Session.Contents.Remove(DBA_cfgSessionDBPassword)
+	End if
+	if Request.Form("password") = DBA_cfgAdminPassword or not DBA_IsSecurityEnabled() then
 		Session(DBA_cfgSessionPwdName) = DBA_cfgAdminPassword
 		Session(DBA_cfgSessionUserName) = DBA_cfgAdminUsername
-		Response.Redirect "database.asp"
+		If DBA_cfgSessionTimeout > 0 Then Session.Timeout = DBA_cfgSessionTimeout
+		if DBA_IsSecurityEnabled() Then Response.Redirect "database.asp"
 	end if
 %>
 <html>
@@ -21,6 +28,13 @@ function onLoad(){
 		obj.focus();
 	}
 }
+function bugReport(){
+	var url = 'http://www.stpworks.com/redir.asp?linkid=5&p=1';
+	url += '&iis=<%=Server.UrlEncode(GetIISVersion())%>&ado=<%=Server.UrlEncode(GetADOVersion())%>';
+	url += '&browser=<%=Server.UrlEncode(Request.ServerVariables("HTTP_USER_AGENT"))%>';
+	url += '&se=<%=Server.UrlEncode(ScriptEngineMajorVersion & "." & ScriptEngineMinorVersion & "." & ScriptEngineBuildVersion)%>';
+	DBA_popupWindow(url, 'bug', 640, 480);
+}
 </script>
 </head>
 
@@ -36,7 +50,7 @@ function onLoad(){
 <br>
 
 <%
-	if Session(DBA_cfgSessionPwdName) <> DBA_cfgAdminPassword then
+	if Session(DBA_cfgSessionPwdName) <> DBA_cfgAdminPassword and DBA_IsSecurityEnabled() then
 		call WriteLoginForm
 	else
 		call WriteMainPage
@@ -72,11 +86,30 @@ function onLoad(){
 			<h5><%=langSettings%></h5>
 		</td>
 		<td align="center" valign="top">
-			<a href="javascript:DBA_popupWindow('http://www.stpworks.com/redir.asp?linkid=5&p=1', 'bug', 640, 480);">
+			<a href="javascript:bugReport();">
 				<img src="images/icon_submit_bug.gif" width="48" height="48" border="0" alt="<%=langSubmitBug%>">
 			</a>
 			<h5><%=langSubmitBug%></h5>
 		</td>
+		<td align="center" valign="top">
+			<a href="default.asp?action=logoff"><img src="images/icon_logoff.gif" border="0" width="48" height="48" alt="<%=langLogOff%>"></a>
+			<h5><%=langLogOff%></h5>
+		</td>
 	</tr>
 </table>
 <%End Sub%>
+
+<%
+	'Several functions for bug reporting
+	Function GetADOVersion()
+		'On Error Resume Next
+		dim con
+		Set con = Server.CreateObject("ADODB.Connection")
+		GetADOVersion = "" & con.Version
+		set con = Nothing
+	End Function
+	
+	Function GetIISVersion()
+		GetIISVersion = Request.ServerVariables("SERVER_SOFTWARE")
+	End Function
+%>
